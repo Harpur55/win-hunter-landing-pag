@@ -90,7 +90,7 @@
         Mental, Instinc, Technique
       </p>
       <a href="#" class="inline-block bg-blue-600 text-white text-lg md:text-xl px-6 py-3 rounded-lg shadow hover:bg-orange-700 transition">
-        Mulai Sekarang
+       Join Sekarang!
       </a>
     </div>
 
@@ -191,7 +191,7 @@
         <div class="swiper-slide bg-white p-4 rounded-lg shadow-lg flex justify-center items-center">
           <div>
         {{-- <a href="#" class="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row md:max-w-xl hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"></a> --}}
-        <img class="object-cover w-full rounded-t-lg h-96 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg" src="{{ asset('assets/images/' . $unit['image']) }}" alt="">
+        <img class="object-cover w-full rounded-t-lg h-50 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg" src="{{ asset('assets/images/' . $unit['image']) }}" alt="">
        <div class="flex flex-col justify-between p-4 leading-normal">
         <h5 class="mb-2 text-2xl font-bold tracking-tight text-black dark:text-black">{{ $unit['name'] }}</h5>
         <p class="mb-3 font-normal text-lg text-black dark:text-gray-400">{{ $coach['Sabuk']}}</p>
@@ -253,9 +253,9 @@
 
 <<section id="jadwal" class="bg-gray-300 py-10 px-4 sm:px-6 lg:px-20">
   <div class="container mx-auto">
-    <h2 class="text-3xl text-black text-center font-extrabold sm:text-4xl mb-4">Jadwal Latihan Pusat</h2>
+    <h2 class="text-3xl text-black text-center font-extrabold sm:text-4xl mb-4">Jadwal Latihan Pusat Dojang Waterland Metland Cileungsi</h2>
     <p class="text-md sm:text-xl text-gray-700 text-center mb-10">
-      Latihan rutin diadakan setiap hari Senin, Rabu, dan Jumat pukul 18.00 - 20.00 WIB.
+      Latihan rutin diadakan setiap hari dari Senin sampai Minggu.
     </p>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -296,16 +296,77 @@
   </div>
 </section>
 
-<section id="contact">
-  <div class="bg-gray-100 py-10 px-4 sm:px-6 lg:px-20">
-    <h2 class="text-3xl font-extrabold text-black sm:text-4xl mb-8 text-center">Contact & Address</h2>
-    <p class="text-lg text-gray-700 mb-6 text-center">Untuk informasi lebih lanjut, silakan hubungi kami melalui:</p>
+<<section class="bg-white">
+  <div class="container px-6 py-12 mx-auto">
+    <div class="text-center">
+      <h3 class="font-semibold text-3xl text-black">Hubungi kami</h3>
+      
+      <p class="mt-3 text-gray-500">Bergabung Bersama Kami</p>
+    </div>
 
-  
-</div>
-  
-  </div>  
+    <!-- Kontak Section -->
+    <div class="flex flex-col lg:flex-row justify-center items-center gap-12 mt-10">
+      <!-- Email -->
+      <div class="text-center lg:text-left">
+        <span class="inline-block p-3 text-blue-500 rounded-full bg-blue-100/80">
+          <!-- Email Icon -->
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+          </svg>
+        </span>
+        <h2 class="mt-4 text-base font-medium text-gray-800">Email</h2>
+        <p class="mt-2 text-sm text-gray-500">Our friendly team is here to help.</p>
+        <p class="mt-2 text-sm text-blue-500">hello@merakiui.com</p>
+      </div>
+
+      <!-- Office -->
+      <div class="text-center lg:text-left">
+        <span class="inline-block p-3 text-blue-500 rounded-full bg-blue-100/80">
+          <!-- Office Icon -->
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+          </svg>
+        </span>
+        <h2 class="mt-4 text-base font-medium text-gray-800">Office</h2>
+        <p class="mt-2 text-sm text-gray-500">Come say hello at our office HQ.</p>
+        <p class="mt-2 text-sm text-blue-500">100 Smith Street Collingwood VIC 3066 AU</p>
+      </div>
+
+      <!-- Phone -->
+      <div class="text-center lg:text-left">
+        <span class="inline-block p-3 text-blue-500 rounded-full bg-blue-100/80">
+          <!-- Phone Icon -->
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+          </svg>
+        </span>
+        <h2 class="mt-4 text-base font-medium text-gray-800">Phone</h2>
+        <p class="mt-2 text-sm text-gray-500">Mon-Fri from 8am to 5pm.</p>
+        <p class="mt-2 text-sm text-blue-500">+1 (555) 000-0000</p>
+      </div>
+    </div>
+
+    <!-- Maps Section -->
+    <div class="mt-16">
+      <h2 class="text-3xl text-black text-center font-extrabold sm:text-4xl mb-4">Maps Lokasi Latihan</h2>
+      <div class="w-full flex justify-center">
+        <iframe
+          class="w-full lg:w-[75%] h-96 rounded-lg"
+          frameborder="0"
+          title="map"
+          scrolling="no"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3964.9710922187955!2d106.97513277353566!3d-6.397726762570561!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6995fdca64783f%3A0xfedb580d6d020f3a!2sWaterland%20Metland%20Transyogi!5e0!3m2!1sen!2sid!4v1749525799981!5m2!1sen!2sid" width="100" height="600" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+      </div>
+    </div>
+  </div>
 </section>
+
 
 
     <footer class="bg-blue-800 text-white py-6">

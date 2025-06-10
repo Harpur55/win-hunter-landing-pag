@@ -9,4 +9,4 @@ Route::get('/', function () {
 Route::get('/cek', function () {
     return view('cek');
 });
-Route::get('/cek', [\App\Http\Controllers\CoachController::class, 'show'])->name('cek.show');
+Route::get('/index', [\App\Http\Controllers\CoachController::class, 'show'])->name('coach.show');

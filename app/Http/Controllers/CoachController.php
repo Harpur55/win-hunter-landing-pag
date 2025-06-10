@@ -9,13 +9,13 @@ class CoachController extends Controller
     public function index()
     {
 
-        return view('cek');
+        return view('index');
     }
     public function show(){
 
 
         $coaches = \App\Models\Coach::paginate(10);
-        return view('cek', compact('coaches'));
+        return view('index', compact('coaches'));
     }
 
 }
