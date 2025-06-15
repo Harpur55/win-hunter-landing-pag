@@ -2,9 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('cek');
-});
+Route::get('/', [\App\Http\Controllers\CoachController::class, 'show'])->name('coach.show');
 
 Route::get('/cek', function () {
     return view('cek');

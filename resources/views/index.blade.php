@@ -84,7 +84,7 @@
   <div class="container mx-auto flex flex-col-reverse md:flex-row items-center md:h-screen">
 
     <!-- TEXT AREA -->
-    <div class="w-full md:w-1/2 text-center md:text-left mt-6 md:mt-0 pt-6 md:pt-0">
+    <div class="w-full md:w-1/2 text-center md:text-left mt-3 pt-3 md:pt-0">
       <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
         Sacti Club <br> Win-Hunter
       </h1>
@@ -97,9 +97,9 @@
     </div>
 
     <!-- IMAGE AREA -->
-    <div class="w-full md:w-1/2 flex justify-center items-center relative mb-6 md:mb-0 h-auto md:h-full">
-      <img src="{{ asset('assets/images/FIX_LOGO-removebg-preview.png') }}" alt="logo Win-Hunter" 
-           class="w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] md:w-[800px] md:h-[500px] md:absolute md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 object-cover" />
+    <div class="w-full md:w-1/2 flex justify-center items-center relative mb-4 md:mb-0 h-auto md:h-full mt-3">
+      <img src="{{ asset('assets/images/new logo win-hunter.png') }}" alt="logo Win-Hunter" 
+           class="w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] md:w-[430px] md:h-[500px] md:absolute md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 object-cover" />
     </div>
 
   </div>
@@ -108,7 +108,7 @@
 
 
 
- <section id="unit" class="bg-gray-300 py-8 px-4">
+ <section id="unit" class="bg-gray-300 py-8 px-2">
   <h1 class="text-4xl font-bold mb-6 text-center text-black">Unit</h1>
 
   <div class="overflow-hidden">
@@ -116,23 +116,26 @@
       <div class="flex space-x-4">
         @php
           $units = [
-            ['name' => 'SDIT Cahaya Sunah', 'image' => 'SDIT Cahaya Sunah.jpg'],
-            ['name' => 'ASYAHID', 'image' => 'ASYAHID.jpg'],
-            ['name' => 'Al-Azhar Cibubur', 'image' => 'Al-Azhar.png'],
-            ['name' => 'Al-Azhar Metland Cileungsi', 'image' => 'Al-Azhar.png'],
-            ['name' => 'MI RUMAH ANAK', 'image' => 'MI RUMAH ANAK.png'],
-            ['name' => 'RC', 'image' => 'RC.jpg'],
-            ['name' => 'Waterland Metland', 'image' => 'download.jpg'],
+            ['nama_unit' => 'Waterland Transyogi, Cileungsi', 'image' => 'download.jpg' ,'maps' =>'https://g.co/kgs/72XHDyL'],
+            ['nama_unit' => 'SDIT Cahaya Sunah', 'image' => 'SDIT Cahaya Sunah.jpg','maps' => 'https://maps.app.goo.gl/q4tkBTQLsBQGqByR7'],
+            ['nama_unit' => 'SMP Quran Asy Syahid', 'image' => 'ASYAHID.jpg'],
+            ['nama_unit' => 'Al-Azhar Cibubur', 'image' => 'Al-Azhar.png'],
+            ['nama_unit' => 'Al-Azhar Metland Cileungsi', 'image' => 'Al-Azhar.png'],
+            ['nama_unit' => 'MI RUMAH ANAK', 'image' => 'MI RUMAH ANAK.png'],
+            ['nama_unit' => 'Regina Caeli School,Cileungsi', 'image' => 'RC.jpg']
+           
           ];
         @endphp
 
         @foreach($units as $unit)
-        <div class="flex items-center bg-white border border-blue-800 rounded-lg shadow-lg hover:shadow-2xl w-[300px] min-w-[300px] p-4 ">
+        <div class="flex items-center bg-white border border-blue-800 rounded-lg shadow-lg hover:shadow-2xl w-[350px] min-w-[350px] p-4 ">
           <div class="flex-1 text-left">
-            <h2 class="text-lg font-bold text-gray-800">{{ $unit['name'] }}</h2>
-            <p class="text-sm text-gray-600">Informasi singkat unit.</p>
+            <h2 class="text-lg font-bold text-gray-800">{{ $unit['nama_unit'] }}</h2>
+           <p class="text-sm text-gray-600 break-words whitespace-normal">
+ 
+</p>
           </div>
-          <img src="{{ asset('assets/images/' . $unit['image']) }}" alt="{{ $unit['name'] }}"
+          <img src="{{ asset('assets/images/' . $unit['image']) }}" alt="{{ $unit['nama_unit'] }}"
                class="w-20 h-20 object-cover rounded-md ml-4 border border-gray-300" />
         </div>
         @endforeach
@@ -176,12 +179,12 @@
         @php
             $coaches = [
             // ['name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png'],
-            ['name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam DAN IV'],
-            ['name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam'],
-            ['name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam'],
-            ['name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam'],
-            ['name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam'],
-            ['name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam'],
+            ['coach_name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam DAN IV'],
+            ['coach_name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam'],
+            ['coach_name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam'],
+            ['coach_name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam'],
+            ['coach_name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam'],
+            ['coach_name' => 'Sabeumnim Syamsul Aripin', 'image' => 'sanim.png', 'Sabuk' => 'Sabuk Hitam'],
            
             ]
         @endphp
@@ -189,9 +192,9 @@
         <div class="swiper-slide bg-white p-4 rounded-lg shadow-lg flex justify-center items-center">
           <div>
         {{-- <a href="#" class="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row md:max-w-xl hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"></a> --}}
-        <img class="object-cover w-full rounded-t-lg h-50 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg" src="{{ asset('assets/images/' . $unit['image']) }}" alt="">
+        <img class="object-cover w-full rounded-t-lg h-50 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg" src="{{ asset('assets/images/' . $coach['image']) }}" alt="">
        <div class="flex flex-col justify-between p-4 leading-normal">
-        <h5 class="mb-2 text-2xl font-bold tracking-tight text-black dark:text-black">{{ $unit['name'] }}</h5>
+        <h5 class="mb-2 text-2xl font-bold tracking-tight text-black dark:text-black">{{ $coach['coach_name'] }}</h5>
         <p class="mb-3 font-normal text-lg text-black dark:text-gray-400">{{ $coach['Sabuk']}}</p>
        </div>
     </div>
@@ -202,12 +205,17 @@
       </div>
 
       <!-- Navigasi -->
-      <div class="swiper-button-next"></div>
-      <div class="swiper-button-prev"></div>
+      {{-- <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div> --}}
       <div class="swiper-pagination mt-4"></div>
     </div>
   </div>
 </section>
+
+
+
+
+
 <section id="service" class="bg-gray-100 py-10 px-4 sm:px-6 lg:px-20">
   <h1 class="text-4xl font-extrabold mb-10 text-center text-gray-900">Kelas Taekwondo</h1>
 
@@ -251,31 +259,46 @@
   ];
   @endphp
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-    @foreach($class as $cls)
-      <div class="bg-white border border-black rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-        <img
-          src="{{ asset('assets/images/' . $cls['image']) }}"
-          alt="{{ $cls['name'] }}"
-          class="w-48 h-48 object-cover items-center mx-auto my-2 rounded-full shadow-md"
-        >
-   <div class="p-5 sm:text-left text-center">
-  <h3 class="text-xl font-semibold text-gray-800 mb-1">{{ $cls['name'] }}</h3>
+ <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+  @foreach($class as $cls)
+    <div class="bg-white border border-black rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+      
+      <!-- Gambar -->
+      <img
+        src="{{ asset('assets/images/' . $cls['image']) }}"
+        alt="{{ $cls['name'] }}"
+        class="w-48 h-48 object-cover items-center mx-auto rounded-full shadow-md mt-2"
+      >
+      
+      <!-- Konten -->
+      <div class="p-5 text-center sm:text-left">
+        <!-- Judul -->
+        <h3 class="text-xl font-semibold text-gray-800 mb-1">
+          {{ $cls['name'] }}
+        </h3>
 
-  <p class="text-gray-600 text-sm mb-4 whitespace-pre-line text-justify  sm:text-center">
-    {{-- Gunakan whitespace-pre-line untuk menjaga format teks --}}
+        <!-- Deskripsi -->
+       <div class="flex justify-center sm:justify-start text-black">
+  <p class="text-sm sm:text-base mb-4 whitespace-pre-line leading-relaxed" style="text-align: justify; max-width: 90%;">
     {{ $cls['deskripsi'] }}
   </p>
-
-  <a href="#" class="inline-block">
-    <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300">
-      Daftar Sekarang
-    </button>
-  </a>
+</div>
+        <!-- Tombol -->
+        <div>
+          <a href="#" class="inline-block">
+            <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300">
+              Daftar Sekarang
+            </button>
+          </a>
+        </div>
+      </div>
+    </div>
+  @endforeach
 </div>
 
       </div>
-    @endforeach
+    {{-- @endforeach --}}
+  </div>
   </div>
 </section>
 
@@ -297,12 +320,12 @@
         ['hari' => 'Jumat', 'kelas' => [['Kelas Reguler < 12 tahun', '16:00 - 18:45 WIB']]],
         ['hari' => 'Sabtu', 'kelas' => [
             ['Kelas Reguler Semua Sabuk', '08:00 - 10:45 WIB'],
-            ['Kelas Poomsae', '10:00 - 12:45 WIB']
+            ['Kelas Poomsae', '10:00 - 12:00 WIB']
           ]
         ],
         ['hari' => 'Minggu', 'kelas' => [
             ['Kelas Reguler Semua Sabuk', '07:30 - 09:45 WIB'],
-            ['Kelas Poomsae', '10:00 - 12:45 WIB']
+            ['Kelas Poomsae', '10:00 - 12:00 WIB']
           ]
         ]
       ];
