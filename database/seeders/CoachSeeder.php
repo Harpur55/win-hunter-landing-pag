@@ -5,30 +5,77 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Coach;
 use Illuminate\Support\Str;
-use Faker\Factory as Faker;
+use Illuminate\Support\Facades\DB;
+
+// use Faker\Factory as Faker;
 
 class CoachSeeder extends Seeder
 {
-    public function run(){
+   public function run()
+{
+    // $faker = Faker\Factory::create();
 
+    // $images = [
+    //     'assets/images/download.jpg',
+    //     'assets/images/sanim.png',
+    // ];
 
+    DB::table('coach')->insert([
+        
+        [
+            'foto' =>'assets/images/team/sabeumsyamsul.png',
+            'nama' => 'Sabeumnim Syamsul Aripin',
+            'sabuk' => 'DAN 5'
+        ],
+        [
+            'foto' => 'assets/images/team/bayu.png',
+            'nama' => 'Laras Bayu Dwi Anggoro',
+            'sabuk' => 'DAN 3',
+        ],
+       
+        [
+            'foto' =>'assets/images/team/sabeumsyamsul.png',
+            'nama' => 'Sabeum M. Kurniawan',
+            'sabuk' => 'DAN 3'
+        ],
+        [
+            'foto' => 'assets/images/team/akmal.png',
+            'nama' => 'Sabeum Akmal Taufiqul Hakim',
+            'sabuk' => 'DAN 2'
+        ],
+        [
+            'foto' => 'assets/images/team/fachry.png',
+            'nama' => 'Sabeum  M.Fachry ichsan R ',
+            'sabuk' => 'DAN 2'
+        ],
+        [
+            'foto' => 'assets/images/team/faisal.png',
+            'nama' => 'Sabeum  Faisal Abdul Hakim', 
+            'sabuk' => 'DAN 1'
+        ],
+        [
+            'foto' => 'assets/images/team/hari.png',
+            'nama' => 'Sabeum Hari Purnomo', 
+            'sabuk' => 'DAN 1'
+        ],
+        [
+            'foto' =>'assets/images/team/faisal.png' ,
+            'nama' => 'Sabeum  Dirgahayu Agustian', 
+            'sabuk' => 'DAN 1'
+        ],
+        [
+            'foto' => 'assets/images/team/cindy.png',
+            'nama' => 'Sabeum Alya Nurhikmah', 
+            'sabuk' => 'DAN 1'
+        ],
+        [
+            'foto' => 'assets/images/team/cindy.png',
+            'nama' => 'Sabeum Cindy Maya Fahira', 
+            'sabuk' => 'DAN 1'
+        ],
 
-    $faker = Faker::create();
-
-        $images = [
-            'assets/images/download.jpg',
-            'assets/images/sanim.png',
-        ];
-
-        foreach (range(1, 10) as $index) {
-            Coach::create([
-                'foto' => $faker->randomElement($images),  // pakai gambar acak dari array
-                'nama' => $faker->name,
-                'sabuk' => $faker->randomElement(['Putih', 'Kuning', 'Hijau', 'Biru', 'Merah', 'Hitam']),
-            ]);
-        }
-    }
+        ]);
 }
 
-
+}
 
