@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Coach;
 
 class CoachController extends Controller
 {
@@ -14,7 +15,7 @@ class CoachController extends Controller
     public function show(){
 
 
-        $coaches = \App\Models\Coach::paginate(10);
+        $coaches = Coach::all();
         return view('index', compact('coaches'));
     }
 

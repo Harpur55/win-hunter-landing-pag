@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('foto');
             $table->string('nama');
             $table->string('Sabuk');
+            $table->string('role');
             $table->timestamps();
         });
     }
