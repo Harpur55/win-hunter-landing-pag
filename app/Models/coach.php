@@ -10,5 +10,11 @@ class coach extends Model
      use HasFactory;
 
     protected $table = 'coach';
+    protected $fillable = [
+        'foto',
+        'nama',
+        'Sabuk',
+        'role',
+    ];
     //
 }
