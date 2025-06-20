@@ -118,7 +118,8 @@
                 <p class="text-sm text-gray-600 break-words whitespace-normal"></p>
               </div>
               <img src="{{ asset($unit->image) }}" alt="{{ $unit->image }}" class="w-20 h-20 object-cover rounded-md ml-4 border border-gray-300" />
-            </div> @endforeach 
+            </div> 
+            @endforeach 
           </div>
 
            </div>
