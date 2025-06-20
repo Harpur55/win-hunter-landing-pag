@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Coach;
+use App\Models\Unit;
 
 class CoachController extends Controller
 {
@@ -16,7 +17,8 @@ class CoachController extends Controller
 
 
         $coaches = Coach::all();
-        return view('index', compact('coaches'));
+        $units = Unit::all();
+        return view('index', compact('coaches', 'units'));
     }
 
 }

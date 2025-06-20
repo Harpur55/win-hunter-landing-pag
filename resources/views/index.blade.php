@@ -100,17 +100,28 @@
         <div class="w-full md:w-1/2 flex justify-center items-center relative mb-4 md:mb-0 h-auto md:h-full mt-3">
           <img src="{{ asset('assets/images/new logo win-hunter.png') }}" alt="logo Win-Hunter" class="w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] md:w-[430px] md:h-[500px] md:absolute md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 object-cover" />
         </div>
-      </div></section><section id="unit" class="bg-gray-300 py-8 px-2">
+      </div>
+    </section>
+    <section id="unit" class="bg-gray-300 py-8 px-2">
       <h1 class="text-4xl font-bold mb-6 text-center text-black">Unit</h1>
       <div class="overflow-hidden">
         <marquee behavior="scroll" direction="left" scrollamount="4">
-          <div class="flex space-x-4"> @php $units = [ ['nama_unit' => 'Waterland Transyogi, Cileungsi', 'image' => 'download.jpg' ,'maps' =>'https://g.co/kgs/72XHDyL'], ['nama_unit' => 'SDIT Cahaya Sunah', 'image' => 'SDIT Cahaya Sunah.jpg','maps' => 'https://maps.app.goo.gl/q4tkBTQLsBQGqByR7'], ['nama_unit' => 'SMP Quran Asy Syahid', 'image' => 'ASYAHID.jpg'], ['nama_unit' => 'Al-Azhar Cibubur', 'image' => 'Al-Azhar.png'], ['nama_unit' => 'Al-Azhar Metland Cileungsi', 'image' => 'Al-Azhar.png'], ['nama_unit' => 'MI RUMAH ANAK', 'image' => 'MI RUMAH ANAK.png'], ['nama_unit' => 'Regina Caeli School,Cileungsi', 'image' => 'RC.jpg'] ]; @endphp @foreach($units as $unit) <div class="flex items-center bg-white border border-blue-800 rounded-lg shadow-lg hover:shadow-2xl w-[350px] min-w-[350px] p-4 ">
+          <div class="flex space-x-4">
+        @foreach($units as $unit)
+      <div class="flex items-center bg-white border border-blue-800 rounded-lg shadow-lg hover:shadow-2xl w-[400px] min-w-[400px] p-4 ">
               <div class="flex-1 text-left">
-                <h2 class="text-lg font-bold text-gray-800">{{ $unit['nama_unit'] }}</h2>
+               <h2 class="text-lg font-bold text-gray-800">
+              <a href="{{ $unit->link }}" target="_blank" class="text-blue-600 hover:underline">
+                {{ $unit->name }}
+                  </a>
+                </h2>
                 <p class="text-sm text-gray-600 break-words whitespace-normal"></p>
               </div>
-              <img src="{{ asset('assets/images/' . $unit['image']) }}" alt="{{ $unit['nama_unit'] }}" class="w-20 h-20 object-cover rounded-md ml-4 border border-gray-300" />
-            </div> @endforeach </div>
+              <img src="{{ asset($unit->image) }}" alt="{{ $unit->image }}" class="w-20 h-20 object-cover rounded-md ml-4 border border-gray-300" />
+            </div> @endforeach 
+          </div>
+
+           </div>
         </marquee>
       </div>
     </section><section id="content" class="bg-gray-100 py-10 px-20">
@@ -130,7 +141,8 @@
       <div class="container mx-auto flex flex-col items-center">
         <h2 class="text-3xl font-extrabold text-black sm:text-4xl mb-8">Pelatih</h2>
         <div class="swiper mySwiper ">
-          <div class="swiper-wrapper"> @foreach($coaches as $coach) <div class="swiper-slide bg-white p-4 rounded-lg shadow-lg flex justify-center items-center">
+          <div class="swiper-wrapper"> 
+            @foreach($coaches as $coach) <div class="swiper-slide bg-white p-4 rounded-lg shadow-lg flex justify-center items-center">
               <div>
                 {{-- <a href="#" class="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row md:max-w-xl hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"></a> --}}
                 <img class="object-cover w-full rounded-t-lg h-50 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg " src="{{ asset($coach->foto) }}" alt="{{ $coach->coach_name }}">
@@ -140,7 +152,8 @@
                   <p class="mb-3 font-normal text-lg text-black dark:text-black">{{ $coach->role }}</p>
                 </div>
               </div>
-            </div> @endforeach </div>
+            </div> @endforeach 
+          </div>
           <!-- Navigasi -->
           {{-- <div class="swiper-button-next"></div>
 				<div class="swiper-button-prev"></div> --}}

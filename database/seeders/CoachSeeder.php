@@ -61,7 +61,7 @@ class CoachSeeder extends Seeder
             'role' => 'Pelatih'
         ],
         [
-            'foto' => 'assets/images/team/hari.png',
+            'foto' => 'assets/images/team/Hari.png',
             'nama' => 'Sabeum Hari Purnomo', 
             'sabuk' => 'DAN 1',
             'role' => 'Pelatih'

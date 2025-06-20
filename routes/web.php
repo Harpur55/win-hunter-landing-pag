@@ -1,8 +1,11 @@
 <?php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CoachController;
+use App\Http\Controllers\UnitController;
 
 
 
-Route::get('/', [\App\Http\Controllers\CoachController::class, 'show'])->name('coach.home');
-Route::get('/index', [\App\Http\Controllers\CoachController::class, 'show'])->name('coach.index');
+
+
+Route::get('/', [CoachController::class, 'show'])->name('home');
+
