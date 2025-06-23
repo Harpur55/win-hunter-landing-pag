@@ -216,32 +216,37 @@
       </div>
     </section>
 
-   <section id="galery" class="bg-white py-10 px-4 sm:px-6 lg:px-20">
+<section id="galery" class="bg-white py-10 px-4 sm:px-6 lg:px-20">
   <div class="container mx-auto">
     <h2 class="text-3xl text-black text-center font-extrabold sm:text-4xl mb-4">Galeri</h2>
     <p class="text-md sm:text-xl text-gray-700 text-center mb-10">
       Beberapa momen berharga dari kegiatan kami.
     </p>
 
-    <div class="swiper mySwiper">
+    <div class="swiper galerySwiper">
       <div class="swiper-wrapper">
-
-        @foreach (['cover1.jpeg', 'cover2.jpeg', 'download.jpg', 'download.jpg', 'download.jpg'] as $image)
-          <div class="swiper-slide relative">
-            {{-- Text Judul --}}
-            <div class="absolute top-0 left-0 w-full bg-black bg-opacity-50 p-2">
-              <h3 class="text-white text-lg sm:text-2xl font-bold text-center">EVENT WIN-HUNTER</h3>
-            </div>
-
+        @foreach(['cover1.jpeg', 'cover2.jpeg', 'download.jpg', 'download.jpg', 'download.jpg'] as $image)
+          <div class="swiper-slide relative w-full">
             {{-- Gambar --}}
-            <img src="{{ asset('assets/images/' . $image) }}" alt="Slide" class="w-full h-full object-cover">
+            <img src="{{ asset('assets/images/' . $image) }}" alt="Galeri"
+              class="w-full h-[300px] sm:h-[500px] object-cover rounded-xl shadow-md" />
+
+            {{-- Judul di atas gambar --}}
+            <div class="absolute top-0 left-0 w-full bg-black bg-opacity-50 p-2 rounded-t-xl">
+              <h3 class="text-white text-lg sm:text-xl font-bold text-center">
+                EVENT WIN-HUNTER
+              </h3>
+            </div>
           </div>
         @endforeach
-
       </div>
+
+      <div class="swiper-pagination mt-4"></div>
     </div>
   </div>
 </section>
+
+
 
     
     <section class="bg-white" id="contact">
@@ -355,7 +360,9 @@
       </div>
     </footer>
   </body>
-  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script><script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js">
+  </script>
+  <script>
     const swiper = new Swiper('.mySwiper', {
       loop: true,
       spaceBetween: 20,
@@ -381,5 +388,25 @@
       },
     });
   </script>
+
+ <script>
+  new Swiper(".galerySwiper", {
+    effect: "coverflow",
+    grabCursor: true,
+    centeredSlides: true,
+    slidesPerView: "auto",
+    loop: true,
+    coverflowEffect: {
+      rotate: 30,
+      stretch: 0,
+      depth: 200,
+      modifier: 1,
+      slideShadows: true,
+    },
+    pagination: {
+      el: ".swiper-pagination",
+    },
+  });
+</script>
 
 </html>
