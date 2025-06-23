@@ -96,7 +96,7 @@
         <div class="w-full md:w-1/2 text-center md:text-left mt-3 pt-3 md:pt-0">
           <h1 class="text-4xl md:text-6xl font-bold text-white mb-4"> Sacti Club <br> Win-Hunter </h1>
           <p class="text-2xl md:text-4xl text-white mb-6"> Mental, Instinct, Technique </p>
-          <a href="https://wa.me/6287772362124?text=Saya%20ingin%20Bertanya%20Tentang%20Taekwondo%20Win-Hunter
+          <a href="https://wa.me/6285890810081?text=Saya%20ingin%20Bertanya%20Tentang%20Taekwondo%20Win-Hunter
              " target="_blank" class="inline-block bg-blue-600 text-white text-lg md:text-xl px-6 py-3 rounded-lg shadow hover:bg-orange-700 transition"> Join Sekarang! </a>
         </div>
         <!-- IMAGE AREA -->
@@ -163,9 +163,7 @@
               </div>
             </div> @endforeach 
           </div>
-          <!-- Navigasi -->
-          {{-- <div class="swiper-button-next"></div>
-				<div class="swiper-button-prev"></div> --}}
+        
           <div class="swiper-pagination mt-6"></div>
         </div>
       </div>
@@ -188,7 +186,8 @@
             </div>
             <!-- Tombol -->
             <div class="mt-2">
-              <a href="https://wa.me/6287772362124?text=Saya%20ingin%20Bertanya%20Tentang%20Taekwondo%20Win-Hunter
+              <a href="https://wa.me/6285890810081?text=Halo%21%20%F0%9F%91%8B%20Saya%20tertarik%20dengan%20Taekwondo%20Win-Hunter%20dan%20ingin%20bertanya%20lebih%20lanjut.%20Boleh%20minta%20informasinya%3F%20%F0%9F%99%8F
+
              " target="_blank" class="inline-block w-full">
                 <button class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300"> Daftar Sekarang </button>
               </a>
@@ -227,11 +226,11 @@
       <div class="swiper-wrapper">
         @foreach(['cover1.jpeg', 'cover2.jpeg', 'download.jpg', 'download.jpg', 'download.jpg'] as $image)
           <div class="swiper-slide relative w-full">
-            {{-- Gambar --}}
+           
             <img src="{{ asset('assets/images/' . $image) }}" alt="Galeri"
               class="w-full h-[300px] sm:h-[500px] object-cover rounded-xl shadow-md" />
 
-            {{-- Judul di atas gambar --}}
+          
             <div class="absolute top-0 left-0 w-full bg-black bg-opacity-50 p-2 rounded-t-xl">
               <h3 class="text-white text-lg sm:text-xl font-bold text-center">
                 EVENT WIN-HUNTER
@@ -323,7 +322,7 @@
             </span>
             <h2 class="mt-4 text-base font-medium text-gray-800">Phone</h2>
             <p class="mt-2 text-sm text-black">Kontak Kami</p>
-            <a href="https://wa.me/6287772362124?text=Saya%20ingin%20Bertanya%20Tentang%20Taekwondo%20Win-Hunter
+            <a href="https://wa.me/6285890810081?text=Saya%20ingin%20Bertanya%20Tentang%20Taekwondo%20Win-Hunter
 " target="_blank" class="inline-flex items-center px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600 transition">
               <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20.52 3.48A11.85 11.85 0 0012.04 0C5.39 0 .04 5.35.04 11.96c0 2.1.55 4.17 1.6 5.99L0 24l6.25-1.63a12.03 12.03 0 005.79 1.47h.01c6.65 0 12.04-5.35 12.04-11.96a11.87 11.87 0 00-3.57-8.4zM12.04 22a9.92 9.92 0 01-5.06-1.37l-.36-.21-3.71.97.99-3.6-.24-.38a9.93 9.93 0 01-1.5-5.25c0-5.47 4.49-9.92 10.01-9.92 2.67 0 5.18 1.04 7.07 2.92a9.88 9.88 0 012.94 7.05c0 5.47-4.49 9.92-10.08 9.92zm5.5-7.57c-.3-.15-1.77-.87-2.05-.97-.28-.1-.48-.15-.68.15s-.78.96-.95 1.16c-.17.2-.35.22-.65.07a8.09 8.09 0 01-2.39-1.48 9.01 9.01 0 01-1.66-2.06c-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.65-.93-2.26-.24-.58-.49-.5-.68-.51l-.58-.01c-.2 0-.52.07-.8.38-.28.3-1.06 1.03-1.06 2.5s1.09 2.9 1.24 3.1c.15.2 2.15 3.28 5.22 4.6.73.31 1.3.49 1.75.62.74.23 1.4.2 1.93.12.59-.09 1.77-.72 2.02-1.41.25-.7.25-1.3.17-1.42-.07-.12-.26-.19-.55-.33z" />
