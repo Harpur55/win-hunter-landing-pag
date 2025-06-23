@@ -216,13 +216,33 @@
       </div>
     </section>
 
-    <section id="galery">
+   <section id="galery" class="bg-white py-10 px-4 sm:px-6 lg:px-20">
+  <div class="container mx-auto">
+    <h2 class="text-3xl text-black text-center font-extrabold sm:text-4xl mb-4">Galeri</h2>
+    <p class="text-md sm:text-xl text-gray-700 text-center mb-10">
+      Beberapa momen berharga dari kegiatan kami.
+    </p>
 
-      
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper">
 
+        @foreach (['cover1.jpeg', 'cover2.jpeg', 'download.jpg', 'download.jpg', 'download.jpg'] as $image)
+          <div class="swiper-slide relative">
+            {{-- Text Judul --}}
+            <div class="absolute top-0 left-0 w-full bg-black bg-opacity-50 p-2">
+              <h3 class="text-white text-lg sm:text-2xl font-bold text-center">EVENT WIN-HUNTER</h3>
+            </div>
 
+            {{-- Gambar --}}
+            <img src="{{ asset('assets/images/' . $image) }}" alt="Slide" class="w-full h-full object-cover">
+          </div>
+        @endforeach
 
-    </section>
+      </div>
+    </div>
+  </div>
+</section>
+
     
     <section class="bg-white" id="contact">
       <div class="container px-6 py-12 mx-auto">

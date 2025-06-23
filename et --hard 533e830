@@ -1,0 +1,20 @@
+[33m5167d35[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: reset: moving to 5167d35
+[33m533e830[m[33m ([m[1;31morigin/main[m[33m)[m HEAD@{1}: commit: unit scroling and add galey section
+[33m5167d35[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{2}: commit: border unit
+[33m069f257[m HEAD@{3}: commit: collate database
+[33m52bb6a4[m HEAD@{4}: commit: update db
+[33mdd952b9[m HEAD@{5}: commit: link for unit
+[33m2a8324b[m HEAD@{6}: commit: add coach model
+[33m4c734c3[m HEAD@{7}: commit: upadate route
+[33m0588229[m HEAD@{8}: commit: update database
+[33m9da1023[m HEAD@{9}: commit: add database
+[33m5d0eb78[m HEAD@{10}: commit: #width image class
+[33m1959ff4[m HEAD@{11}: commit: width cover kelas
+[33m20b4669[m HEAD@{12}: commit: link navigation
+[33m2537ddf[m HEAD@{13}: commit: #add database coach
+[33m03ebe8a[m HEAD@{14}: commit: revisi
+[33m2f1839d[m HEAD@{15}: commit: add fix logo
+[33md18c22d[m HEAD@{16}: commit: contact and adrress
+[33mbce9917[m HEAD@{17}: commit: fitur kontak
+[33m71b08f2[m HEAD@{18}: Branch: renamed refs/heads/master to refs/heads/main
+[33m71b08f2[m HEAD@{20}: commit (initial): first commit
