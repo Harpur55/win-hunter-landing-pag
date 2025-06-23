@@ -36,10 +36,64 @@ togleNavbar();
 
 
 
+//unit function
+
+const wrapper = document.getElementById('unit-slider-wrapper');
+let isDown = false;
+let startX;
+let scrollLeft;
+let autoScrollInterval;
+
+// Manual drag scroll
+wrapper.addEventListener('mousedown', (e) => {
+  isDown = true;
+  startX = e.pageX - wrapper.offsetLeft;
+  scrollLeft = wrapper.scrollLeft;
+});
+wrapper.addEventListener('mouseleave', () => isDown = false);
+wrapper.addEventListener('mouseup', () => isDown = false);
+wrapper.addEventListener('mousemove', (e) => {
+  if (!isDown) return;
+  e.preventDefault();
+  const x = e.pageX - wrapper.offsetLeft;
+  const walk = (x - startX);
+  wrapper.scrollLeft = scrollLeft - walk;
+});
+
+// Touch scroll
+wrapper.addEventListener('touchstart', (e) => {
+  isDown = true;
+  startX = e.touches[0].clientX;
+  scrollLeft = wrapper.scrollLeft;
+});
+wrapper.addEventListener('touchend', () => isDown = false);
+wrapper.addEventListener('touchmove', (e) => {
+  if (!isDown) return;
+  const x = e.touches[0].clientX;
+  const walk = x - startX;
+  wrapper.scrollLeft = scrollLeft - walk;
+});
+
+// Auto scroll logic
+function startAutoScroll() {
+  autoScrollInterval = setInterval(() => {
+    wrapper.scrollLeft += 1;
+    // Reset ke awal untuk loop
+    if (wrapper.scrollLeft >= wrapper.scrollWidth / 2) {
+      wrapper.scrollLeft = 0;
+    }
+  }, 20); // kecepatan scroll
+}
+
+function stopAutoScroll() {
+  clearInterval(autoScrollInterval);
+}
+
+wrapper.addEventListener('mouseenter', stopAutoScroll);
+wrapper.addEventListener('mouseleave', startAutoScroll);
+
+// Start on load
+startAutoScroll();
 
 
 
-
-
-
-// Ini cukup agar langsung aktif saat halaman dimuat

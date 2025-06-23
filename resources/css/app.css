@@ -71,4 +71,28 @@
   
   /* ===== */
 
+
+/* unit slider */
+@keyframes autoScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+#unit-slider.paused {
+  animation-play-state: paused !important;
+}
+#unit-slider-wrapper {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* IE & Edge */
+}
+#unit-slider-wrapper::-webkit-scrollbar {
+  display: none;               /* Chrome, Safari, Opera */
+}
+
+
+
     

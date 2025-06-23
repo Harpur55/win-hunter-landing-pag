@@ -6,7 +6,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <title>Win-Hunter.com</title>
-    <link rel="icon" type="image/x-icon" href="{{ asset('assets/images/download.jpg') }} " class="rounded-full " /> @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/images/download.jpg') }} " class="rounded-full " /> 
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
   </head>
   <body class="font-sans scroll-smooth">
     <section id="navbar" class="  bg-blue-800 shadow-md">
@@ -89,12 +90,14 @@
         </ul>
       </div>
     </section>
-    <section class="bg-blue-700 py-10 px-6 md:px-20" id="home"><div class="container mx-auto flex flex-col-reverse md:flex-row items-center md:h-screen">
+    <section class="bg-blue-700 py-10 px-6 md:px-20" id="home">
+      <div class="container mx-auto flex flex-col-reverse md:flex-row items-center md:h-screen">
         <!-- TEXT AREA -->
         <div class="w-full md:w-1/2 text-center md:text-left mt-3 pt-3 md:pt-0">
           <h1 class="text-4xl md:text-6xl font-bold text-white mb-4"> Sacti Club <br> Win-Hunter </h1>
           <p class="text-2xl md:text-4xl text-white mb-6"> Mental, Instinct, Technique </p>
-          <a href="#" class="inline-block bg-blue-600 text-white text-lg md:text-xl px-6 py-3 rounded-lg shadow hover:bg-orange-700 transition"> Join Sekarang! </a>
+          <a href="https://wa.me/6287772362124?text=Saya%20ingin%20Bertanya%20Tentang%20Taekwondo%20Win-Hunter
+             " target="_blank" class="inline-block bg-blue-600 text-white text-lg md:text-xl px-6 py-3 rounded-lg shadow hover:bg-orange-700 transition"> Join Sekarang! </a>
         </div>
         <!-- IMAGE AREA -->
         <div class="w-full md:w-1/2 flex justify-center items-center relative mb-4 md:mb-0 h-auto md:h-full mt-3">
@@ -102,42 +105,47 @@
         </div>
       </div>
     </section>
-    <section id="unit" class="bg-gray-300 py-8 px-2">
-      <h1 class="text-4xl font-bold mb-6 text-center text-black">Unit</h1>
-      <div class="overflow-hidden">
-        <marquee behavior="scroll" direction="left" scrollamount="4">
-          <div class="flex space-x-4">
-        @foreach($units as $unit)
-      <div class="flex items-center bg-white border border-blue-800 rounded-lg shadow-lg hover:shadow-2xl w-[400px] min-w-[400px] p-4 ">
-              <div class="flex-1 text-left">
-               <h2 class="text-lg font-bold text-gray-800">
-              <a href="{{ $unit->link }}" target="_blank" class="text-blue-600 hover:underline">
-                {{ $unit->name }}
-                  </a>
-                </h2>
-                <p class="text-sm text-gray-600 break-words whitespace-normal"></p>
-              </div>
-              <img src="{{ asset($unit->image) }}" alt="{{ $unit->image }}" class="w-20 h-20 object-cover rounded-md ml-4 border border-gray-300" />
-            </div> 
-            @endforeach 
-          </div>
 
-           </div>
-        </marquee>
+<section id="unit" class="bg-white py-8 px-2">
+  <h1 class="text-4xl font-bold mb-6 text-center text-black">Unit</h1>
+
+  <div class="relative overflow-hidden">
+    <div id="unit-slider-wrapper" class="overflow-x-auto whitespace-nowrap scroll-smooth scrollbar-hide">
+      <div id="unit-slider" class="flex gap-4 w-max">
+        @for ($i = 0; $i < 2; $i++) 
+          @foreach($units as $unit)
+          <div class="flex flex-col sm:flex-row sm:items-center bg-white border border-blue-800 
+            rounded-lg shadow-lg hover:shadow-2xl 
+            w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px] 
+            min-w-[280px] sm:min-w-[320px] md:min-w-[360px] lg:min-w-[400px] 
+            p-4 items-center  text-center sm:text-left snap-start">
+
+  {{-- Logo --}}
+  <div class="w-20 h-20 object-cover rounded-md border border-gray-300 mb-2 sm:mb-0 sm:ml-4 sm:order-2">
+    <img src="{{ asset($unit->image) }}" alt="{{ $unit->image }}" class="w-full h-full object-cover rounded-md" />
+  </div>
+
+  {{-- Nama --}}
+  <div class="w-full sm:flex-1 sm:order-1">
+    <h2 class="text-base sm:text-lg font-bold text-gray-800">
+      <a href="{{ $unit->link }}" target="_blank" class="text-blue-600 hover:underline block w-full text-center sm:text-left">
+        {{ $unit->name }}
+      </a>
+    </h2>
+  </div>
+</div>
+          @endforeach
+        @endfor
       </div>
-    </section><section id="content" class="bg-gray-100 py-10 px-20">
-      <div class="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-8">
-          <div class="max-w-lg">
-            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Tentang Kami</h2>
-            <p class="mt-4 text-gray-600 text-lg md:text-justify text-wrap"> Sacti Club Win-Hunter adalah klub taekwondo yang didirikan pada 15 Mei 2015 dan berpusat di lantai 2 kolam renang Metland Transyogi, Cileungsi. Klub ini dipimpin oleh Sabeumnim Samsul Arifin, pemegang sabuk hitam DAN IV Internasional dari Kukkiwon serta berlisensi sebagai wasit taekwondo nasional dan internasional. Dengan komitmen terhadap pembinaan mental, fisik, dan prestasi atlet, Sacti Club Win-Hunter menjadi tempat latihan taekwondo yang berfokus pada pengembangan karakter dan kompetensi dalam semangat sportivitas. </p>
-          </div>
-          <div class="mt-12 md:mt-0">
-            <img src="https://images.unsplash.com/photo-1531973576160-7125cd663d86" alt="About Us Image" class="object-cover rounded-lg shadow-md">
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+
     <section id="coach" class="py-10 px-4 sm:px-6 lg:px-2 bg-gray-300">
       <div class="container mx-auto flex flex-col items-center">
         <h2 class="text-3xl font-extrabold text-black sm:text-4xl mb-8">Pelatih</h2>
@@ -180,7 +188,8 @@
             </div>
             <!-- Tombol -->
             <div class="mt-2">
-              <a href="#" class="inline-block w-full">
+              <a href="https://wa.me/6287772362124?text=Saya%20ingin%20Bertanya%20Tentang%20Taekwondo%20Win-Hunter
+             " target="_blank" class="inline-block w-full">
                 <button class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300"> Daftar Sekarang </button>
               </a>
             </div>
@@ -190,7 +199,9 @@
       {{-- @endforeach --}}
       </div>
       </div>
-    </section><section id="jadwal" class="bg-gray-300 py-10 px-4 sm:px-6 lg:px-20">
+    </section>
+    
+    <section id="jadwal" class="bg-gray-300 py-10 px-4 sm:px-6 lg:px-20">
       <div class="container mx-auto">
         <h2 class="text-3xl text-black text-center font-extrabold sm:text-4xl mb-4">Jadwal Latihan Pusat Dojang Waterland Metland Cileungsi</h2>
         <p class="text-md sm:text-xl text-gray-700 text-center mb-10"> Latihan rutin diadakan setiap hari dari Senin sampai Minggu. </p>
@@ -203,7 +214,17 @@
                 </div>
               </div> @endforeach </div>
       </div>
-    </section><section class="bg-white" id="contact">
+    </section>
+
+    <section id="galery">
+
+      
+
+
+
+    </section>
+    
+    <section class="bg-white" id="contact">
       <div class="container px-6 py-12 mx-auto">
         <div class="text-center">
           <h3 class="font-semibold text-3xl text-black">Hubungi kami</h3>
@@ -313,7 +334,8 @@
         </p>
       </div>
     </footer>
-  </body><script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script><script>
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script><script>
     const swiper = new Swiper('.mySwiper', {
       loop: true,
       spaceBetween: 20,
@@ -339,4 +361,5 @@
       },
     });
   </script>
+
 </html>
