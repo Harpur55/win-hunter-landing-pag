@@ -15,8 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('foto');
             $table->string('nama');
-            $table->string('Sabuk');
+            $table->string('sabuk');
+            $table->string('nomor_telepon');
+            $table->string('alamat');
             $table->string('role');
+            $table->string('status')->default('Aktif'); // Status default 'Aktif'
             $table->timestamps();
         });
     }

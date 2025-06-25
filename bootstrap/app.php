@@ -16,3 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
+
+    $app->register(App\Providers\Filament\AdminPanelProvider::class);
+
+    return $app;
