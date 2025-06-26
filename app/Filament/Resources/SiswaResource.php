@@ -214,14 +214,14 @@ class SiswaResource extends Resource
                 ->sortable(), 
             
 
-             TextColumn::make('image')
-             ->label('Foto Profil')
-            ->formatStateUsing(function ($state) {
-                return $state
-            ? '<img src="' . asset('storage/' . $state) . '" alt="Foto Profil" class="w-16 h-16 rounded-full">'
-            : '';
-    })
-    ->html(),
+    //          TextColumn::make('image')
+    //          ->label('Foto Profil')
+    //         ->formatStateUsing(function ($state) {
+    //             return $state
+    //         ? '<img src="' . asset('storage/' . $state) . '" alt="Foto Profil" class="w-16 h-16 rounded-full">'
+    //         : '';
+    // })
+    // ->html(),
             
             TextColumn::make('nama_lengkap')
                 ->label('Nama Lengkap')
