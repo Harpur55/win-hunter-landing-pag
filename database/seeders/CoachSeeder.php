@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Coach;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 // use Faker\Factory as Faker;
@@ -23,67 +24,118 @@ class CoachSeeder extends Seeder
     DB::table('coach')->insert([
         
         [
-            'foto' =>'assets/images/team/sabeumsyamsul.png',
-            'nama' => 'Sabeumnim Syamsul Aripin',
-            'sabuk' => 'DAN 5',
-            'role' => 'Pelatih Utama dan Owner'
+        'foto' => 'assets/images/team/sabeumsyamsul.png',
+        'nama' => 'Sabeumnim Syamsul Aripin',
+        'sabuk' => 'DAN 5',
+        'nomor_telepon' => '0987654321',
+        'alamat' => 'Cielungsi',
+        'role' => 'pelatih Utama dan Owner', 
+        'status' => 'Active',
+        'created_at' => Carbon::now(),
+        'updated_at' => Carbon::now(),
+
         ],
         [
-            'foto' => 'assets/images/team/bayu.png',
-            'nama' => 'Laras Bayu Dwi Anggoro',
-            'sabuk' => 'DAN 3',
-            'role' => 'Pelatih'
+             'foto' => 'assets/images/team/bayu.png',
+             'nama' => 'Laras Byu D.A',
+             'sabuk' => 'DAN 3',
+             'nomor_telepon' => '0987654321',
+             'alamat' => 'Cielungsi',
+             'role' => 'pelatih', 
+             'status' => 'Active',
+             'created_at' => Carbon::now(),
+             'updated_at' => Carbon::now(),
         ],
        
         [
             'foto' =>'assets/images/team/sabeumsyamsul.png',
-            'nama' => 'Sabeum M. Kurniawan',
+            'nama' => 'Sabeum M.Kurniawan',
             'sabuk' => 'DAN 3',
-            'role' => 'Pelatih'
+            'nomor_telepon' => '0987654321',
+            'alamat' => 'Cielungsi',
+            'role' => 'pelatih', // sesuaikan dengan nilai yang dibutuhkan
+            'status' => 'Active',
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
         ],
         [
             'foto' => 'assets/images/team/akmal.png',
-            'nama' => 'Sabeum Akmal Taufiqul Hakim',
+            'nama' => 'Sabeum Akmal ',
             'sabuk' => 'DAN 2',
-            'role' => 'Pelatih'
+             'nomor_telepon' => '0987654321',
+             'alamat' => 'Cielungsi',
+             'role' => 'pelatih', 
+             'status' => 'Active',
+             'created_at' => Carbon::now(),
+             'updated_at' => Carbon::now(),
             
         ],
         [
             'foto' => 'assets/images/team/fachry.png',
-            'nama' => 'Sabeum  M.Fachry ichsan R ',
-            'sabuk' => 'DAN 2',
-            'role' => 'Pelatih'
+           'nama' => 'Sabeum Fachry ',
+             'sabuk' => 'DAN 2',
+             'nomor_telepon' => '0987654321',
+             'alamat' => 'Cielungsi',
+             'role' => 'pelatih', 
+             'status' => 'Active',
+             'created_at' => Carbon::now(),
+             'updated_at' => Carbon::now(),
         ],
         [
             'foto' => 'assets/images/team/faisal.png',
-            'nama' => 'Sabeum  Faisal Abdul Hakim', 
-            'sabuk' => 'DAN 1',
-            'role' => 'Pelatih'
+             'nama' => 'Sabeum Faisal ',
+             'sabuk' => 'DAN 1',
+             'nomor_telepon' => '0987654321',
+             'alamat' => 'Cielungsi',
+             'role' => 'pelatih', 
+             'status' => 'Active',
+             'created_at' => Carbon::now(),
+             'updated_at' => Carbon::now(),
         ],
         [
             'foto' => 'assets/images/team/Hari.png',
-            'nama' => 'Sabeum Hari Purnomo', 
-            'sabuk' => 'DAN 1',
-            'role' => 'Pelatih'
+             'nama' => 'Sabeum Hari',
+             'sabuk' => 'DAN 1',
+             'nomor_telepon' => '0987654321',
+             'alamat' => 'Cielungsi',
+             'role' => 'pelatih', 
+             'status' => 'Active',
+             'created_at' => Carbon::now(),
+             'updated_at' => Carbon::now(),
         ],
         [
             'foto' =>'assets/images/team/faisal.png' ,
-            'nama' => 'Sabeum  Dirgahayu Agustian', 
-            'sabuk' => 'DAN 1',
-            'role' => 'Pelatih'
+             'nama' => 'Sabeum Dirga',
+             'sabuk' => 'DAN 1',
+             'nomor_telepon' => '0987654321',
+             'alamat' => 'Cielungsi',
+             'role' => 'pelatih', 
+             'status' => 'Active',
+             'created_at' => Carbon::now(),
+             'updated_at' => Carbon::now(),
         ],
         [
             'foto' => 'assets/images/team/cindy.png',
-            'nama' => 'Sabeum Alya Nurhikmah', 
-            'sabuk' => 'DAN 1',
-            'role' => 'Pelatih'
+             'nama' => 'Sabeum Alya',
+             'sabuk' => 'DAN 1',
+             'nomor_telepon' => '0987654321',
+             'alamat' => 'Cielungsi',
+             'role' => 'pelatih', 
+             'status' => 'Active',
+             'created_at' => Carbon::now(),
+             'updated_at' => Carbon::now(),
 
         ],
         [
             'foto' => 'assets/images/team/cindy.png',
-            'nama' => 'Sabeum Cindy Maya Fahira', 
-            'sabuk' => 'DAN 1',
-            'role' => 'Pelatih'
+            'nama' => 'Sabeum Cindy Maya Fachira',
+             'sabuk' => 'DAN 1',
+             'nomor_telepon' => '0987654321',
+             'alamat' => 'Cielungsi',
+             'role' => 'pelatih', 
+             'status' => 'Active',
+             'created_at' => Carbon::now(),
+             'updated_at' => Carbon::now(),
         ],
 
         ]);

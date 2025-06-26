@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+
 use App\Filament\Resources\SiswaResource\Pages;
 use App\Filament\Resources\SiswaResource\RelationManagers;
 use App\Models\Siswa;
@@ -35,6 +36,9 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\ExportAction;
+
+
 
 class SiswaResource extends Resource
 {
@@ -59,17 +63,20 @@ class SiswaResource extends Resource
                     FileUpload::make('image')
                         ->label('Foto Siswa')
                         ->image()
-                        ->imagePreviewHeight('200')
-                        ->directory('siswa') // Direktori penyimpanan gambar
-                        ->columnSpan(1), // Menempati 1 kolom dari 3 di dalam Section ini
+                        ->imagePreviewHeight('100')
+                        ->directory('siswa') 
+                        // ->avatar() 
+                        ->nullable() 
+                        ->columnSpan(1),
+                         // Menempati 1 kolom dari 3 di dalam Section ini
 
                     Grid::make(2) // Grid terpisah di dalam Section untuk detail teks
                         ->columnSpan(2) // Menempati 2 kolom sisanya di dalam Section ini
                         ->schema([
                             TextInput::make('nis')
                                 ->label('NIS')
-                                ->disabled() // Tidak bisa diedit secara langsung
-                                ->dehydrated(true) // Pastikan nilai tetap disimpan saat form disubmit
+                                ->disabled() 
+                                ->dehydrated(true) 
                                 ->helperText('NIS akan otomatis dibuat atau tidak dapat diubah.'),
 
                             TextInput::make('no_register')
@@ -207,10 +214,14 @@ class SiswaResource extends Resource
                 ->sortable(), 
             
 
-            ImageColumn::make('image')
-                ->label('Foto')
-                ->rounded() // Membuat gambar profil bulat
-                ->defaultImageUrl(url('/images/placeholder.png')), // Gambar placeholder jika tidak ada foto
+             TextColumn::make('image')
+             ->label('Foto Profil')
+            ->formatStateUsing(function ($state) {
+                return $state
+            ? '<img src="' . asset('storage/' . $state) . '" alt="Foto Profil" class="w-16 h-16 rounded-full">'
+            : '';
+    })
+    ->html(),
             
             TextColumn::make('nama_lengkap')
                 ->label('Nama Lengkap')
@@ -314,6 +325,7 @@ class SiswaResource extends Resource
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true), // Sembunyikan secara default
         ])
+        
         ->filters([
             
         ])
@@ -332,16 +344,18 @@ class SiswaResource extends Resource
         ])
         ->headerActions([
             
+
             Action::make('export_siswa')
                 ->label('Ekspor ke Excel')
                 ->color('success') // Warna hijau
-                ->icon('heroicon-o-document-arrow-down') 
-                ->action(fn () => Excel::download(new SiswaExport, 'data_siswa.xlsx')), 
+                ->icon('heroicon-o-document-arrow-up') 
+                ->action(fn () => Excel::download(new SiswaExport, 'data_siswa_' . date('Ymd_His') . '.xlsx')),
+
 
             Action::make('import_siswa')
                 ->label('Impor dari Excel')
                 ->color('info')
-                ->icon('heroicon-o-document-arrow-up') 
+                ->icon('heroicon-o-document-arrow-down') 
                 ->modalHeading('Impor Data siswa') 
                 ->form([
                     FileUpload::make('file_excel')
@@ -417,6 +431,7 @@ class SiswaResource extends Resource
             // RelationManagers\SomeRelationManager::class,
         ];
     }
+    
 
     public static function getPages(): array
     {
@@ -424,16 +439,12 @@ class SiswaResource extends Resource
             'index' => Pages\ListSiswas::route('/'),
             'create' => Pages\CreateSiswa::route('/create'),
             'edit' => Pages\EditSiswa::route('/{record}/edit'),
+          
+            
+            
+
         ];
     }
-// public  function mutateFormDataBeforeCreate(array $data): array
-//     {
-//         $lastNis = \App\Models\Siswa::orderByDesc('id')->first()?->nis;
-//         $lastNumber = $lastNis ? (int) str_replace('WH-', '', $lastNis) : 0;
-
-//         $data['nis'] = 'WH-' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-
-//         return $data;
-//     }
+ 
 
 }

@@ -60,7 +60,7 @@ class SiswaSeeder extends Seeder
                 'pekerjaan_ibu' => $faker->jobTitle,
                 'unit_latihan' => $faker->randomElement(['Unit A', 'Unit B', 'Unit C', 'Unit D']),
                 'kelas' => $faker->randomElement(['Reguler', 'Khusus', 'Prestasi', 'Poomsae']),
-                'sabuk' => $faker->randomElement(['Putih', 'Kuning', 'Kuning Strip Hijau','Hijau','Hijau strip Biru','Biru','Biru strip Merah','Merah strip hitam'.'Hitam']),
+                'sabuk' => $faker->randomElement(['Putih', 'Kuning', 'Kuning Strip Hijau','Hijau','Hijau strip Biru','Biru','Biru strip Merah','Merah strip hitam','Hitam']),
                 'joint_date' => $joinDate->format('Y-m-d'),
                 'status' => $faker->randomElement(['Aktif', 'Tidak Aktif', 'Cuti']),
             ]);

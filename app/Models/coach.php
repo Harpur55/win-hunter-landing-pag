@@ -13,8 +13,10 @@ class coach extends Model
     protected $fillable = [
         'foto',
         'nama',
-        'Sabuk',
+        'sabuk',
         'role',
+        'alamat',
+        'nomor_telepon',
     ];
     //
 }
