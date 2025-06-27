@@ -6,6 +6,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SiswaResource\Pages;
 use App\Filament\Resources\SiswaResource\RelationManagers;
 use App\Models\Siswa;
+use App\models\Unit;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -44,8 +45,12 @@ class SiswaResource extends Resource
 {
     protected static ?string $model = Siswa::class;
 
+    
+
+
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-      protected static ?string $navigationGroup = 'Manajemen Data'; // Kelompok navigasi
+    //   protected static ?string $navigationGroup = 'Manajemen Data'; // Kelompok navigasi
 
     protected static ?string $label = 'Siswa'; 
     protected static ?string $pluralLabel = 'Siswa'; 
@@ -121,6 +126,42 @@ class SiswaResource extends Resource
 
                         ]),
                 ]),
+                 Section::make('Informasi Akademik & Pelatihan')
+                ->description('Detail mengenai unit latihan, kelas, sabuk, dan status siswa.')
+                ->columns(3) // Menggunakan 3 kolom
+                ->schema([
+                   Select::make('unit_id')
+                     ->label('Unit')
+                     ->relationship('unit', 'name') // 'unit' = nama fungsi relasi di model
+                     ->searchable()
+                     ->preload()
+                     ->required(),
+                    TextInput::make('kelas')
+                        ->label('Kelas')
+                        ->required(), // Wajib diisi
+
+                    TextInput::make('sabuk')
+                        ->label('Tingkatan Sabuk')
+                        ->required(), // Wajib diisi
+
+                    DatePicker::make('joint_date')
+                        ->label('Tanggal Bergabung')
+                        ->native(false)
+                        ->displayFormat('d/m/Y')
+                        ->nullable(), // Boleh kosong
+
+                    Select::make('status')
+                        ->label('Status Kesiswaan')
+                        ->options([
+                            'Aktif' => 'Aktif',
+                            'Tidak Aktif' => 'Tidak Aktif',
+                            'Cuti' => 'Cuti',
+                        ])
+                        ->required()
+                        ->default('Aktif') // Default nilai 'Aktif'
+                        ->native(false)
+                        ->columnSpan(2), // Memakan 2 kolom untuk status
+                ]),
 
             Section::make('Informasi Kontak & Alamat')
                 ->description('Detail kontak dan alamat lengkap siswa.')
@@ -160,40 +201,7 @@ class SiswaResource extends Resource
                         ->nullable(),
                 ]),
 
-            Section::make('Informasi Akademik & Pelatihan')
-                ->description('Detail mengenai unit latihan, kelas, sabuk, dan status siswa.')
-                ->columns(3) // Menggunakan 3 kolom
-                ->schema([
-                    TextInput::make('unit_latihan')
-                        ->label('Unit Latihan')
-                        ->required(), // Wajib diisi
-
-                    TextInput::make('kelas')
-                        ->label('Kelas')
-                        ->required(), // Wajib diisi
-
-                    TextInput::make('sabuk')
-                        ->label('Tingkatan Sabuk')
-                        ->required(), // Wajib diisi
-
-                    DatePicker::make('joint_date')
-                        ->label('Tanggal Bergabung')
-                        ->native(false)
-                        ->displayFormat('d/m/Y')
-                        ->nullable(), // Boleh kosong
-
-                    Select::make('status')
-                        ->label('Status Kesiswaan')
-                        ->options([
-                            'Aktif' => 'Aktif',
-                            'Tidak Aktif' => 'Tidak Aktif',
-                            'Cuti' => 'Cuti',
-                        ])
-                        ->required()
-                        ->default('Aktif') // Default nilai 'Aktif'
-                        ->native(false)
-                        ->columnSpan(2), // Memakan 2 kolom untuk status
-                ]),
+           
         ]);
            
     }

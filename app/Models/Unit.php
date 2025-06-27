@@ -12,7 +12,18 @@ class Unit extends Model
     protected $fillable = [
         'name',
         'description',
+        'alamat',
+        'image',
+        'link',
     ];
 
+ 
+    public function siswas()
+{
+    return $this->hasMany(Siswa::class);
+}
+ 
     // Define any relationships or additional methods if needed
 }
+
+

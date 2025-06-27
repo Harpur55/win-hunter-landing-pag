@@ -57,4 +57,8 @@ class Siswa extends Model
     {
         return $this->tanggal_lahir ? $this->tanggal_lahir->age : null;
     }
+    public function unit()
+{
+    return $this->belongsTo(Unit::class);
+}
 }

@@ -41,7 +41,7 @@ class CoachResource extends Resource
     protected static ?string $model = Coach::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-      protected static ?string $navigationGroup = 'Manajemen Data';
+    //   protected static ?string $navigationGroup = 'Manajemen Data';
     protected static ?string $navigationLabel = 'Pelatih';
 
     public static function form(Form $form): Form
@@ -72,7 +72,7 @@ class CoachResource extends Resource
                                 ->maxLength(255)
                                 ->placeholder('Masukkan nama lengkap'),
 
-                            Select::make('role') // Nama field 'role'
+                            Select::make('role') 
                                 ->label('Peran')
                                 ->options([
                                     'Pelatih' => 'Pelatih',
@@ -81,10 +81,10 @@ class CoachResource extends Resource
                                     'Administrator' => 'Administrator',
                                 ])
                                 ->required()
-                                ->native(false) // Tampilan yang lebih modern
+                                ->native(false) 
                                 ->placeholder('Pilih peran'),
 
-                            TextInput::make('sabuk') // Nama field 'Sabuk' (pastikan case sesuai DB)
+                            TextInput::make('sabuk') 
                                 ->label('Tingkatan Sabuk')
                                 ->required()
                                 ->maxLength(100)
