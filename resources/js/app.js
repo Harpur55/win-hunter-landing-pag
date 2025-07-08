@@ -95,5 +95,9 @@ wrapper.addEventListener('mouseleave', startAutoScroll);
 // Start on load
 startAutoScroll();
 
+//kelas function
 
-
+   function toggleDescription(index) {
+            const desc = document.getElementById(`desc-${index}`);
+            desc.classList.toggle('hidden');
+        }

@@ -33,7 +33,8 @@ return new class extends Migration
             // Informasi Akademik/Pelatihan
             $table->string('unit_latihan'); 
             $table->string('kelas'); 
-            $table->string('sabuk'); 
+            $table->string('current_belt_level')->default('Putih'); 
+            $table->string('next_belt_level')->nullable(); 
             $table->date('joint_date')->nullable(); 
 
             $table->string('status')->default('Aktif'); 

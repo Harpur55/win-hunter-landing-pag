@@ -103,7 +103,7 @@
         </div>
         <!-- IMAGE AREA -->
         <div class="w-full md:w-1/2 flex justify-center items-center relative mb-4 md:mb-0 h-auto md:h-full mt-3">
-          <img src="{{ asset('assets/images/new logo win-hunter.png') }}" alt="logo Win-Hunter" class="w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] md:w-[430px] md:h-[500px] md:absolute md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 object-cover" />
+          <img src="{{ asset('assets/images/new-logo-win-hunter.png') }}" alt="logo Win-Hunter" class="w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] md:w-[430px] md:h-[500px] md:absolute md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 object-cover" />
         </div>
       </div>
     </section>
@@ -143,11 +143,6 @@
   </div>
 </section>
 
-
-
-
-
-
     <section id="coach" class="py-10 px-4 sm:px-6 lg:px-2 bg-gray-300">
       <div class="container mx-auto flex flex-col items-center">
         <h2 class="text-3xl font-extrabold text-black sm:text-4xl mb-8">Pelatih</h2>
@@ -158,7 +153,7 @@
                 {{-- <a href="#" class="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row md:max-w-xl hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"></a> --}}
                 <img class="object-cover w-full rounded-t-lg h-50 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg " src="{{ asset($coach->foto) }}" alt="{{ $coach->coach_name }}">
                 <div class="flex flex-col justify-between p-4 leading-normal">
-                  <h5 class="mb-2 text-2xl font-bold tracking-tight text-black dark:text-black">{{ $coach->nama }}</h5>
+                  <h4 class="mb-2  font-bold tracking-tight text-black dark:text-black">{{ $coach->nama }}</h4>
                   <p class="mb-3 font-normal text-lg text-black dark:text-black">{{ $coach->Sabuk}}</p>
                   <p class="mb-3 font-normal text-lg text-black dark:text-black">{{ $coach->role }}</p>
                 </div>
@@ -170,37 +165,86 @@
         </div>
       </div>
     </section>
-    <section id="service" class="bg-gray-100 py-10 px-4 sm:px-6 lg:px-20">
-      <h1 class="text-4xl font-extrabold mb-10 text-center text-gray-900">Kelas Taekwondo</h1> @php $class = [ [ 'name' => 'Kelas Prestasi', 'image' => 'cover1.jpeg', 'deskripsi' => "1. Latihan 4x Per Pekan\n" . "2. Program latihan tersusun dengan rapih (minimal kejuaraan 4x + ujian)\n" . "3. Apabila ada event tertentu mendapatkan diskon biaya\n" . "4. Sparing patner dengan club lain satu tahun minimal 2x\n", ], [ 'name' => 'Kelas Khusus', 'image' => 'cover1.jpeg', 'deskripsi' => "1. Latihan 2x Per Pekan\n" . "2. Sparing patner dengan club lain minimal 2x dalam setahun\n" . "3. Program latihan (wajib kejuaraan 2x dalam setahun)\n" . "4. Mengikuti Ujian Kenaikan Sabuk\n" , ], [ 'name' => 'Kelas Poomsae', 'image' => 'cover2.jpeg', 'deskripsi' => "1. Latihan 2x per Pekan\n" . "2. Program latihan tersusun dengan rapih\n" . "3. Latihan Rutin\n" . "4. Kejuaraan Wajib 2x dalam setahun\n", ], [ 'name' => 'Kelas Reguler', 'image' => 'cover1.jpeg', 'deskripsi' => "1. Latihan seminggu 2x\n" . "2. Program latihan (ujian kenaikan tingkat dan wajib kejuaraan 2x dalam setahun)\n", ], ]; @endphp <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-4 gap-6"> @foreach($class as $cls) <div class="flex flex-col h-full bg-white border border-black rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-          <!-- Gambar -->
-          <img src="{{ asset('assets/images/' . $cls['image']) }}" alt="{{ $cls['name'] }}" class="w-full h-50 object-cover">
-          <!-- Konten -->
-          <div class="flex flex-col flex-grow p-5 text-left">
-            <!-- Judul -->
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">
-              {{ $cls['name'] }}
-            </h3>
-            <!-- Deskripsi -->
-            <div class="flex-grow">
-              <p class="text-sm whitespace-pre-line leading-relaxed text-black text-justify">
-                {{ $cls['deskripsi'] }}
-              </p>
-            </div>
-            <!-- Tombol -->
-            <div class="mt-2">
-              <a href="https://wa.me/6285890810081?text=Halo%21%20%F0%9F%91%8B%20Saya%20tertarik%20dengan%20Taekwondo%20Win-Hunter%20dan%20ingin%20bertanya%20lebih%20lanjut.%20Boleh%20minta%20informasinya%3F%20%F0%9F%99%8F
 
-             " target="_blank" class="inline-block w-full">
-                <button class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300"> Daftar Sekarang </button>
-              </a>
+    
+<section id="service" class="bg-gray-100 py-10 px-4 sm:px-6 lg:px-20">
+    <h1 class="text-4xl font-extrabold mb-10 text-center text-gray-900">Kelas Taekwondo</h1>
+
+    @php
+        $class = DB::table('kelas')->get();
+    @endphp
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        @foreach($class as $index => $cls)
+            <div class="flex flex-col bg-blue-50 border border-gray-200 rounded-2xl shadow-md overflow-hidden transition-all transform hover:scale-105 duration-300 animate-fade-up h-full">
+                <!-- Gambar -->
+                <img src="{{ asset($cls->image) }}" alt="{{ $cls->name }}" class="w-full h-45 object-cover rounded-t-2xl mb-4">
+
+                <!-- Nama Kelas -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white text-center py-3 px-4 font-bold text-lg tracking-wide">
+                    {{ $cls->name }}
+                </div>
+
+                <!-- Konten -->
+                <div class="flex flex-col justify-between flex-grow p-4">
+                    <!-- Mobile: Accordion -->
+                    <div class="block lg:hidden">
+                        <button 
+                            type="button" 
+                            onclick="toggleDescription({{ $index }})" 
+                            class="text-sm text-blue-700 font-semibold mb-2 text-left focus:outline-none hover:underline"
+                        >
+                            📌 Lihat Benefit
+                        </button>
+
+                        <div id="desc-{{ $index }}" class="hidden mb-4">
+                            @php
+                                $points = preg_split('/\r\n|\r|\n/', $cls->description);
+                            @endphp
+                            @foreach($points as $point)
+                                <p class="text-sm text-gray-700 text-justify">{{ $point }}</p>
+                                @if (!$loop->last)
+                                    <hr class="my-2 border-gray-300">
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Desktop: Always show -->
+                    <div class="hidden lg:block mb-4">
+                        @php
+                            $points = preg_split('/\r\n|\r|\n/', $cls->description);
+                        @endphp
+                        @foreach($points as $point)
+                            <p class="text-lg text-gray-700 text-justify">{{ $point }}</p>
+                            @if (!$loop->last)
+                                <hr class="my-2 border-gray-300">
+                            @endif
+                        @endforeach
+                    </div>
+
+                    <!-- Tombol CTA -->
+                    <a href="https://wa.me/6285890810081?text=Halo%21%20Saya%20tertarik%20dengan%20Taekwondo%20Win-Hunter%20dan%20ingin%20bertanya%20lebih%20lanjut.%20Boleh%20minta%20informasinya%3F" 
+                       target="_blank" 
+                       class="mt-auto w-full"
+                    >
+                       <button class="w-full bg-green-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2">
+    <!-- Ikon WhatsApp -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-white" viewBox="0 0 32 32">
+                    <path d="M16.001 2.984c-7.285 0-13.201 5.916-13.201 13.2 0 2.327.616 4.608 1.785 6.616L2 30l7.42-2.478c1.91 1.042 4.072 1.594 6.28 1.596h.003c7.284 0 13.2-5.917 13.2-13.201 0-3.527-1.374-6.843-3.871-9.34A13.111 13.111 0 0 0 16 2.984zm.004 23.725h-.002a10.552 10.552 0 0 1-5.349-1.445l-.384-.23-4.403 1.47 1.469-4.29-.25-.4a10.553 10.553 0 0 1-1.636-5.657c0-5.837 4.748-10.585 10.586-10.585a10.48 10.48 0 0 1 7.493 3.108 10.481 10.481 0 0 1 3.09 7.493c0 5.838-4.748 10.586-10.584 10.586zm5.94-7.949c-.325-.163-1.926-.949-2.225-1.057-.3-.108-.519-.162-.738.163s-.849 1.057-1.042 1.276c-.192.217-.384.244-.709.081-.325-.163-1.374-.507-2.617-1.617-.968-.863-1.622-1.928-1.814-2.252-.192-.325-.02-.501.144-.664.149-.149.325-.384.487-.576.163-.192.217-.325.325-.541.108-.217.054-.406-.027-.57-.081-.162-.738-1.782-1.01-2.442-.265-.64-.535-.555-.738-.566l-.63-.011c-.216 0-.57.081-.869.406-.3.325-1.14 1.114-1.14 2.718s1.167 3.15 1.328 3.367c.162.217 2.297 3.51 5.57 4.922.779.336 1.387.537 1.86.688.781.249 1.49.214 2.051.13.626-.093 1.926-.786 2.2-1.544.273-.757.273-1.405.19-1.544-.081-.14-.292-.217-.617-.38z"/>
+                   </svg>
+                      Daftar Sekarang
+                    </button>
+                    </a>
+                </div>
             </div>
-          </div>
-        </div> @endforeach </div>
-      </div>
-      {{-- @endforeach --}}
-      </div>
-      </div>
-    </section>
+        @endforeach
+    </div>
+
+    <!-- Animasi + Script -->
+ 
+</section>
+
     
     <section id="jadwal" class="bg-gray-300 py-10 px-4 sm:px-6 lg:px-20">
       <div class="container mx-auto">
@@ -355,13 +399,21 @@
           </div>
         </div>
       </div>
-    </section><footer class="bg-blue-800 text-white py-6">
-      <div class="container mx-auto text-center">
-        <p class="text-lg">
-          <img src="{{ asset('assets/images/download.jpg') }}" alt="" class="h-16 w-16 rounded-full inline-block mr-2"> Win-Hunter since 2015. Mental, Instinct, Technique
-        </p>
-      </div>
-    </footer>
+    </section>
+   <footer class="bg-blue-800 text-white py-6">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col sm:flex-row items-center justify-center sm:justify-center gap-3 text-center sm:text-center">
+            <!-- Logo -->
+            <img src="{{ asset('assets/images/download.jpg') }}" alt="Logo" class="h-16 w-16 rounded-full">
+
+            <!-- Teks -->
+            <p class="text-lg">
+                <span class="block sm:inline">Win-Hunter since 2015.</span>
+                <span class="block sm:inline">Mental, Instinct, Technique</span>
+            </p>
+        </div>
+    </div>
+</footer>
   </body>
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js">
   </script>
@@ -410,6 +462,12 @@
       el: ".swiper-pagination",
     },
   });
+</script>
+<script>
+      function toggleDescription(index) {
+            const el = document.getElementById(`desc-${index}`);
+            el.classList.toggle('hidden');
+        }
 </script>
 
 </html>

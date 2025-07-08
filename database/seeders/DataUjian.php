@@ -5,19 +5,14 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-use App\Models\Siswa;
-use Illuminate\Support\Facades\DB;
-use Faker\Factory as Faker;
-
-class SiswaSeeder extends Seeder
+class DataUjian extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        //
-      $faker = Faker::create('id_ID'); // Menggunakan Faker dengan lokal Indonesia
+         $faker = Faker::create('id_ID'); // Menggunakan Faker dengan lokal Indonesia
           $nisPrefix = 'WH-WH-';
         $paddingLength = 4; // Panjang angka di belakang prefix, contoh 0001 (4 digit)
 
@@ -68,9 +63,4 @@ class SiswaSeeder extends Seeder
         }
 
     }
-    //  public function uktParticipants(): HasMany
-    // {
-    //     return $this->hasMany(UktParticipant::class, 'siswa_id');
-    // }
-
 }

@@ -24,7 +24,8 @@ class Siswa extends Model
         'pekerjaan_ibu',
         'unit_latihan',
         'kelas',
-        'sabuk',
+        'current_belt_level',
+        'next_belt_level',
         'joint_date',
         'status',
     ];
@@ -61,4 +62,8 @@ class Siswa extends Model
 {
     return $this->belongsTo(Unit::class);
 }
+public function pesertaUjians(): HasMany
+    {
+        return $this->hasMany(PesertaUjian::class, 'siswa_id');
+    }
 }
