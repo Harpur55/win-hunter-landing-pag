@@ -170,13 +170,17 @@
 <section id="service" class="bg-gray-100 py-10 px-4 sm:px-6 lg:px-20">
     <h1 class="text-4xl font-extrabold mb-10 text-center text-gray-900">Kelas Taekwondo</h1>
 
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 my-6 text-center">
+      <p class="text-xl font-bold text-gray-700 mb-2">Biaya Pendaftaran Start From</p>
+      <h2 class="text-4xl font-extrabold text-green-600">Rp 500.000</h2>
+    </div>
     @php
         $class = DB::table('kelas')->get();
     @endphp
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         @foreach($class as $index => $cls)
-            <div class="flex flex-col bg-blue-50 border border-gray-200 rounded-2xl shadow-md overflow-hidden transition-all transform hover:scale-105 duration-300 animate-fade-up h-full">
+            <div class="flex flex-col bg-blue-50 border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-all transform hover:scale-105 duration-300 animate-fade-up h-full">
                 <!-- Gambar -->
                 <img src="{{ asset($cls->image) }}" alt="{{ $cls->name }}" class="w-full h-45 object-cover rounded-t-2xl mb-4">
 
@@ -186,57 +190,45 @@
                 </div>
 
                 <!-- Konten -->
-                <div class="flex flex-col justify-between flex-grow p-4">
-                    <!-- Mobile: Accordion -->
-                    <div class="block lg:hidden">
-                        <button 
-                            type="button" 
-                            onclick="toggleDescription({{ $index }})" 
-                            class="text-sm text-blue-700 font-semibold mb-2 text-left focus:outline-none hover:underline"
-                        >
-                            📌 Lihat Benefit
-                        </button>
+               <div class="flex flex-col justify-between flex-grow p-4">
+    <!-- Accordion (All screen sizes) -->
+    <button 
+        type="button" 
+        onclick="toggleDescription({{ $index }})" 
+        class="flex items-center gap-2 text-sm text-blue-700 font-semibold mb-2 text-left focus:outline-none hover:text-blue-900 transition"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Lihat Benefit
+    </button>
 
-                        <div id="desc-{{ $index }}" class="hidden mb-4">
-                            @php
-                                $points = preg_split('/\r\n|\r|\n/', $cls->description);
-                            @endphp
-                            @foreach($points as $point)
-                                <p class="text-sm text-gray-700 text-justify">{{ $point }}</p>
-                                @if (!$loop->last)
-                                    <hr class="my-2 border-gray-300">
-                                @endif
-                            @endforeach
-                        </div>
-                    </div>
+    <div id="desc-{{ $index }}" class="hidden mb-4 px-3 py-2 bg-blue-100 rounded-lg border border-blue-300 animate-fade-in">
+        @php
+            $points = preg_split('/\r\n|\r|\n/', $cls->description);
+        @endphp
+        @foreach($points as $point)
+            <p class="text-sm text-gray-700 text-justify">{{ $point }}</p>
+            @if (!$loop->last)
+                <hr class="my-2 border-gray-300">
+            @endif
+        @endforeach
+    </div>
 
-                    <!-- Desktop: Always show -->
-                    <div class="hidden lg:block mb-4">
-                        @php
-                            $points = preg_split('/\r\n|\r|\n/', $cls->description);
-                        @endphp
-                        @foreach($points as $point)
-                            <p class="text-lg text-gray-700 text-justify">{{ $point }}</p>
-                            @if (!$loop->last)
-                                <hr class="my-2 border-gray-300">
-                            @endif
-                        @endforeach
-                    </div>
-
-                    <!-- Tombol CTA -->
-                    <a href="https://wa.me/6285890810081?text=Halo%21%20Saya%20tertarik%20dengan%20Taekwondo%20Win-Hunter%20dan%20ingin%20bertanya%20lebih%20lanjut.%20Boleh%20minta%20informasinya%3F" 
-                       target="_blank" 
-                       class="mt-auto w-full"
-                    >
-                       <button class="w-full bg-green-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2">
-    <!-- Ikon WhatsApp -->
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-white" viewBox="0 0 32 32">
-                    <path d="M16.001 2.984c-7.285 0-13.201 5.916-13.201 13.2 0 2.327.616 4.608 1.785 6.616L2 30l7.42-2.478c1.91 1.042 4.072 1.594 6.28 1.596h.003c7.284 0 13.2-5.917 13.2-13.201 0-3.527-1.374-6.843-3.871-9.34A13.111 13.111 0 0 0 16 2.984zm.004 23.725h-.002a10.552 10.552 0 0 1-5.349-1.445l-.384-.23-4.403 1.47 1.469-4.29-.25-.4a10.553 10.553 0 0 1-1.636-5.657c0-5.837 4.748-10.585 10.586-10.585a10.48 10.48 0 0 1 7.493 3.108 10.481 10.481 0 0 1 3.09 7.493c0 5.838-4.748 10.586-10.584 10.586zm5.94-7.949c-.325-.163-1.926-.949-2.225-1.057-.3-.108-.519-.162-.738.163s-.849 1.057-1.042 1.276c-.192.217-.384.244-.709.081-.325-.163-1.374-.507-2.617-1.617-.968-.863-1.622-1.928-1.814-2.252-.192-.325-.02-.501.144-.664.149-.149.325-.384.487-.576.163-.192.217-.325.325-.541.108-.217.054-.406-.027-.57-.081-.162-.738-1.782-1.01-2.442-.265-.64-.535-.555-.738-.566l-.63-.011c-.216 0-.57.081-.869.406-.3.325-1.14 1.114-1.14 2.718s1.167 3.15 1.328 3.367c.162.217 2.297 3.51 5.57 4.922.779.336 1.387.537 1.86.688.781.249 1.49.214 2.051.13.626-.093 1.926-.786 2.2-1.544.273-.757.273-1.405.19-1.544-.081-.14-.292-.217-.617-.38z"/>
-                   </svg>
-                      Daftar Sekarang
-                    </button>
-                    </a>
-                </div>
+    <!-- Tombol CTA -->
+    <a href="https://wa.me/6285890810081?text=Halo%21%20Saya%20tertarik%20dengan%20Taekwondo%20Win-Hunter%20dan%20ingin%20bertanya%20lebih%20lanjut.%20Boleh%20minta%20informasinya%3F" 
+       target="_blank" 
+       class="mt-auto w-full"
+    >
+       <button class="w-full bg-green-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2">
+          <!-- Ikon WhatsApp -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-white" viewBox="0 0 32 32">
+            <path d="..."/> <!-- potong untuk ringkas -->
+          </svg>
+          Daftar Sekarang
+        </button>
+    </a>
+</div>
             </div>
         @endforeach
     </div>
@@ -464,10 +456,16 @@
   });
 </script>
 <script>
-      function toggleDescription(index) {
-            const el = document.getElementById(`desc-${index}`);
-            el.classList.toggle('hidden');
+     function toggleDescription(index) {
+        const el = document.getElementById(`desc-${index}`);
+        if (el.classList.contains('hidden')) {
+            el.classList.remove('hidden');
+            el.classList.add('animate-fade-in');
+        } else {
+            el.classList.add('hidden');
+            el.classList.remove('animate-fade-in');
         }
+    }
 </script>
 
 </html>

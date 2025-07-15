@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('image')->nullable();
             $table->string('name');
-            $table->text('description')->nullable();
+            $table->text('description');
             $table->timestamps();
         });
     }
@@ -26,5 +26,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('kelas');
+        
     }
 };
