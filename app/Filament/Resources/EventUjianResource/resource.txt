@@ -61,6 +61,9 @@ class EventUjianResource extends Resource
                     ->sortable(),
             TextColumn::make('lokasi_ujian')
                 ->label('Lokasi'),
+        //     TextColumn::make('data_ujians_count')
+        //         ->label('Jumlah Peserta')
+        //         ->sortable(),
          ])
             ->filters([
                 // Filter event berdasarkan tanggal atau lokasi jika perlu

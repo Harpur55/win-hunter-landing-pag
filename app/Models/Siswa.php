@@ -22,12 +22,12 @@ class Siswa extends Model
         'pekerjaan_ayah',
         'nama_ibu',
         'pekerjaan_ibu',
-        'unit_latihan',
         'kelas',
         'current_belt_level',
         'next_belt_level',
         'joint_date',
         'status',
+        'units_id'
     ];
      protected $casts = [
         'tanggal_lahir' => 'date',
@@ -60,10 +60,18 @@ class Siswa extends Model
     }
     public function unit()
 {
-    return $this->belongsTo(Unit::class);
+    return $this->belongsTo(Unit::class, 'units_id');
 }
-public function pesertaUjians(): HasMany
+
+
+    public function eventUjians()
     {
-        return $this->hasMany(PesertaUjian::class, 'siswa_id');
+        return $this->belongsToMany(EventUjian::class, 'event_ujian_siswa', 'siswa_id', 'event_ujian_id')
+                    ->withPivot('keterangan'); // Tambahkan kolom pivot jika perlu
     }
+    
+    // public function dataUjians()
+    // {
+    //     return $this->hasMany(DataUjian::class, 'siswas_id');
+    // }
 }

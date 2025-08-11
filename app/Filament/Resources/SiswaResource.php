@@ -131,7 +131,7 @@ class SiswaResource extends Resource
                 ->description('Detail mengenai unit latihan, kelas, sabuk, dan status siswa.')
                 ->columns(3) // Menggunakan 3 kolom
                 ->schema([
-                   Select::make('unit_id')
+                   Select::make('units_id')
                      ->label('Unit')
                      ->relationship('unit', 'name') // 'unit' = nama fungsi relasi di model
                      ->searchable()
@@ -253,7 +253,7 @@ class SiswaResource extends Resource
                 ->toggleable(isToggledHiddenByDefault: true)
                 ->searchable(),
 
-            TextColumn::make('unit_latihan')
+            TextColumn::make('unit.name')
                 ->label('Unit Latihan')
                 ->searchable()
                 ->sortable(),

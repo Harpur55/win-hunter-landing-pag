@@ -12,11 +12,15 @@ class EventUjian extends Model
         'tanggal_ujian',
         'lokasi_ujian',
     ];
-       public function siswas()
-    {
-        // Pastikan nama pivot table 'event_ujian_siswa' dan foreign key sesuai
-        return $this->belongsToMany(Siswa::class, 'data_ujian', 'event_ujian_id', 'siswa_id')
-                    ->withPivot('keterangan'); // Tambahkan kolom pivot jika perlu
-    }
-    //
+   
+    public function siswa()
+{
+    return $this->belongsToMany(Siswa::class, 'event_ujian_siswa')
+                ->withPivot(['current_belt_level', 'next_belt_level', 'keterangan']); // Pastikan untuk menyertakan semua kolom pivot
+}
+    public function dataUjians()
+{
+    return $this->hasMany(DataUjian::class, 'event_ujian_id');
+}
+    
 }

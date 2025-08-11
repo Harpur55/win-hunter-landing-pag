@@ -31,7 +31,7 @@ return new class extends Migration
             $table->string('pekerjaan_ibu')->nullable(); // Pekerjaan Ibu
 
             // Informasi Akademik/Pelatihan
-            $table->string('unit_latihan'); 
+            $table->foreignId('units_id')->constrained()->onDelete('cascade');
             $table->string('kelas'); 
             $table->string('current_belt_level')->default('Putih'); 
             $table->string('next_belt_level')->nullable(); 

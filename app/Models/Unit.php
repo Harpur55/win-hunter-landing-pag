@@ -20,7 +20,7 @@ class Unit extends Model
  
     public function siswas()
 {
-    return $this->hasMany(Siswa::class);
+    return $this->hasMany(Siswa::class, 'units_id');
 }
  
     // Define any relationships or additional methods if needed

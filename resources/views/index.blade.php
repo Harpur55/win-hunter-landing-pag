@@ -172,7 +172,7 @@
 
   <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 my-6 text-center">
       <p class="text-xl font-bold text-gray-700 mb-2">Biaya Pendaftaran Start From</p>
-      <h2 class="text-4xl font-extrabold text-green-600">Rp 500.000</h2>
+      <h2 class="text-4xl font-extrabold text-green-600">Rp 500.000 <span class="text-gray-600 text-lg">(Sudah include Seragam Taekwondo)</span></h2>
     </div>
     @php
         $class = DB::table('kelas')->get();
