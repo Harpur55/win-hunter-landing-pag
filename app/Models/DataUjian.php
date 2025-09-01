@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Unit;
-use App\Models\DataUjian;
+use App\Models\EventUjian;
+use App\Models\Siswa;
+
 
 
 class DataUjian extends Model

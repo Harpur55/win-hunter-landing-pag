@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('siswas', function (Blueprint $table) {
             $table->id(); // Primary Key
-            $table->string('no_register')->unique(); // Nomor Registrasi, unik dan penting untuk identifikasi
+            $table->string('no_register')->nullable()->unique(); // Nomor Registrasi, unik dan penting untuk identifikasi
             $table->string('nis')->unique(); // Nomor Induk Siswa, unik
             $table->string('nama_lengkap'); 
             $table->string('jenis_kelamin'); 
@@ -32,9 +32,9 @@ return new class extends Migration
 
             // Informasi Akademik/Pelatihan
             $table->foreignId('units_id')->constrained()->onDelete('cascade');
-            $table->string('kelas'); 
+            $table->foreignId('kelas_id')->constrained('kelas')->cascadeOnDelete();
             $table->string('current_belt_level')->default('Putih'); 
-            $table->string('next_belt_level')->nullable(); 
+            // $table->string('next_belt_level')->nullable(); 
             $table->date('joint_date')->nullable(); 
 
             $table->string('status')->default('Aktif'); 

@@ -9,14 +9,19 @@ return new class extends Migration {
     {
         Schema::create('event_ujian_siswa', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('event_ujian_id')->constrained()->onDelete('cascade');
-            $table->foreignId('siswa_id')->constrained()->onDelete('cascade');
-            $table->string('tingkat_sabuk_saat_ini')->nullable();
-            $table->string('tingkat_sabuk_berikutnya')->nullable();
-            $table->string('keterangan')->nullable();
-            $table->timestamps();
+    $table->foreignId('event_ujian_id')
+          ->constrained('event_ujian') // ini yang diperbaiki
+          ->onDelete('cascade');
+    $table->foreignId('siswa_id')
+          ->constrained('siswas') // pastikan nama tabel siswa sesuai
+          ->onDelete('cascade');
+    $table->string('current_belt_level')->nullable();
+    $table->string('next_belt_level')->nullable();
+    $table->string('keterangan')->nullable();
+    $table->timestamps();
 
-            $table->unique(['event_ujian_id', 'siswa_id']); // Agar tidak duplikat
+    $table->unique(['event_ujian_id', 'siswa_id']);
+
         });
     }
 

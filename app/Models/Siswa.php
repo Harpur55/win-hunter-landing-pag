@@ -22,9 +22,9 @@ class Siswa extends Model
         'pekerjaan_ayah',
         'nama_ibu',
         'pekerjaan_ibu',
-        'kelas',
+        'kelas_id',
         'current_belt_level',
-        'next_belt_level',
+        // 'next_belt_level',
         'joint_date',
         'status',
         'units_id'
@@ -58,20 +58,46 @@ class Siswa extends Model
     {
         return $this->tanggal_lahir ? $this->tanggal_lahir->age : null;
     }
-    public function unit()
+public function unit()
 {
-    return $this->belongsTo(Unit::class, 'units_id');
+    return $this->belongsTo(Unit::class, 'units_id', 'id');
 }
 
 
-    public function eventUjians()
-    {
-        return $this->belongsToMany(EventUjian::class, 'event_ujian_siswa', 'siswa_id', 'event_ujian_id')
-                    ->withPivot('keterangan'); // Tambahkan kolom pivot jika perlu
-    }
+  public function ujian()
+{
+    return $this->belongsToMany(EventUjian::class, 'event_ujian_siswa')
+        ->withPivot(['current_belt_level', 'next_belt_level', 'keterangan'])
+        ->withTimestamps();
+}
     
     // public function dataUjians()
     // {
     //     return $this->hasMany(DataUjian::class, 'siswas_id');
     // }
+
+    public function kelas()
+{
+    return $this->belongsTo(Kelas::class, 'kelas_id');
+}
+
+ public function kejuaraans()
+    {
+        return $this->belongsToMany(Kejuaraan::class, 'kejuaraan_siswa', 'siswa_id', 'kejuaraan_id')
+            ->withPivot([
+                'nama_lengkap',
+                'tempat_lahir',
+                'tanggal_lahir',
+                'jenis_kelamin',
+                'sabuk',
+                'kategori_pertandingan',
+                'kategori_atlit',
+                'berat_badan',
+                'tinggi_badan',
+                'medali',
+            ])
+            ->withTimestamps();
+    }
+
+
 }

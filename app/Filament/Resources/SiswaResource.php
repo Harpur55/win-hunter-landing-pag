@@ -85,11 +85,20 @@ class SiswaResource extends Resource
                                 ->dehydrated(true) 
                                 ->helperText('NIS akan otomatis dibuat atau tidak dapat diubah.'),
 
-                            TextInput::make('no_register')
-                                ->label('Nomor Registrasi')
-                                ->required() // Wajib diisi
-                                ->maxLength(10) // Batasi panjang karakter
-                                ->unique(ignoreRecord: true), // Pastikan unik, abaikan record saat mengedit yang sudah ada
+                           TextInput::make('no_register')
+                ->label('Nomor Registrasi')
+                ->reactive()
+                ->required(fn (callable $get) => strtolower($get('current_belt_level') ?? '') !== 'putih') // hanya wajib jika bukan putih
+                ->rules(function (callable $get) {
+                    $sabuk = strtolower($get('current_belt_level') ?? '');
+                    if ($sabuk === 'putih') {
+                        return ['nullable', 'string', 'max:255'];
+                    }
+                    return ['required', 'string', 'max:255'];
+                })
+                ->helperText('Boleh kosong jika sabuk Putih, wajib diisi untuk sabuk di atas Putih'),
+                                
+                                // Pastikan unik, abaikan record saat mengedit yang sudah ada
 
                             TextInput::make('nama_lengkap') // Sesuaikan dengan nama field di database
                                 ->label('Nama Lengkap')
@@ -137,13 +146,19 @@ class SiswaResource extends Resource
                      ->searchable()
                      ->preload()
                      ->required(),
-                    TextInput::make('kelas')
-                        ->label('Kelas')
-                        ->required(), // Wajib diisi
 
-                    TextInput::make('current_belt_level')
+                  Forms\Components\Select::make('kelas_id')
+                    ->label('Kelas')
+                     ->relationship('kelas', 'name') // kolom 'nama' ditampilkan
+                     ->searchable()
+                     ->preload()
+                     ->required(),
+
+                    Select::make('current_belt_level')
                         ->label('Tingkatan Sabuk')
-                        ->required(), // Wajib diisi
+                          ->options(self::beltOptions())
+                        ->required()
+                        ->reactive(), // Wajib diisi
 
                     DatePicker::make('joint_date')
                         ->label('Tanggal Bergabung')
@@ -258,12 +273,12 @@ class SiswaResource extends Resource
                 ->searchable()
                 ->sortable(),
             
-            TextColumn::make('kelas')
-                ->label('Kelas')
-                ->searchable()
-                ->sortable(),
+            TextColumn::make('kelas.name')
+             ->label('Kelas')
+             ->sortable()
+            ->searchable(),
 
-            TextColumn::make('sabuk')
+            TextColumn::make('current_belt_level')
                 ->label('Sabuk')
                 ->searchable()
                 // ->extraAttributes(['style' => 'width: 100px;'])
@@ -428,9 +443,27 @@ class SiswaResource extends Resource
                     }
                 }),
         ]);
+        
     
           
     }
+    private static function beltOptions(): array
+{
+    return [
+        'putih'               => 'Putih',
+        'kuning'              => 'Kuning',
+        'kuning strip hijau'  => 'Kuning Strip Hijau',
+        'hijau'               => 'Hijau',
+        'hijau strip biru'    => 'Hijau Strip Biru',
+        'biru'                => 'Biru',
+        'biru strip merah'    => 'Biru Strip Merah',
+        'merah'               => 'Merah',
+        'merah strip hitam 1' => 'Merah Strip Hitam 1',
+        'merah strip hitam 2' => 'Merah Strip Hitam 2',
+        'hitam'               => 'Hitam',
+    ];
+}
+
 
     public static function getRelations(): array
     {

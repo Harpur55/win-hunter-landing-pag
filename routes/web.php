@@ -1,13 +1,14 @@
 <?php
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CoachController;
-use App\Http\Controllers\UnitController;
+use App\Http\Controllers\LandingPageController;
 
 
 
 
 
-Route::get('/', [CoachController::class, 'show'])->name('home');
+
+Route::get('/', [LandingPageController::class, 'show'])->name('landing-page');
+
 
 
 

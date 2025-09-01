@@ -14,10 +14,11 @@ class EventUjian extends Model
     ];
    
     public function siswa()
-{
-    return $this->belongsToMany(Siswa::class, 'event_ujian_siswa')
-                ->withPivot(['current_belt_level', 'next_belt_level', 'keterangan']); // Pastikan untuk menyertakan semua kolom pivot
-}
+    {
+        return $this->belongsToMany(Siswa::class, 'event_ujian_siswa', 'event_ujian_id', 'siswa_id')
+                    ->withPivot(['current_belt_level', 'next_belt_level', 'keterangan'])
+                    ->withTimestamps();
+    }
     public function dataUjians()
 {
     return $this->hasMany(DataUjian::class, 'event_ujian_id');

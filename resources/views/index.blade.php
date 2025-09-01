@@ -114,30 +114,35 @@
   <div class="relative overflow-hidden">
     <div id="unit-slider-wrapper" class="overflow-x-auto whitespace-nowrap scroll-smooth scrollbar-hide">
       <div id="unit-slider" class="flex gap-4 w-max">
-        @for ($i = 0; $i < 2; $i++) 
-          @foreach($units as $unit)
+          @for ($i = 0; $i < 2; $i++)
+        @foreach($units as $unit)
           <div class="flex flex-col sm:flex-row sm:items-center bg-white border border-blue-800 
-            rounded-lg shadow-lg hover:shadow-2xl 
-            w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px] 
-            min-w-[280px] sm:min-w-[320px] md:min-w-[360px] lg:min-w-[400px] 
-            p-4 items-center  text-center sm:text-left snap-start">
+              rounded-lg shadow-lg hover:shadow-2xl 
+              w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px] 
+              min-w-[280px] sm:min-w-[320px] md:min-w-[360px] lg:min-w-[400px] 
+              p-4 items-center text-center sm:text-left snap-start">
+            
+            {{-- Logo --}}
+            <div class="w-20 h-20 rounded-md border border-gray-300 mb-2 sm:mb-0 sm:ml-4 sm:order-2 overflow-hidden">
+              <img src="{{asset($unit->image)}}" 
+                   alt="{{ $unit->name }}" 
+                   class="w-full h-full object-cover rounded-md" />
+            </div>
 
-  {{-- Logo --}}
-  <div class="w-20 h-20 object-cover rounded-md border border-gray-300 mb-2 sm:mb-0 sm:ml-4 sm:order-2">
-    <img src="{{ asset($unit->image) }}" alt="{{ $unit->image }}" class="w-full h-full object-cover rounded-md" />
-  </div>
+            {{-- Nama --}}
+            <div class="w-full sm:flex-1 sm:order-1">
+              <h2 class="text-base sm:text-lg font-bold text-gray-800">
+                <a href="{{ $unit->link }}" 
+                   target="_blank" 
+                   class="text-blue-600 hover:underline block w-full text-center sm:text-left">
+                  {{ $unit->name }}
+                </a>
+              </h2>
+            </div>
 
-  {{-- Nama --}}
-  <div class="w-full sm:flex-1 sm:order-1">
-    <h2 class="text-base sm:text-lg font-bold text-gray-800">
-      <a href="{{ $unit->link }}" target="_blank" class="text-blue-600 hover:underline block w-full text-center sm:text-left">
-        {{ $unit->name }}
-      </a>
-    </h2>
-  </div>
-</div>
-          @endforeach
-        @endfor
+          </div>
+        @endforeach
+      @endfor
       </div>
     </div>
   </div>
@@ -172,7 +177,7 @@
 
   <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 my-6 text-center">
       <p class="text-xl font-bold text-gray-700 mb-2">Biaya Pendaftaran Start From</p>
-      <h2 class="text-4xl font-extrabold text-green-600">Rp 500.000 <span class="text-gray-600 text-lg">(Sudah include Seragam Taekwondo)</span></h2>
+      <h2 class="text-4xl font-extrabold text-green-600">Rp 550.000 <span class="text-gray-600 text-lg">(Sudah Include Seragam Taekwondo)</span></h2>
     </div>
     @php
         $class = DB::table('kelas')->get();
@@ -220,13 +225,16 @@
        target="_blank" 
        class="mt-auto w-full"
     >
-       <button class="w-full bg-green-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2">
-          <!-- Ikon WhatsApp -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-white" viewBox="0 0 32 32">
-            <path d="..."/> <!-- potong untuk ringkas -->
-          </svg>
-          Daftar Sekarang
-        </button>
+    <button
+  class="w-full bg-green-600 text-white text-sm font-semibold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors duration-300 inline-flex items-center justify-center gap-2"
+>
+  <!-- Ikon WhatsApp -->
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 fill-current" viewBox="0 0 32 32">
+    <path d="..." /> <!-- dipotong untuk ringkas -->
+  </svg>
+  Daftar Sekarang
+</button>
+
     </a>
 </div>
             </div>
@@ -260,28 +268,37 @@
       Beberapa momen berharga dari kegiatan kami.
     </p>
 
-    <div class="swiper galerySwiper">
-      <div class="swiper-wrapper">
-        @foreach(['cover1.jpeg', 'cover2.jpeg', 'download.jpg', 'download.jpg', 'download.jpg'] as $image)
-          <div class="swiper-slide relative w-full">
-           
-            <img src="{{ asset('assets/images/' . $image) }}" alt="Galeri"
-              class="w-full h-[300px] sm:h-[500px] object-cover rounded-xl shadow-md" />
-
+    <!-- Swiper Container -->
+   <div class="swiper galerySwiper">
+  <div class="swiper-wrapper">
+    @foreach($galleries as $gallery)
+      @foreach($gallery->images_url as $image)
+        <div class="swiper-slide flex flex-col items-center">
           
-            <div class="absolute top-0 left-0 w-full bg-black bg-opacity-50 p-2 rounded-t-xl">
-              <h3 class="text-white text-lg sm:text-xl font-bold text-center">
-                EVENT WIN-HUNTER
-              </h3>
-            </div>
-          </div>
-        @endforeach
-      </div>
+          {{-- Foto --}}
+          <img src="{{ $image }}" alt="{{ $gallery->title }}"
+            class="w-70 h-[400px] sm:h-[500px] object-scale-down rounded-xl shadow-sm" />
 
-      <div class="swiper-pagination mt-4"></div>
-    </div>
+          {{-- Judul --}}
+          <div class="w-full bg-black text-white text-center py-2 rounded-b-xl">
+            <h3 class="text-[16px] sm:text-[18px] md:text-[20px] font-bold">
+              {{ $gallery->title }}
+            </h3>
+          </div>
+        </div>
+      @endforeach
+    @endforeach
+  </div>
+
+      <!-- Navigasi -->
+      {{-- <div class="swiper-pagination mt-4"></div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+    </div> --}}
   </div>
 </section>
+
+
 
 
 
@@ -440,7 +457,7 @@
   new Swiper(".galerySwiper", {
     effect: "coverflow",
     grabCursor: true,
-    centeredSlides: true,
+    centeredSlides: false,
     slidesPerView: "auto",
     loop: true,
     coverflowEffect: {

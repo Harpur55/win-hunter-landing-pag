@@ -8,6 +8,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Siswa;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
+use App\Models\Unit;
 
 class SiswaSeeder extends Seeder
 {
@@ -36,7 +37,7 @@ class SiswaSeeder extends Seeder
              $currentNisNumber = $startNumber + $i; // Angka NIS untuk data saat ini
             
             $gender = $faker->randomElement(['Laki-laki', 'Perempuan']);
-            $birthDate = $faker->dateTimeBetween('-20 years', '-10 years'); // Umur 10-20 tahun
+            $birthDate = $faker->dateTimeBetween('-40 years', '-5 years'); // Umur 10-20 tahun
             $joinDate = $faker->dateTimeBetween('-5 years', 'now');
              // Bergabung 5 tahun terakhir
 
@@ -58,10 +59,10 @@ class SiswaSeeder extends Seeder
                 'pekerjaan_ayah' => $faker->jobTitle,
                 'nama_ibu' => $faker->name('female'),
                 'pekerjaan_ibu' => $faker->jobTitle,
-                'unit_latihan' => $faker->randomElement(['Unit A', 'Unit B', 'Unit C', 'Unit D']),
-                'kelas' => $faker->randomElement(['Reguler', 'Khusus', 'Prestasi', 'Poomsae']),
+                 'units_id' => Unit::inRandomOrder()->first()->id,               
+              'kelas_id' => $faker->randomElement(['1', '2', '3', '4']),
                 'current_belt_level' => $faker->randomElement(['Putih', 'Kuning', 'Kuning Strip Hijau','Hijau','Hijau strip Biru','Biru','Biru strip Merah','Merah strip hitam','Hitam']),
-                'next_belt_level' => '',
+                // 'next_belt_level' => '',
                 'joint_date' => $joinDate->format('Y-m-d'),
                 'status' => $faker->randomElement(['Aktif', 'Tidak Aktif', 'Cuti']),
             ]);

@@ -1,0 +1,12 @@
+/* Import CSS bawaan Filament */
+@import "../../vendor/filament/filament/resources/css/index.css";
+
+/* 🔧 Custom CSS kamu */
+.fi-sidebar-header img {
+    height: 80px !important;
+}
+
+.fi-sidebar-header .fi-sidebar-header-heading {
+    font-size: 2rem !important;
+    font-weight: bold !important;
+}

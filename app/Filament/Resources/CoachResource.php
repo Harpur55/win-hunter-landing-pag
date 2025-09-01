@@ -179,8 +179,8 @@ class CoachResource extends Resource
                     ->action(fn() =>Excel::download(new CoachExport, 'data_pelatih.xlsx'))
                     ->requiresConfirmation()
                     ->modalHeading('Ekspor Data Pelatih')
-                    ->modalSubheading('Apakah Anda yakin ingin mengekspor data pelatih?')
-                    ->modalButton('Ekspor')
+                    // ->modalSubheading('Apakah Anda yakin ingin mengekspor data pelatih?')
+                    // ->modalButton('Ekspor')
                     ->action(function () {
                         return Excel::download(new CoachExport, 'data_pelatih.xlsx');
                         // Logika untuk ekspor data
@@ -212,16 +212,16 @@ class CoachResource extends Resource
                         $filePath = Storage::disk('local')->path($data['file_excel']);
 
                         // Lakukan import
-                        Excel::import(new siswaImport, $filePath);
+                        // Excel::import(new siswaImport, $filePath);
 
-                        // Hapus file setelah import selesai
-                        Storage::disk('local')->delete($data['file_excel']);
+                        // // Hapus file setelah import selesai
+                        // Storage::disk('local')->delete($data['file_excel']);
 
-                        // Tampilkan notifikasi sukses
-                        Notification::make()
-                            ->title('Berhasil mengimpor data!')
-                            ->success()
-                            ->send();
+                        // // Tampilkan notifikasi sukses
+                        // Notification::make()
+                        //     ->title('Berhasil mengimpor data!')
+                        //     ->success()
+                        //     ->send();
 
                     } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                         $failures = $e->failures();
@@ -231,12 +231,12 @@ class CoachResource extends Resource
                         }
                         Log::error('Import Excel Validation Error: ' . implode('; ', $errorMessages));
 
-                        Notification::make()
-                            ->title('Gagal mengimpor data! Ada kesalahan validasi.')
-                            ->body(implode('<br>', $errorMessages))
-                            ->danger()
-                            ->persistent() // Tampilkan notifikasi hingga ditutup manual
-                            ->send();
+                        // Notification::make()
+                        //     ->title('Gagal mengimpor data! Ada kesalahan validasi.')
+                        //     ->body(implode('<br>', $errorMessages))
+                        //     ->danger()
+                        //     ->persistent() // Tampilkan notifikasi hingga ditutup manual
+                        //     ->send();
 
                          // Hapus file jika ada error validasi
                          if (isset($data['file_excel'])) {
@@ -246,12 +246,12 @@ class CoachResource extends Resource
                     } catch (\Exception $e) {
                         Log::error('Import Excel Error: ' . $e->getMessage());
 
-                        Notification::make()
-                            ->title('Terjadi kesalahan saat mengimpor data.')
-                            ->body('Pesan Error: ' . $e->getMessage())
-                            ->danger()
-                            ->persistent()
-                            ->send();
+                        // Notification::make()
+                        //     ->title('Terjadi kesalahan saat mengimpor data.')
+                        //     ->body('Pesan Error: ' . $e->getMessage())
+                        //     ->danger()
+                        //     ->persistent()
+                        //     ->send();
 
                          // Hapus file jika ada error lain
                          if (isset($data['file_excel'])) {

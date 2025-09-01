@@ -26,10 +26,24 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+             ->sidebarCollapsibleOnDesktop()
+
+
+            // Brand custom
+            ->brandLogo(asset('assets/images/download.JPG'))
+            ->brandLogoHeight('60px')
+            ->brandName('Win Hunter Dashboard')
+
+            
+            // Load custom theme CSS
+            // ->viteTheme('resources/css/fillament.css')
+
             ->login()
             ->colors([
                 'primary' => Color::Amber,
             ])
+
+            // Autoload Filament Resources, Pages, Widgets
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -40,6 +54,8 @@ class AdminPanelProvider extends PanelProvider
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
             ])
+
+            // Middleware
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

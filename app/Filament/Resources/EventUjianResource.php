@@ -78,12 +78,12 @@ class EventUjianResource extends Resource
               ->headerActions([
             
 
-            Action::make('export_siswa')
-                ->label('Ekspor ke Excel')
-                ->color('success') // Warna hijau
-                ->icon('heroicon-o-document-arrow-up') 
-                ->action(fn () => Excel::download(new SiswaExport, 'data_siswa_' . date('Ymd_His') . '.xlsx')),
-                ]);
+            // Action::make('export_siswa')
+            //     ->label('Ekspor ke Excel')
+            //     ->color('success') // Warna hijau
+            //     ->icon('heroicon-o-document-arrow-up') 
+            //     ->action(fn () => Excel::download(new SiswaExport, 'data_siswa_' . date('Ymd_His') . '.xlsx')),
+              ]);
     }
     
 
