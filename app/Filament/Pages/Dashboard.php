@@ -2,15 +2,22 @@
 
 namespace App\Filament\Pages;
 
-use Filament\Pages\Page;
+use Filament\Pages\Dashboard as BaseDashboard;
+use App\Models\Siswa;
+use App\Models\Unit;
+use App\Models\Coach;
 
-class Dashboard extends Page
+class Dashboard extends BaseDashboard
 {
-     protected static ?string $navigationIcon = 'heroicon-o-home';
-    protected static string $view = 'pages.dashboard';
+    protected static ?string $navigationIcon = 'heroicon-o-home';
+    protected static string $view = 'filament.pages.dashboard';
 
-    protected static ?string $navigationLabel = 'Dashboard';
-    protected static ?string $title = 'Dashboard admin win Hunter';
-    protected static ?string $slug = 'dashboard';
-    protected static ?int $navigationSort = -1;
+    public function getViewData(): array
+    {
+        return [
+            'siswaCount'  => Siswa::count(),
+            'unitCount'   => Unit::count(),
+            'coachCount'  => Coach::count(),
+        ];
+    }
 }
