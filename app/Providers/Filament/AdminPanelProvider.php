@@ -17,6 +17,10 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Pages\Auth\Register;
+use App\Livewire\Auth\CustomLogin;
+
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -26,6 +30,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+             ->login(CustomLogin::class)
+            ->registration(\Filament\Pages\Auth\Register::class)
             ->sidebarCollapsibleOnDesktop()
            
 
@@ -35,7 +41,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('60px')
             ->brandName('Win Hunter Dashboard')
 
-            ->login()
+            // ->login()
             ->colors([
                 'primary' => Color::Amber,
             ])

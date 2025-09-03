@@ -10,19 +10,28 @@
 
     <!-- Statistik Card -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        <div class="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white rounded-2xl shadow-lg p-6">
-            <h3 class="text-sm font-medium opacity-80">Jumlah Siswa</h3>
-            <p class="text-4xl font-bold mt-2">{{ $siswaCount }}</p>
+        <!-- Card Siswa -->
+        <div class="rounded-2xl shadow-lg p-6 bg-white dark:bg-gray-800 border-l-4 border-indigo-500">
+            <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400">Jumlah Siswa</h3>
+            <p class="text-4xl font-bold mt-2 text-gray-800 dark:text-gray-100">
+                {{ $siswaCount }}
+            </p>
         </div>
 
-        <div class="bg-gradient-to-br from-pink-500 to-pink-700 text-white rounded-2xl shadow-lg p-6">
-            <h3 class="text-sm font-medium opacity-80">Jumlah Pelatih</h3>
-            <p class="text-4xl font-bold mt-2">{{ $coachCount }}</p>
+        <!-- Card Pelatih -->
+        <div class="rounded-2xl shadow-lg p-6 bg-white dark:bg-gray-800 border-l-4 border-pink-500">
+            <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400">Jumlah Pelatih</h3>
+            <p class="text-4xl font-bold mt-2 text-gray-800 dark:text-gray-100">
+                {{ $coachCount }}
+            </p>
         </div>
 
-        <div class="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-2xl shadow-lg p-6">
-            <h3 class="text-sm font-medium opacity-80">Jumlah Unit</h3>
-            <p class="text-4xl font-bold mt-2">{{ $unitCount }}</p>
+        <!-- Card Unit -->
+        <div class="rounded-2xl shadow-lg p-6 bg-white dark:bg-gray-800 border-l-4 border-green-500">
+            <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400">Jumlah Unit</h3>
+            <p class="text-4xl font-bold mt-2 text-gray-800 dark:text-gray-100">
+                {{ $unitCount }}
+            </p>
         </div>
     </div>
 </x-filament::page>

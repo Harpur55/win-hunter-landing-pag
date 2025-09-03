@@ -1,0 +1,61 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\User;
+
+class UserPolicy
+{
+    /**
+     * Hanya Super Admin (role = 2) yang bisa lihat daftar user.
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->role === 2;
+    }
+
+    /**
+     * Hanya Super Admin yang bisa melihat detail user.
+     */
+    public function view(User $user, User $model): bool
+    {
+        return $user->role === 2;
+    }
+
+    /**
+     * Hanya Super Admin yang bisa membuat user baru.
+     */
+    public function create(User $user): bool
+    {
+        return $user->role === 2;
+    }
+
+    /**
+     * Hanya Super Admin yang bisa update user.
+     */
+    public function update(User $user, User $model): bool
+    {
+        return $user->role === 2;
+    }
+
+    /**
+     * Hanya Super Admin yang bisa hapus user.
+     */
+    public function delete(User $user, User $model): bool
+    {
+        return $user->role === 2;
+    }
+
+    /**
+     * Bisa tambahkan aturan lain kalau perlu
+     */
+    public function restore(User $user, User $model): bool
+    {
+        return $user->role === 2;
+    }
+
+    public function forceDelete(User $user, User $model): bool
+    {
+        return $user->role === 2;
+    }
+}
