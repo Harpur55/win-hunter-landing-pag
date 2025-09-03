@@ -3,55 +3,79 @@
 namespace App\Imports;
 
 use App\Models\Siswa;
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\ToCollection;
+use App\Models\EventUjian;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
 
-class EventUjianSiswaImport implements ToCollection
+class EventUjianSiswaImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure
 {
-    protected $eventUjian;
+    use SkipsFailures;
 
-    public function __construct($eventUjian)
+    protected EventUjian $eventUjian;
+
+    public function __construct(EventUjian $eventUjian)
     {
         $this->eventUjian = $eventUjian;
     }
 
-    public function collection(Collection $rows)
+    /**
+     * Header tabel ada di baris ke-5 (setelah judul ujian).
+     */
+    public function headingRow(): int
     {
-        foreach ($rows as $index => $row) {
-            // Skip header (baris 1-8)
-            if ($index < 8) {
-                continue;
-            }
+        return 5;
+    }
 
-            // Kolom sesuai file excel
-            $nama      = $row[1] ?? null; // B = Nama Siswa
-            $unit      = $row[2] ?? null; // C = Unit Latihan
-            $kelas     = $row[3] ?? null; // D = Kelas
-            $tempat    = $row[4] ?? null; // E = Tempat Lahir
-            $tglLahir  = $row[5] ?? null; // F = Tanggal Lahir
-            $sabukNow  = $row[6] ?? null; // G = Sabuk Saat Ini
-            $sabukNext = $row[7] ?? null; // H = Sabuk Berikutnya
-            $status    = $row[8] ?? 'on_proses'; // I = Keterangan
+    /**
+     * Proses setiap baris dari file Excel.
+     */
+    public function model(array $row)
+    {
+        Log::info('Row Import Ujian:', $row);
 
-            if (!$nama) continue;
+        // Cari siswa berdasarkan NIS (lebih aman daripada nama)
+        $siswa = Siswa::where('nis', $row['no'] ?? null)->first();
 
-            // Cari siswa berdasarkan nama (atau lebih baik NIS kalau ada)
-            $siswa = Siswa::where('nama_lengkap', $nama)->first();
-            if (!$siswa) {
-                continue;
-            }
-
-            // Cegah duplikasi
-            if ($this->eventUjian->siswa()->where('siswa_id', $siswa->id)->exists()) {
-                continue;
-            }
-
-            // Simpan ke pivot
-            $this->eventUjian->siswa()->attach($siswa->id, [
-                'current_belt_level' => $sabukNow,
-                'next_belt_level'    => $sabukNext,
-                'keterangan'         => strtolower($status) ?: 'on_proses',
-            ]);
+        // Kalau tidak ketemu, coba pakai nama
+        if (!$siswa && !empty($row['nama_siswa'])) {
+            $siswa = Siswa::where('nama_lengkap', $row['nama_siswa'])->first();
         }
+
+        if (!$siswa) {
+            Log::warning("Siswa tidak ditemukan: " . json_encode($row));
+            return null;
+        }
+
+        // Simpan/Update relasi pivot siswa <-> event ujian
+        $this->eventUjian->siswa()->syncWithoutDetaching([
+            $siswa->id => [
+                'current_belt_level' => $row['sabuk_saat_ini'] ?? null,
+                'next_belt_level'    => $row['sabuk_berikutnya'] ?? null,
+                'keterangan'         => $row['keterangan'] ?? null,
+            ]
+        ]);
+
+        return null;
+    }
+
+    /**
+     * Validasi isi file Excel.
+     */
+    public function rules(): array
+    {
+        return [
+            '*.nama_siswa' => 'required|string',
+        ];
+    }
+
+    public function customValidationMessages()
+    {
+        return [
+            '*.nama_siswa.required' => 'Nama siswa wajib diisi.',
+        ];
     }
 }

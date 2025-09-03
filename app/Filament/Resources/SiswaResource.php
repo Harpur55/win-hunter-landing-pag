@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SiswaResource\Pages;
 use App\Filament\Resources\SiswaResource\RelationManagers;
+use Illuminate\Support\Facades\DB;
+
 use App\Models\Siswa;
 use App\models\Unit;
 use Filament\Forms;
@@ -38,6 +40,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\ExportAction;
+use Filament\Tables\Filters\SelectFilter;
+
+
 
 
 
@@ -350,8 +355,24 @@ class SiswaResource extends Resource
     
         
         ->filters([
-            
+   SelectFilter::make('current_belt_level')
+    ->label('Sabuk')
+    ->placeholder('Semua Sabuk')
+    ->options([
+        'putih'               => 'Putih',
+        'kuning'              => 'Kuning',
+        'kuning strip hijau'  => 'Kuning Strip Hijau',
+        'hijau'               => 'Hijau',
+        'hijau strip biru'    => 'Hijau Strip Biru',
+        'biru'                => 'Biru',
+        'biru strip merah'    => 'Biru Strip Merah',
+        'merah'               => 'Merah',
+        'merah strip hitam 1' => 'Merah Strip Hitam 1',
+        'merah strip hitam 2' => 'Merah Strip Hitam 2',
+        'hitam'               => 'Hitam',
+    ])
         ])
+    
         ->actions([
             // Ini adalah contoh aksi baris
             ActionGroup::make([
@@ -368,80 +389,66 @@ class SiswaResource extends Resource
         ->headerActions([
             
 
-            Action::make('export_siswa')
-                ->label('Ekspor ke Excel')
-                ->color('success') // Warna hijau
-                ->icon('heroicon-o-document-arrow-up') 
-                ->action(fn () => Excel::download(new SiswaExport, 'data_siswa_' . date('Ymd_His') . '.xlsx')),
+            Tables\Actions\Action::make('export')
+        ->label('Export Siswa')
+        ->icon('heroicon-o-document-arrow-down')
+        ->color('success')
+        ->action(fn () => \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\SiswaExport, 'data_siswa.xlsx')),
 
+            Tables\Actions\Action::make('import')
+                    ->label('Import Siswa')
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Import Data Siswa')
+                    ->modalDescription('File Excel harus sesuai format export. Data lama akan dihapus hanya jika import berhasil.')
+                    ->form([
+                        Forms\Components\FileUpload::make('file_excel')
+                            ->label('Pilih File Excel')
+                            ->required()
+                            ->acceptedFileTypes([
+                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                'application/vnd.ms-excel',
+                                'text/csv',
+                            ])
+                            ->disk('local')
+                            ->directory('temp_imports'),
+                    ])
+                    ->action(function (array $data): void {
+                        $filePath = storage_path('app/' . $data['file_excel']);
+try {
+    // 1️⃣ Test dulu
+    Excel::import(new SiswaImport(true), $filePath);
 
-            Action::make('import_siswa')
-                ->label('Impor dari Excel')
-                ->color('info')
-                ->icon('heroicon-o-document-arrow-down') 
-                ->modalHeading('Impor Data siswa') 
-                ->form([
-                    FileUpload::make('file_excel')
-                        ->label('Pilih File Excel (.xlsx, .xls, .csv)')
-                        ->required()
-                        ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel', 'text/csv'])
-                        ->disk('local') // Simpan file sementara di disk local
-                        ->directory('temp_imports') // Direktori sementara
-                        ->visibility('private'), // Pastikan file tidak dapat diakses publik
-                ])
-                ->action(function (array $data) {
-                    try {
-                        // Dapatkan path lengkap dari file yang diunggah
-                        $filePath = Storage::disk('local')->path($data['file_excel']);
+    // 2️⃣ Hapus data lama
+    Siswa::query()->delete();
+    DB::statement('ALTER TABLE siswas AUTO_INCREMENT = 1');
 
-                        // Lakukan import
-                        Excel::import(new siswaImport, $filePath);
+    // 3️⃣ Import ulang (simpan data)
+    Excel::import(new SiswaImport(false), $filePath);
 
-                        // Hapus file setelah import selesai
-                        Storage::disk('local')->delete($data['file_excel']);
+    Storage::disk('local')->delete($data['file_excel']);
 
-                        // Tampilkan notifikasi sukses
-                        Notification::make()
-                            ->title('Berhasil mengimpor data!')
-                            ->success()
-                            ->send();
+    \Filament\Notifications\Notification::make()
+        ->title('Import berhasil')
+        ->body('Cek database, data siswa baru sudah masuk.')
+        ->success()
+        ->send();
+} catch (\Exception $e) {
+    Storage::disk('local')->delete($data['file_excel']);
 
-                    } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                        $failures = $e->failures();
-                        $errorMessages = [];
-                        foreach ($failures as $failure) {
-                            $errorMessages[] = "Baris " . ($failure->row()) . ": " . implode(", ", $failure->errors());
-                        }
-                        Log::error('Import Excel Validation Error: ' . implode('; ', $errorMessages));
+    \Filament\Notifications\Notification::make()
+        ->title('Import gagal')
+        ->body('Error: ' . $e->getMessage())
+        ->danger()
+        ->send();
 
-                        Notification::make()
-                            ->title('Gagal mengimpor data! Ada kesalahan validasi.')
-                            ->body(implode('<br>', $errorMessages))
-                            ->danger()
-                            ->persistent() // Tampilkan notifikasi hingga ditutup manual
-                            ->send();
-
-                         // Hapus file jika ada error validasi
-                         if (isset($data['file_excel'])) {
-                            Storage::disk('local')->delete($data['file_excel']);
-                        }
-
-                    } catch (\Exception $e) {
-                        Log::error('Import Excel Error: ' . $e->getMessage());
-
-                        Notification::make()
-                            ->title('Terjadi kesalahan saat mengimpor data.')
-                            ->body('Pesan Error: ' . $e->getMessage())
-                            ->danger()
-                            ->persistent()
-                            ->send();
-
-                         // Hapus file jika ada error lain
-                         if (isset($data['file_excel'])) {
-                            Storage::disk('local')->delete($data['file_excel']);
-                        }
-                    }
-                }),
+    throw $e;
+}
+   
+        }),
+        
+            
         ]);
         
     

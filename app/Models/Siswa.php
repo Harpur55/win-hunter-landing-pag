@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Siswa extends Model
 {
@@ -98,6 +99,36 @@ public function unit()
             ])
             ->withTimestamps();
     }
+
+    public function model(array $row)
+{
+    if ($this->testMode) {
+        return null;
+    }
+
+    return new Siswa([
+        'nis'                => $row['nis'] ?? null,
+        'no_register'        => $row['nomor_registrasi'] ?? null,
+        'nama_lengkap'       => $row['nama_lengkap'] ?? null,
+        'jenis_kelamin'      => $row['jenis_kelamin'] ?? null,
+        'units_id'           => !empty($row['unit_latihan']) ? Unit::where('name', $row['unit_latihan'])->value('id') : null,
+        'kelas_id'           => !empty($row['kelas']) ? Kelas::where('name', $row['kelas'])->value('id') : null,
+        'current_belt_level' => $row['sabuk'] ?? null,
+        'tempat_lahir'       => $row['tempat_lahir'] ?? null,
+        'tanggal_lahir'      => !empty($row['tanggal_lahir']) ? Carbon::parse($row['tanggal_lahir']) : null,
+        'golongan_darah'     => $row['golongan_darah'] ?? null,
+        'image'              => $row['foto_siswa'] ?? null,
+        'alamat_lengkap'     => $row['alamat_lengkap'] ?? null,
+        'no_telepon'         => $row['nomor_telepon'] ?? null,
+        'nama_ayah'          => $row['nama_ayah'] ?? null,
+        'pekerjaan_ayah'     => $row['pekerjaan_ayah'] ?? null,
+        'nama_ibu'           => $row['nama_ibu'] ?? null,
+        'pekerjaan_ibu'      => $row['pekerjaan_ibu'] ?? null,
+        'status'             => $row['status'] ?? 'Aktif',
+        'joint_date'         => !empty($row['tanggal_bergabung']) ? Carbon::parse($row['tanggal_bergabung']) : null,
+    ]);
+}
+
 
 
 }
