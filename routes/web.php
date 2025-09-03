@@ -12,3 +12,5 @@ Route::get('/', [LandingPageController::class, 'show'])->name('landing-page');
 
 
 
+
+

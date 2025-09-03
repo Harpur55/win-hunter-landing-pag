@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Siswa extends Model
 {
-    //
+    
     protected $fillable = [
        'no_register',
         'nis',
