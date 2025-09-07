@@ -82,22 +82,9 @@ public function unit()
     return $this->belongsTo(Kelas::class, 'kelas_id');
 }
 
- public function kejuaraans()
+public function kejuaraan()
     {
-        return $this->belongsToMany(Kejuaraan::class, 'kejuaraan_siswa', 'siswa_id', 'kejuaraan_id')
-            ->withPivot([
-                'nama_lengkap',
-                'tempat_lahir',
-                'tanggal_lahir',
-                'jenis_kelamin',
-                'sabuk',
-                'kategori_pertandingan',
-                'kategori_atlit',
-                'berat_badan',
-                'tinggi_badan',
-                'medali',
-            ])
-            ->withTimestamps();
+        return $this->hasMany(KejuaraanSiswa::class, 'siswa_id');
     }
 
     public function model(array $row)

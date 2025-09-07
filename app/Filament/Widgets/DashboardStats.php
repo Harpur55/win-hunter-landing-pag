@@ -30,6 +30,17 @@ class DashboardStats extends BaseWidget
 $eventName = $upcomingEvent ? $upcomingEvent->nama_ujian : 'Tidak ada';
 $eventParticipants = $upcomingEvent ? $upcomingEvent->siswa_count : 0;
 
+$upcomingChampionship = Kejuaraan::whereDate('tanggal_mulai', '>=', Carbon::today())
+    ->orderBy('tanggal_mulai')
+    ->first();  
+
+$championshipName = $upcomingChampionship ? $upcomingChampionship->nama_kejuaraan : 'Tidak ada';
+$championshipParticipants = $upcomingChampionship ? $upcomingChampionship->jumlah_peserta : 0;
+$championshipDate = $upcomingChampionship
+    ? Carbon::parse($upcomingChampionship->tanggal_mulai)->format('d-m-Y')
+    : 'Tidak ada';
+
+
         return [
             Stat::make('Jumlah Siswa', Siswa::count())
                 ->description('Total siswa terdaftar')
@@ -51,10 +62,11 @@ $eventParticipants = $upcomingEvent ? $upcomingEvent->siswa_count : 0;
                  ->descriptionIcon('heroicon-m-academic-cap')
                  ->color('info'),
 
-            Stat::make('Kejuaraan Akan Datang', Kejuaraan::whereDate('tanggal_mulai', '>=', Carbon::today())->count())
-                ->description('Jadwal kejuaraan mendatang')
-                ->descriptionIcon('heroicon-m-trophy')
-                ->color('danger'),
+             Stat::make('Kejuaraan Akan Datang', $championshipName)
+                  
+                 ->description("Tanggal: {$championshipDate} ||  Jumlah Peserta: {$championshipParticipants}")
+                    // ->descriptionIcon('heroicon-m-trophy')
+                 ->color('secondary'),
         ];
     }
 }

@@ -37,8 +37,8 @@ class AdminPanelProvider extends PanelProvider
 
 
             // Brand
-            ->brandLogo(asset('assets/images/download.JPG'))
-            ->brandLogoHeight('60px')
+            // ->brandLogo(asset('assets/images/download.JPG'))
+            // ->brandLogoHeight('60px')
             ->brandName('Win Hunter Dashboard')
 
             // ->login()
@@ -70,9 +70,12 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                //  \App\Http\Middleware\AdminOnly::class,
+                
             ])
             ->authMiddleware([
                 Authenticate::class,
             ]);
+            
     }
 }

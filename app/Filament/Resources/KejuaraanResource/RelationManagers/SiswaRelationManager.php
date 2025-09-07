@@ -16,6 +16,8 @@ use Illuminate\Support\Carbon;
 use Filament\Tables\Actions\Action;
 use App\Exports\KejuaraanExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Filament\Forms\Components\FileUpload;
+
 
 
 class SiswaRelationManager extends RelationManager
@@ -33,60 +35,74 @@ class SiswaRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('jenis_kelamin')->label('JK')->badge(),
                 Tables\Columns\TextColumn::make('sabuk')->label('Sabuk')->badge(),
                 Tables\Columns\TextColumn::make('kategori_pertandingan')->label('Kategori'),
+                Tables\Columns\TextColumn::make('berat_badan')
+                    ->label('BB (kg)')
+                    ->hidden(fn($record): bool => $record->kategori_pertandingan === 'poomsae'),
+
+                // Kolom Tinggi Badan (TB) akan disembunyikan jika kategori_pertandingan adalah 'Poomsae'
+                Tables\Columns\TextColumn::make('tinggi_badan')
+                    ->label('TB (cm)')
+                    ->hidden(fn($record): bool => $record->kategori_pertandingan === 'poomsae'),
+                Tables\Columns\TextColumn::make('tageuk')->label('Taegeuk'),
                 Tables\Columns\TextColumn::make('kategori_atlit')->label('Kelompok Umur'),
                 Tables\Columns\TextColumn::make('berat_badan')->label('BB (kg)'),
                 Tables\Columns\TextColumn::make('tinggi_badan')->label('TB (cm)'),
-                Tables\Columns\TextColumn::make('medali')
-    ->label('Medali')
-    ->badge()
-    ->formatStateUsing(fn ($state) => match ($state) {
-        'emas' => 'Emas',
-        'perak' => 'Perak',
-        'perunggu' => 'Perunggu',
-        default => 'Tidak Ada',
-    })
-    ->color(fn ($state) => match ($state) {
-        'emas' => 'success',     // hijau
-        'perak' => 'gray',       // abu
-        'perunggu' => 'warning', // kuning / oranye
-        default => 'secondary',  // default abu
-    }),
-    
 
-                
+
+
+
+                Tables\Columns\TextColumn::make('medali')
+                    ->label('Medali')
+                    ->badge()
+                    ->formatStateUsing(fn($state) => match ($state) {
+                        'emas' => 'Emas',
+                        'perak' => 'Perak',
+                        'perunggu' => 'Perunggu',
+                        default => 'Tidak Ada',
+                    })
+                    ->color(fn($state) => match ($state) {
+                        'emas' => 'success',     // hijau
+                        'perak' => 'gray',       // abu
+                        'perunggu' => 'warning', // kuning / oranye
+                        default => 'secondary',  // default abu
+                    }),
+
+
+
             ])
             ->headerActions([
                 Action::make('export_data')
-        ->label('Export Data')
-        ->color('primary') // tombol biru
-        ->icon('heroicon-o-arrow-down-tray')
-        ->action(function () {
-            $event = $this->getOwnerRecord();
+                    ->label('Export Data')
+                    ->color('primary') // tombol biru
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function () {
+                        $event = $this->getOwnerRecord();
 
-            // download langsung file excel
-            return Excel::download(new KejuaraanExport($event), 'data_kejuaraan.xlsx');
-        }),
+                        // download langsung file excel
+                        return Excel::download(new KejuaraanExport($event), 'data_kejuaraan.xlsx');
+                    }),
+
                 Tables\Actions\Action::make('tambah_peserta')
                     ->label('Tambah Peserta')
                     ->icon('heroicon-o-plus-circle')
                     ->form([
                         // ✅ Pilih siswa (pakai relationship)
-                     Select::make('siswa_id')
-                      ->label('Nama Lengkap')
-                      ->options(fn () => \App\Models\Siswa::all()->pluck('nama_lengkap', 'id'))
-                      ->searchable()
-                      ->required()
-                      ->reactive()
-                      ->afterStateUpdated(function ($state, callable $set) {
-        $siswa = \App\Models\Siswa::find($state);
-        if ($siswa) {
-            $set('nama_lengkap', $siswa->nama_lengkap);
-            $set('tempat_lahir', $siswa->tempat_lahir);
-            $set('tanggal_lahir', $siswa->tanggal_lahir ? Carbon::parse($siswa->tanggal_lahir)->format('Y-m-d') : null);
-           $set('jenis_kelamin', $siswa->jenis_kelamin === 'Laki-laki' ? 'L' : 'P');
-            $set('sabuk', $siswa->current_belt_level);
-        }
-    }),
+                        Select::make('siswa_id')
+                            ->label('Nama Lengkap')
+                            ->options(fn() => \App\Models\Siswa::all()->pluck('nama_lengkap', 'id'))
+                            ->searchable()
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $siswa = \App\Models\Siswa::find($state);
+                                if ($siswa) {
+                                    $set('nama_lengkap', $siswa->nama_lengkap);
+                                    $set('tempat_lahir', $siswa->tempat_lahir);
+                                    $set('tanggal_lahir', $siswa->tanggal_lahir ? Carbon::parse($siswa->tanggal_lahir)->format('Y-m-d') : null);
+                                    $set('jenis_kelamin', $siswa->jenis_kelamin === 'Laki-laki' ? 'L' : 'P');
+                                    $set('sabuk', $siswa->current_belt_level);
+                                }
+                            }),
 
                         // Snapshot biodata siswa
                         TextInput::make('nama_lengkap')->readOnly(),
@@ -105,17 +121,17 @@ class SiswaRelationManager extends RelationManager
                             ->required()
                             ->reactive(),
 
-                            TextInput::make('berat_badan')
+                        TextInput::make('berat_badan')
                             ->numeric()
                             ->suffix('kg')
                             ->required()
-                            ->visible(fn ($get) => $get('kategori_pertandingan') === 'kyorugi'),
+                            ->visible(fn($get) => $get('kategori_pertandingan') === 'kyorugi'),
 
                         TextInput::make('tinggi_badan')
                             ->numeric()
                             ->suffix('cm')
                             ->required()
-                            ->visible(fn ($get) => $get('kategori_pertandingan') === 'kyorugi'),
+                            ->visible(fn($get) => $get('kategori_pertandingan') === 'kyorugi'),
 
                         // Jika kategori = poomsae → tampil Taegeuk 1–8
                         Select::make('tageuk')
@@ -131,8 +147,8 @@ class SiswaRelationManager extends RelationManager
                                 '8' => 'Taegeuk 8',
                             ])
                             ->required()
-                            ->visible(fn ($get) => $get('kategori_pertandingan') === 'poomsae'),
-                          
+                            ->visible(fn($get) => $get('kategori_pertandingan') === 'poomsae'),
+
 
                         Select::make('kategori_atlit')
                             ->label('Kelompok Usia')
@@ -181,8 +197,43 @@ class SiswaRelationManager extends RelationManager
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->form([
-                        TextInput::make('pivot.berat_badan')->numeric()->suffix('kg'),
-                        TextInput::make('pivot.tinggi_badan')->numeric()->suffix('cm'),
+                        TextInput::make('pivot.berat_badan')
+                            ->numeric()
+                            ->suffix('kg')
+                            ->required()
+                            ->visible(fn($record) => $record->pivot->kategori_pertandingan === 'kyorugi'),
+
+                        TextInput::make('pivot.tinggi_badan')
+                            ->numeric()
+                            ->suffix('cm')
+                            ->required()
+                            ->visible(fn($record) => $record->pivot->kategori_pertandingan === 'kyorugi'),
+
+                        Select::make('pivot.tageuk')
+                            ->label('Taegeuk')
+                            ->options([
+                                '1' => 'Taegeuk 1',
+                                '2' => 'Taegeuk 2',
+                                '3' => 'Taegeuk 3',
+                                '4' => 'Taegeuk 4',
+                                '5' => 'Taegeuk 5',
+                                '6' => 'Taegeuk 6',
+                                '7' => 'Taegeuk 7',
+                                '8' => 'Taegeuk 8',
+                            ])
+                            ->required()
+                            ->visible(fn($record) => strtolower((string)($record?->pivot?->kategori_pertandingan ?? '')) === 'poomsae'),
+
+                        Select::make('pivot.kategori_atlit')
+                            ->label('Kelompok Usia')
+                            ->options([
+                                'pracadet' => 'Pra-Cadet',
+                                'cadet'    => 'Cadet',
+                                'junior'   => 'Junior',
+                                'senior'   => 'Senior',
+                            ])
+                            ->required(),
+
                         Select::make('pivot.medali')
                             ->options([
                                 'tidak_ada' => 'Tidak Ada',
@@ -191,7 +242,7 @@ class SiswaRelationManager extends RelationManager
                                 'perunggu'  => 'Perunggu',
                             ]),
                     ]),
-                Tables\Actions\DetachAction::make(),
+                // Tables\Actions\DetachAction::make(),
             ]);
     }
 }

@@ -40,9 +40,14 @@ class CoachResource extends Resource
 {
     protected static ?string $model = Coach::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-users';
     //   protected static ?string $navigationGroup = 'Manajemen Data';
     protected static ?string $navigationLabel = 'Pelatih';
+
+    public static function getNavigationSort(): ?int
+    {
+        return 2;
+    }
 
     public static function form(Form $form): Form
     {

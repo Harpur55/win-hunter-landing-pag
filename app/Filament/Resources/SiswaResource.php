@@ -55,13 +55,16 @@ class SiswaResource extends Resource
 
 
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-users';
     //   protected static ?string $navigationGroup = 'Manajemen Data'; // Kelompok navigasi
 
     protected static ?string $label = 'Siswa'; 
     protected static ?string $pluralLabel = 'Siswa'; 
 
-
+ public static function getNavigationSort(): ?int
+    {
+        return 1; // tampil setelah Dashboard
+    }
 
     public static function form(Form $form): Form
     {
@@ -355,22 +358,29 @@ class SiswaResource extends Resource
     
         
         ->filters([
-   SelectFilter::make('current_belt_level')
-    ->label('Sabuk')
-    ->placeholder('Semua Sabuk')
-    ->options([
-        'putih'               => 'Putih',
-        'kuning'              => 'Kuning',
-        'kuning strip hijau'  => 'Kuning Strip Hijau',
-        'hijau'               => 'Hijau',
-        'hijau strip biru'    => 'Hijau Strip Biru',
-        'biru'                => 'Biru',
-        'biru strip merah'    => 'Biru Strip Merah',
-        'merah'               => 'Merah',
-        'merah strip hitam 1' => 'Merah Strip Hitam 1',
-        'merah strip hitam 2' => 'Merah Strip Hitam 2',
-        'hitam'               => 'Hitam',
-    ])
+        SelectFilter::make('current_belt_level')
+            ->label('Sabuk')
+            ->placeholder('Semua Sabuk')
+            ->options([
+                'putih'               => 'Putih',
+                'kuning'              => 'Kuning',
+                'kuning strip hijau'  => 'Kuning Strip Hijau',
+                'hijau'               => 'Hijau',
+                'hijau strip biru'    => 'Hijau Strip Biru',
+                'biru'                => 'Biru',
+                'biru strip merah'    => 'Biru Strip Merah',
+                'merah'               => 'Merah',
+                'merah strip hitam 1' => 'Merah Strip Hitam 1',
+                'merah strip hitam 2' => 'Merah Strip Hitam 2',
+                'hitam'               => 'Hitam',
+            ]),
+             SelectFilter::make('units')
+            ->label('Unit Latihan')
+            ->relationship('unit', 'name') // 'unit' = nama fungsi relasi di model
+            ->placeholder('Semua Unit'),
+
+
+
         ])
     
         ->actions([
