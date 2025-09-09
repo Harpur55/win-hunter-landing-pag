@@ -33,11 +33,11 @@ class SiswaSeeder extends Seeder
             $lastNisNumber = (int) substr($lastSiswa->nis, strlen($nisPrefix));
             $startNumber = $lastNisNumber + 1; // Lanjutkan dari angka berikutnya
         }
-        for ($i = 0; $i < 20; $i++) {
+        for ($i = 0; $i < 100; $i++) {
              $currentNisNumber = $startNumber + $i; // Angka NIS untuk data saat ini
             
             $gender = $faker->randomElement(['Laki-laki', 'Perempuan']);
-            $birthDate = $faker->dateTimeBetween('-40 years', '-5 years'); // Umur 10-20 tahun
+            $birthDate = $faker->dateTimeBetween('-20 years', '-5 years'); // Umur 10-20 tahun
             $joinDate = $faker->dateTimeBetween('-5 years', 'now');
              // Bergabung 5 tahun terakhir
 

@@ -7,11 +7,11 @@ use App\Models\User;
 class UserPolicy
 {
     /**
-     * Hanya Super Admin (role = 2) yang bisa lihat daftar user.
+     * Hanya Super Admin yang bisa lihat daftar user.
      */
     public function viewAny(User $user): bool
     {
-        return $user->role === 2;
+        return $user->hasRole('super-admin');
     }
 
     /**
@@ -19,7 +19,7 @@ class UserPolicy
      */
     public function view(User $user, User $model): bool
     {
-        return $user->role === 2;
+        return $user->hasRole('super-admin');
     }
 
     /**
@@ -27,7 +27,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === 2;
+        return $user->hasRole('super-admin');
     }
 
     /**
@@ -35,7 +35,7 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        return $user->role === 2;
+        return $user->hasRole('super-admin');
     }
 
     /**
@@ -43,19 +43,16 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        return $user->role === 2;
+        return $user->hasRole('super-admin');
     }
 
-    /**
-     * Bisa tambahkan aturan lain kalau perlu
-     */
     public function restore(User $user, User $model): bool
     {
-        return $user->role === 2;
+        return $user->hasRole('super-admin');
     }
 
     public function forceDelete(User $user, User $model): bool
     {
-        return $user->role === 2;
+        return $user->hasRole('super-admin');
     }
 }

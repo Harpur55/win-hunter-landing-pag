@@ -17,10 +17,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-           $table->tinyInteger('role')
-             ->default(0) // default siswa
-             ->comment('0 = Siswa, 1 = Admin, 2 = Super Admin')
-             ->change();
+        //    $table->tinyInteger('role')
+        //      ->default(0) // default siswa
+        //      ->comment('0 = Siswa, 1 = Admin, 2 = Super Admin')
+        //      ->change();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -50,13 +50,13 @@ return new class extends Migration
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
 
-         $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->tinyInteger('role')->default(0)->comment('0 = Siswa, 1 = Admin, 2 = Super Admin');
-            $table->rememberToken();
-            $table->timestamps();
+        //  $table->id();
+        //     $table->string('name');
+        //     $table->string('email')->unique();
+        //     $table->timestamp('email_verified_at')->nullable();
+        //     $table->string('password');
+        //     // $table->tinyInteger('role')->default(0)->comment('0 = Siswa, 1 = Admin, 2 = Super Admin');
+        //     $table->rememberToken();
+        //     $table->timestamps();
     }
 };

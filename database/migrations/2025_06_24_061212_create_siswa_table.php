@@ -21,13 +21,13 @@ return new class extends Migration
             $table->date('tanggal_lahir'); 
             $table->string('golongan_darah')->nullable(); 
             $table->string('image')->nullable(); 
-            $table->string('alamat_lengkap')->nullable(); 
-            $table->string('no_telepon')->nullable(); 
+            $table->longText('alamat_lengkap')->nullable(); 
+            $table->longText('no_telepon')->nullable(); 
 
             // Informasi Orang Tua
-            $table->string('nama_ayah')->nullable(); // Nama Ayah
+            $table->longText('nama_ayah')->nullable(); // Nama Ayah
             $table->string('pekerjaan_ayah')->nullable(); // Pekerjaan Ayah
-            $table->string('nama_ibu')->nullable(); // Nama Ibu
+            $table->longText('nama_ibu')->nullable(); // Nama Ibu
             $table->string('pekerjaan_ibu')->nullable(); // Pekerjaan Ibu
 
             // Informasi Akademik/Pelatihan
