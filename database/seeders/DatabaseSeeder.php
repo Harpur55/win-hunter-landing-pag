@@ -23,6 +23,10 @@ class DatabaseSeeder extends Seeder
           $this->call([
         CoachSeeder::class,
         KejuaraanSiswaSeeder::class,
+        SiswaSeeder::class,
+        UnitSeeder::class,
+        KelasSeeder::class,
+        NormalizeSabukSeeder::class,
     ]);
     }
 }

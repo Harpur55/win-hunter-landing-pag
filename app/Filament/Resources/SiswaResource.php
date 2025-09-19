@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\Storage; // Untuk menghapus file sementara
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\siswaExport;
 use App\Imports\siswaImport;
+use Dom\Text;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -143,6 +144,7 @@ class SiswaResource extends Resource
                                 ->native(false),
 
                         ]),
+
                 ]),
                  Section::make('Informasi Akademik & Pelatihan')
                 ->description('Detail mengenai unit latihan, kelas, sabuk, dan status siswa.')
@@ -154,6 +156,8 @@ class SiswaResource extends Resource
                      ->searchable()
                      ->preload()
                      ->required(),
+
+                     
 
                   Forms\Components\Select::make('kelas_id')
                     ->label('Kelas')
@@ -167,6 +171,11 @@ class SiswaResource extends Resource
                           ->options(self::beltOptions())
                         ->required()
                         ->reactive(), // Wajib diisi
+
+                        TextInput::make('beladiri_yang_pernah_diikuti')
+                        ->label('Beladiri yang Pernah Diikuti')
+                        ->nullable()
+                        ->placeholder('Contoh: Pencak Silat, Taekwondo, dll'),
 
                     DatePicker::make('joint_date')
                         ->label('Tanggal Bergabung')

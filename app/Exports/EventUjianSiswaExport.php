@@ -8,8 +8,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use DateTime; // <-- Tambahkan baris ini
-
+use DateTime;
 
 class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles, WithMapping
 {
@@ -35,6 +34,7 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
             [
                 'NO',
                 'NAMA SISWA',
+                'NO REGISTER',
                 'UNIT LATIHAN',
                 'KELAS',
                 'TEMPAT LAHIR',
@@ -48,10 +48,13 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
 
     public function map($siswa): array
     {
-        
+        static $no = 0;
+        $no++;
+
         return [
-            $siswa->id,
+            $no, // ✅ nomor urut (bukan id siswa)
             $siswa->nama_lengkap,
+            $siswa->no_register,   // ✅ dipakai untuk import
             $siswa->unit?->name,
             $siswa->kelas?->name,
             $siswa->tempat_lahir,
@@ -68,7 +71,7 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 
         // Merge cell untuk judul
-        $sheet->mergeCells('A1:I1');
+        $sheet->mergeCells('A1:J1');
 
         // Border semua data
         $highestRow = $sheet->getHighestRow();

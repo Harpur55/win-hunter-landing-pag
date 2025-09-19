@@ -26,6 +26,7 @@ class Siswa extends Model
         'pekerjaan_ibu',
         'kelas_id',
         'current_belt_level',
+        'beladiri_yang_pernah_diikuti',
         // 'next_belt_level',
         'joint_date',
         'status',
@@ -147,6 +148,8 @@ class Siswa extends Model
             'pekerjaan_ibu'      => $row['pekerjaan_ibu'] ?? null,
             'status'             => $row['status'] ?? 'Aktif',
             'joint_date'         => !empty($row['tanggal_bergabung']) ? Carbon::parse($row['tanggal_bergabung']) : null,
+            'beladiri_yang_pernah_diikuti' => $row['beladiri_yang_pernah_diikuti'] ?? null,
+            // 'keterangan'         => $row['keterangan'] ?? null,
         ]);
     }
 }

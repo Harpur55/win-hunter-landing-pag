@@ -37,13 +37,8 @@ class EventUjianSiswaImport implements ToModel, WithHeadingRow, WithValidation, 
     {
         Log::info('Row Import Ujian:', $row);
 
-        // Cari siswa berdasarkan NIS (lebih aman daripada nama)
-        $siswa = Siswa::where('nis', $row['no'] ?? null)->first();
-
-        // Kalau tidak ketemu, coba pakai nama
-        if (!$siswa && !empty($row['nama_siswa'])) {
-            $siswa = Siswa::where('nama_lengkap', $row['nama_siswa'])->first();
-        }
+        // ✅ Cari siswa berdasarkan NO REGISTER
+        $siswa = Siswa::where('no_register', $row['no_register'] ?? null)->first();
 
         if (!$siswa) {
             Log::warning("Siswa tidak ditemukan: " . json_encode($row));
@@ -68,14 +63,16 @@ class EventUjianSiswaImport implements ToModel, WithHeadingRow, WithValidation, 
     public function rules(): array
     {
         return [
-            '*.nama_siswa' => 'required|string',
+            '*.nama_siswa'   => 'required|string',
+            '*.no_register'  => 'required|string',
         ];
     }
 
     public function customValidationMessages()
     {
         return [
-            '*.nama_siswa.required' => 'Nama siswa wajib diisi.',
+            '*.nama_siswa.required'   => 'Nama siswa wajib diisi.',
+            '*.no_register.required'  => 'No register wajib diisi.',
         ];
     }
 }

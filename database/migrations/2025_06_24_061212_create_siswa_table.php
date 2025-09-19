@@ -33,6 +33,7 @@ return new class extends Migration
             // Informasi Akademik/Pelatihan
             $table->foreignId('units_id')->constrained()->onDelete('cascade');
             $table->foreignId('kelas_id')->constrained('kelas')->cascadeOnDelete();
+            $table->string('beladiri_yang_pernah_diikuti')->nullable();
             $table->string('current_belt_level')->default('Putih'); 
             // $table->string('next_belt_level')->nullable(); 
             $table->date('joint_date')->nullable(); 

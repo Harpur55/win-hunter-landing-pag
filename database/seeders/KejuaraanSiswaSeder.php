@@ -5,6 +5,9 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Kejuaraan;
 use App\Models\Siswa;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 
 class KejuaraanSiswaSeeder extends Seeder
 {

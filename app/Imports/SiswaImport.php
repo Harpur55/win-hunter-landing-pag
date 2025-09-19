@@ -5,79 +5,127 @@ namespace App\Imports;
 use App\Models\Siswa;
 use App\Models\Unit;
 use App\Models\Kelas;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
-class SiswaImport implements ToModel, WithHeadingRow
+class SiswaImport implements ToCollection, WithHeadingRow
 {
-    protected bool $testMode;
+    private int $nisCounter;
 
-    public function __construct(bool $testMode = false)
+    private array $sabukMap = 
+    [
+         'putih'               => 'putih',
+    'kuning'              => 'kuning',
+    'kuning strip hijau'  => 'kuning strip hijau',
+    'hijau'               => 'hijau',
+    'hijau strip biru'    => 'hijau strip biru',
+    'biru'                => 'biru',
+    'biru strip merah'    => 'biru strip merah',
+    'merah'               => 'merah',
+    'merah strip hitam 1' => 'merah strip hitam 1',
+    'merah strip hitam 2' => 'merah strip hitam 2',
+    'hitam'               => 'hitam',
+          
+    ];
+
+    public function __construct()
     {
-        $this->testMode = $testMode;
+        $last = Siswa::latest('id')->first();
+        $this->nisCounter = $last ? intval(substr($last->nis, 3)) : 0;
+    }
+
+    public function headingRow(): int
+    {
+        return 2; // Header ada di baris kedua (sesuai export)
+    }
+
+    public function collection(Collection $rows)
+    {
+        foreach ($rows as $row) {
+            $this->nisCounter++;
+            $nis = 'WH-' . str_pad($this->nisCounter, 3, '0', STR_PAD_LEFT);
+
+            // Cari unit
+            $unit = !empty($row['unit_latihan'] ?? null)
+                ? Unit::where('name', 'LIKE', '%' . trim($row['unit_latihan']) . '%')->first()
+                : null;
+            $unitId = $unit?->id ?? 1;
+
+            // Cari kelas
+            $kelas = !empty($row['kelas'] ?? null)
+                ? Kelas::where('name', 'LIKE', '%' . trim($row['kelas']) . '%')->first()
+                : null;
+            $kelasId = $kelas?->id ?? 1;
+
+            // Normalisasi sabuk
+            // $sabukRaw = strtolower(trim($row['sabuk'] ?? ''));
+            $sabukRaw = strtolower(trim($row['sabuk'] ?? ''));
+            $sabukFormatted = $this->sabukMap[$sabukRaw] ?? 'putih';
+
+            // Parse tanggal
+            $tanggal_lahir = $this->formatDateTime($row['tanggal_lahir'] ?? null);
+            $tanggal_gabung = $this->formatDateTime($row['tanggal_bergabung'] ?? null);
+
+            try {
+                Siswa::create([
+                    // 'nis'                          => $nis,
+                    'nama_lengkap'                 => $row['nama_lengkap'] ?? '-',
+                    'jenis_kelamin'                => $row['jenis_kelamin'] ?? '-',
+                    'tempat_lahir'                 => $row['tempat_lahir'] ?? '-',
+                    'tanggal_lahir'                => $tanggal_lahir,
+                    'golongan_darah'               => $row['golongan_darah'] ?? '-',
+                    'alamat_lengkap'               => $row['alamat'] ?? '-',
+                    'no_telepon'                   => $row['no_telepon'] ?? '-',
+                    'nama_ayah'                    => $row['nama_ayah'] ?? '-',
+                    'pekerjaan_ayah'               => $row['pekerjaan_ayah'] ?? '-',
+                    'nama_ibu'                     => $row['nama_ibu'] ?? '-',
+                    'pekerjaan_ibu'                => $row['pekerjaan_ibu'] ?? '-',
+                    'beladiri_yang_pernah_diikuti' => $row['beladiri_yang_pernah_diikuti'] ?? '-',
+                    'status'                       => $row['status'] ?? 'Aktif',
+                    'joint_date'                   => $tanggal_gabung,
+                     'current_belt_level'          => $sabukFormatted,
+                    'kelas_id'                     => $kelasId,
+                    'units_id'                     => $unitId,
+                    'created_at'                   => now(),
+                    'updated_at'                   => now(),
+                ]);
+            } catch (\Exception $e) {
+                Log::error("❌ Gagal import siswa: " . json_encode($row) . " | Error: " . $e->getMessage());
+            }
+        }
     }
 
     /**
-     * Sesuaikan baris header Excel.
-     * Kalau header ada di baris 1 → return 1
-     * Kalau header ada di baris 4 (misalnya karena ada judul di atas) → return 4
+     * Format tanggal ke Y-m-d H:i:s
      */
-    public function headingRow(): int
+    private function formatDateTime($value)
     {
-        return 4;
-    }
+        try {
+            if ($value === null || trim((string)$value) === '') {
+                return null;
+            }
 
-    public function model(array $row)
-    {
-        // Debug: lihat isi row
-        Log::info('Row dibaca dari Excel:', $row);
+            // Excel serial number
+            if (is_numeric($value) && $value > 31_000) {
+                $dt = ExcelDate::excelToDateTimeObject($value);
+                return $dt->format('Y-m-d H:i:s');
+            }
 
-        if ($this->testMode) {
+            // Unix timestamp
+            if (is_numeric($value)) {
+                return date('Y-m-d H:i:s', $value);
+            }
+
+            // String tanggal
+            return Carbon::parse($value)->format('Y-m-d H:i:s');
+
+        } catch (\Exception $e) {
+            Log::error("❌ Gagal parse tanggal: {$value} | Error: " . $e->getMessage());
             return null;
         }
-
-        // Cek minimal kolom penting
-        if (empty($row['nis']) || empty($row['nama_lengkap'])) {
-            Log::warning('Baris dilewati karena NIS / Nama Lengkap kosong:', $row);
-            return null;
-        }
-
-        // Cari Unit
-        $unit = !empty($row['unit_latihan'])
-            ? Unit::whereRaw('LOWER(name) = ?', [strtolower($row['unit_latihan'])])->first()
-            : null;
-
-        // Cari Kelas
-        $kelas = !empty($row['kelas'])
-            ? Kelas::whereRaw('LOWER(name) = ?', [strtolower($row['kelas'])])->first()
-            : null;
-
-        $siswa = new Siswa([
-            'nis'                => $row['nis'] ?? null,
-            'no_register'        => $row['nomor_registrasi'] ?? null,
-            'nama_lengkap'       => $row['nama_lengkap'] ?? null,
-            'jenis_kelamin'      => $row['jenis_kelamin'] ?? null,
-            'units_id'           => $unit?->id ?? null,
-            'kelas_id'           => $kelas?->id ?? null,
-            'current_belt_level' => $row['sabuk'] ?? null,
-            'tempat_lahir'       => $row['tempat_lahir'] ?? null,
-            'tanggal_lahir'      => !empty($row['tanggal_lahir']) ? Carbon::parse($row['tanggal_lahir']) : null,
-            'golongan_darah'     => $row['golongan_darah'] ?? null,
-            'image'              => $row['foto_siswa'] ?? null,
-            'alamat_lengkap'     => $row['alamat_lengkap'] ?? null,
-            'no_telepon'         => $row['nomor_telepon'] ?? null,
-            'nama_ayah'          => $row['nama_ayah'] ?? null,
-            'pekerjaan_ayah'     => $row['pekerjaan_ayah'] ?? null,
-            'nama_ibu'           => $row['nama_ibu'] ?? null,
-            'pekerjaan_ibu'      => $row['pekerjaan_ibu'] ?? null,
-            'status'             => $row['status'] ?? 'Aktif',
-            'joint_date'         => !empty($row['tanggal_bergabung']) ? Carbon::parse($row['tanggal_bergabung']) : null,
-        ]);
-
-        Log::info('Siswa siap disimpan:', $siswa->toArray());
-
-        return $siswa;
     }
 }

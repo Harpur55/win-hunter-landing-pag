@@ -137,14 +137,9 @@ class SiswaRelationManager extends RelationManager
                         Select::make('tageuk')
                             ->label('Taegeuk')
                             ->options([
-                                '1' => 'Taegeuk 1',
-                                '2' => 'Taegeuk 2',
-                                '3' => 'Taegeuk 3',
-                                '4' => 'Taegeuk 4',
-                                '5' => 'Taegeuk 5',
-                                '6' => 'Taegeuk 6',
-                                '7' => 'Taegeuk 7',
-                                '8' => 'Taegeuk 8',
+                                'Beginer' => 'Beginer',
+                                'Advance' => 'Advance',
+                               
                             ])
                             ->required()
                             ->visible(fn($get) => $get('kategori_pertandingan') === 'poomsae'),
@@ -212,14 +207,9 @@ class SiswaRelationManager extends RelationManager
                         Select::make('pivot.tageuk')
                             ->label('Taegeuk')
                             ->options([
-                                '1' => 'Taegeuk 1',
-                                '2' => 'Taegeuk 2',
-                                '3' => 'Taegeuk 3',
-                                '4' => 'Taegeuk 4',
-                                '5' => 'Taegeuk 5',
-                                '6' => 'Taegeuk 6',
-                                '7' => 'Taegeuk 7',
-                                '8' => 'Taegeuk 8',
+                                'Beginer' => 'Beginer',
+                                'Advance' => 'Advance',
+                                
                             ])
                             ->required()
                             ->visible(fn($record) => strtolower((string)($record?->pivot?->kategori_pertandingan ?? '')) === 'poomsae'),
