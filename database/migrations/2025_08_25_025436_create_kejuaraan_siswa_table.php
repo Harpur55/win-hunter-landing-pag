@@ -23,6 +23,7 @@ return new class extends Migration
     $table->string('sabuk');
     $table->enum('kategori_pertandingan',['kyorugi','poomsae'])->nullable();
     $table->enum('tageuk', ['1', '2', '3', '4', '5', '6', '7', '8'])->nullable();
+    $table->string('tingkat_kategori')->nullable();
     $table->enum('kategori_atlit',['pracadet','cadet','junior','senior'])->nullable();
     $table->integer('berat_badan')->nullable();
     $table->integer('tinggi_badan')->nullable();

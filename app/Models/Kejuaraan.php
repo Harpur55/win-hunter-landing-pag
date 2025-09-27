@@ -22,6 +22,8 @@ class Kejuaraan extends Model
                 'jenis_kelamin',
                 'sabuk',
                 'kategori_pertandingan',
+                'tageuk',
+                'tingkat_kategori',
                 'kategori_atlit',
                 'berat_badan',
                 'tinggi_badan',

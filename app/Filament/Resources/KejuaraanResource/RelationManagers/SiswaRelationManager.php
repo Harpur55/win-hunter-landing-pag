@@ -11,10 +11,12 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Grid;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Carbon;
 use Filament\Tables\Actions\Action;
 use App\Exports\KejuaraanExport;
+use Filament\Forms\Components\Tabs\Tab;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SiswaRelationManager extends RelationManager
@@ -60,6 +62,7 @@ class SiswaRelationManager extends RelationManager
                     ->hidden(fn($record): bool => strtolower((string)($record?->kategori_pertandingan ?? '')) === 'poomsae'),
 
                 Tables\Columns\TextColumn::make('tageuk')->label('Taegeuk'),
+                Tables\Columns\TextColumn::make('tingkat_kategori')->label('Kategori (Beginer / Advance)'),
                 Tables\Columns\TextColumn::make('kategori_atlit')->label('Kelompok Umur'),
 
                 Tables\Columns\TextColumn::make('medali')
@@ -144,14 +147,36 @@ class SiswaRelationManager extends RelationManager
                             ->required()
                             ->visible(fn($get) => $get('kategori_pertandingan') === 'kyorugi'),
 
-                        Select::make('tageuk')
-                            ->label('Taegeuk')
-                            ->options([
-                                'Beginer' => 'Beginer',
-                                'Advance' => 'Advance',
-                            ])
-                            ->required()
-                            ->visible(fn($get) => $get('kategori_pertandingan') === 'poomsae'),
+                        Grid::make(2) // grid 2 kolom
+                            ->schema([
+
+                                Select::make('tageuk')
+                                    ->label('Taegeuk')
+                                    ->options([
+                                        '1' => 'Taegeuk 1',
+                                        '2' => 'Taegeuk 2',
+                                        '3' => 'Taegeuk 3',
+                                        '4' => 'Taegeuk 4',
+                                        '5' => 'Taegeuk 5',
+                                        '6' => 'Taegeuk 6',
+                                        '7' => 'Taegeuk 7',
+                                        '8' => 'Taegeuk 8',
+                                    ])
+                                    ->required()
+                                    ->visible(fn($get) => strtolower((string) $get('kategori_pertandingan')) === 'poomsae'),
+
+                                Select::make('tingkat_kategori')
+                                    ->label('Kategori (Beginer / Advance)')
+                                    ->options([
+                                        'Beginer' => 'Beginer',
+                                        'Advance' => 'Advance',
+                                    ])
+                                    ->required()
+                                    ->visible(fn($get) => strtolower((string) $get('kategori_pertandingan')) === 'poomsae'),
+
+                            ]),
+
+
 
                         Select::make('kategori_atlit')
                             ->label('Kelompok Usia')
@@ -189,56 +214,56 @@ class SiswaRelationManager extends RelationManager
                     }),
             ])
             ->actions([
-              Tables\Actions\EditAction::make()
-    ->form([
-        TextInput::make('berat_badan')
-            ->numeric()
-            ->suffix('kg')
-            ->required()
-            ->visible(fn($record) => $record->pivot->kategori_pertandingan === 'kyorugi'),
+                Tables\Actions\EditAction::make()
+                    ->form([
+                        TextInput::make('berat_badan')
+                            ->numeric()
+                            ->suffix('kg')
+                            ->required()
+                            ->visible(fn($record) => $record->pivot->kategori_pertandingan === 'kyorugi'),
 
-        TextInput::make('tinggi_badan')
-            ->numeric()
-            ->suffix('cm')
-            ->required()
-            ->visible(fn($record) => $record->pivot->kategori_pertandingan === 'kyorugi'),
+                        TextInput::make('tinggi_badan')
+                            ->numeric()
+                            ->suffix('cm')
+                            ->required()
+                            ->visible(fn($record) => $record->pivot->kategori_pertandingan === 'kyorugi'),
 
-        Select::make('tageuk')
-            ->label('Taegeuk')
-            ->options([
-                'Beginer' => 'Beginer',
-                'Advance' => 'Advance',
-            ])
-            ->required()
-            ->visible(fn($record) => strtolower((string)($record?->pivot?->kategori_pertandingan ?? '')) === 'poomsae'),
+                        Select::make('tageuk')
+                            ->label('Taegeuk')
+                            ->options([
+                                'Beginer' => 'Beginer',
+                                'Advance' => 'Advance',
+                            ])
+                            ->required()
+                            ->visible(fn($record) => strtolower((string)($record?->pivot?->kategori_pertandingan ?? '')) === 'poomsae'),
 
-        Select::make('kategori_atlit')
-            ->label('Kelompok Usia')
-            ->options([
-                'pracadet' => 'Pra-Cadet',
-                'cadet'    => 'Cadet',
-                'junior'   => 'Junior',
-                'senior'   => 'Senior',
-            ])
-            ->required(),
+                        Select::make('kategori_atlit')
+                            ->label('Kelompok Usia')
+                            ->options([
+                                'pracadet' => 'Pra-Cadet',
+                                'cadet'    => 'Cadet',
+                                'junior'   => 'Junior',
+                                'senior'   => 'Senior',
+                            ])
+                            ->required(),
 
-        Select::make('medali')
-            ->options([
-                'tidak_ada' => 'Tidak Ada',
-                'emas'      => 'Emas',
-                'perak'     => 'Perak',
-                'perunggu'  => 'Perunggu',
-            ]),
-    ])
-    ->mutateFormDataUsing(function (array $data, $record): array {
-        // simpan ke pivot
-        $record->pivot->update($data);
-        return $data;
-    })
-    ->fillForm(function ($record) {
-        // isi default dari pivot
-        return $record->pivot->toArray();
-    }),
+                        Select::make('medali')
+                            ->options([
+                                'tidak_ada' => 'Tidak Ada',
+                                'emas'      => 'Emas',
+                                'perak'     => 'Perak',
+                                'perunggu'  => 'Perunggu',
+                            ]),
+                    ])
+                    ->mutateFormDataUsing(function (array $data, $record): array {
+                        // simpan ke pivot
+                        $record->pivot->update($data);
+                        return $data;
+                    })
+                    ->fillForm(function ($record) {
+                        // isi default dari pivot
+                        return $record->pivot->toArray();
+                    }),
 
             ]);
     }

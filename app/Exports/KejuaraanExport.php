@@ -43,6 +43,7 @@ class KejuaraanExport implements FromCollection, WithHeadings, WithMapping, With
                 'BERAT BADAN',
                 'TINGGI BADAN',
                 'KELOMPOK USIA',
+                'TINGKAT KATEGORI',
                 'MEDALI',
             ],
         ];
@@ -63,6 +64,7 @@ class KejuaraanExport implements FromCollection, WithHeadings, WithMapping, With
             $siswa->pivot->berat_badan,
             $siswa->pivot->tinggi_badan,
             $siswa->pivot->kategori_atlit,
+            $siswa->pivot->tingkat_kategori,
             ucfirst($siswa->pivot->medali),
         ];
     }
