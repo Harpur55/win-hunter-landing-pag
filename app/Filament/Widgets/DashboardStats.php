@@ -10,6 +10,8 @@ use App\Models\Kejuaraan;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Carbon\Carbon;
+use Illuminate\Support\HtmlString;
+
 
 class DashboardStats extends BaseWidget
 
@@ -18,27 +20,43 @@ class DashboardStats extends BaseWidget
     protected static ?int $sort = 1;
 
     protected function getStats(): array
-    
+
     {
         // Get the next upcoming EventUjian
-        
- $upcomingEvent = EventUjian::whereDate('tanggal_ujian', '>=', Carbon::today())
-    ->withCount('siswa')
-    ->orderBy('tanggal_ujian')
-    ->first();
 
-$eventName = $upcomingEvent ? $upcomingEvent->nama_ujian : 'Tidak ada';
-$eventParticipants = $upcomingEvent ? $upcomingEvent->siswa_count : 0;
+        $upcomingEvent = EventUjian::whereDate('tanggal_ujian', '>=', Carbon::today())
+            ->withCount('siswa')
+            ->orderBy('tanggal_ujian')
+            ->first();
 
-$upcomingChampionship = Kejuaraan::whereDate('tanggal_mulai', '>=', Carbon::today())
-    ->orderBy('tanggal_mulai')
-    ->first();  
+        $eventName = $upcomingEvent ? $upcomingEvent->nama_ujian : 'Tidak ada';
+        $eventParticipants = $upcomingEvent ? $upcomingEvent->siswa_count : 0;
 
-$championshipName = $upcomingChampionship ? $upcomingChampionship->nama_kejuaraan : 'Tidak ada';
-$championshipParticipants = $upcomingChampionship ? $upcomingChampionship->jumlah_peserta : 0;
-$championshipDate = $upcomingChampionship
-    ? Carbon::parse($upcomingChampionship->tanggal_mulai)->format('d-m-Y')
-    : 'Tidak ada';
+
+        // Get the next upcoming Kejuaraan
+        $upcomingChampionship = Kejuaraan::whereDate('tanggal_mulai', '>=', now()->startOfDay())
+            ->withCount('siswa')
+            ->orderBy('tanggal_mulai', 'asc')
+            ->first();
+
+        // kalau tidak ada yang upcoming, ambil yang terakhir
+        if (!$upcomingChampionship) {
+            $upcomingChampionship = Kejuaraan::orderBy('tanggal_mulai', 'desc')
+                ->withCount('siswa')
+                ->first();
+        }
+
+        $championshipName = $upcomingChampionship?->nama_kejuaraan ?? 'Tidak ada';
+        $championshipParticipants = $upcomingChampionship?->siswa_count ?? 0;
+        $championshipDate = $upcomingChampionship
+            ? Carbon::parse($upcomingChampionship->tanggal_mulai)->format('d-m-Y')
+            : 'Tidak ada';
+
+
+        //medali
+        $gold = $upcomingChampionship?->siswa->where('pivot.medali', 'emas')->count() ?? 0;
+        $silver = $upcomingChampionship?->siswa->where('pivot.medali', 'perak')->count() ?? 0;
+        $bronze = $upcomingChampionship?->siswa->where('pivot.medali', 'perunggu')->count() ?? 0;
 
 
         return [
@@ -57,16 +75,19 @@ $championshipDate = $upcomingChampionship
                 ->descriptionIcon('heroicon-m-building-office')
                 ->color('warning'),
 
-           Stat::make('Event Ujian Akan Datang', $eventName)
-                 ->description('Jumlah Peserta: ' . $eventParticipants)
-                 ->descriptionIcon('heroicon-m-academic-cap')
-                 ->color('info'),
+            Stat::make('Event Ujian Akan Datang', $eventName)
+                ->description('Jumlah Peserta: ' . $eventParticipants)
+                ->descriptionIcon('heroicon-m-academic-cap')
+                ->color('info'),
 
-             Stat::make('Kejuaraan Akan Datang', $championshipName)
-                  
-                 ->description("Tanggal: {$championshipDate} ||  Jumlah Peserta: {$championshipParticipants}")
-                    // ->descriptionIcon('heroicon-m-trophy')
-                 ->color('secondary'),
+Stat::make('Kejuaraan Akan Datang', strtoupper($championshipName))
+    ->description(new HtmlString("
+        Jumlah Peserta : {$championshipParticipants}<br>
+        📅 Tanggal : {$championshipDate}<br>
+        🥇 Medali : 🥇 {$gold} 🥈 {$silver} 🥉 {$bronze}
+    "))
+    ->color('info')
+    ->extraAttributes(['class' => 'whitespace-pre-line'])
         ];
     }
 }

@@ -65,6 +65,7 @@ class EventUjianSiswaImport implements ToModel, WithHeadingRow, WithValidation, 
         return [
             '*.nama_siswa'   => 'required|string',
             '*.no_register'  => 'required|string',
+            ''
         ];
     }
 

@@ -152,4 +152,34 @@ class Siswa extends Model
             // 'keterangan'         => $row['keterangan'] ?? null,
         ]);
     }
+     
+    public function getGeupDanAttribute()
+    {
+        $belt = strtolower(trim($this->current_belt_level ?? ''));
+        $geupMap = [
+            'putih'              => 10,
+            'kuning'             => 9,
+            'kuning strip hijau' => 8,
+            'hijau'              => 7,
+            'hijau strip biru'   => 6,
+            'biru'               => 5,
+            'biru strip merah'   => 4,
+            'merah'              => 3,
+            'merah strip hitam 1'      => 2,
+            'merah strip hitam 2'      => 1,
+            // 'hitam'              => 1,
+        ];
+
+        if (preg_match('/hitam.*dan\s*(\d+)/i', $belt, $matches)) {
+        return 'Dan ' . (int) $matches[1];
+    }
+
+    // Kalau masuk ke mapping geup
+    if (isset($geupMap[$belt])) {
+        return $geupMap[$belt] ;
+    }
+
+    return null;
+
+    }
 }

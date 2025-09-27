@@ -34,13 +34,14 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
             [
                 'NO',
                 'NAMA SISWA',
-                'NO REGISTER',
-                'UNIT LATIHAN',
-                'KELAS',
                 'TEMPAT LAHIR',
                 'TANGGAL LAHIR',
+                'NO REGISTER',
+                'GEUP/ DAN',
+                'ALAMAT',
+                'NOMOR HP',
                 'SABUK SAAT INI',
-                'SABUK BERIKUTNYA',
+                // 'SABUK BERIKUTNYA',
                 'KETERANGAN',
             ],
         ];
@@ -54,13 +55,13 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
         return [
             $no, // ✅ nomor urut (bukan id siswa)
             $siswa->nama_lengkap,
-            $siswa->no_register,   // ✅ dipakai untuk import
-            $siswa->unit?->name,
-            $siswa->kelas?->name,
             $siswa->tempat_lahir,
             $siswa->tanggal_lahir?->format('d/m/Y'),
+            $siswa->no_register,   // ✅ dipakai untuk import
+            $siswa->geup_dan,
+            $siswa->alamat,
+            $siswa->nomor_telpon,
             $siswa->pivot->current_belt_level,
-            $siswa->pivot->next_belt_level,
             $siswa->pivot->keterangan,
         ];
     }

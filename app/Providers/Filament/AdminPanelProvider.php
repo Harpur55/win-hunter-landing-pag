@@ -31,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
              ->login(CustomLogin::class)
+           
             ->registration(\Filament\Pages\Auth\Register::class)
             ->sidebarCollapsibleOnDesktop()
            

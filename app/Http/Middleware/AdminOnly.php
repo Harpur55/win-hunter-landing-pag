@@ -15,14 +15,17 @@ class AdminOnly
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login'); // kalau belum login
         }
 
-        if ($user->role === 0 || $user->role === 2) {
-            return $next($request); // admin & superadmin lanjut
+        // Cek role dengan Spatie Permission
+        if ($user->hasAnyRole(['admin', 'super-admin'])) {
+            return $next($request); // admin & super-admin boleh lanjut
         }
 
-        abort(403, '❌ Maaf anda tidak punya akses masuk.'); // siswa ditolak
+        // kalau role = siswa atau lainnya
+        return redirect()->route('home') // ganti sesuai halaman utama aplikasi
+            ->with('error', '❌ Maaf, kamu tidak punya akses masuk.');
     }
 }

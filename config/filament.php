@@ -4,6 +4,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Middleware
+    |--------------------------------------------------------------------------
+    |
+    | By uncommenting the Laravel Echo configuration, you may connect Filament
+    | to any Pusher-compatible websockets server.
+    |
+    | This will allow your users to receive real-time notifications.
+    |
+    */
+    'middleware' => [
+        'web',
+        'auth',
+        'admin.only', // optional, only if you want to enforce email verification
+    ],
+    /*
+    |--------------------------------------------------------------------------
     | Broadcasting
     |--------------------------------------------------------------------------
     |

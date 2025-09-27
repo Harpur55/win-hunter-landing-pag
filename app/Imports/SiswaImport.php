@@ -18,7 +18,7 @@ class SiswaImport implements ToCollection, WithHeadingRow
 
     private array $sabukMap = 
     [
-         'putih'               => 'putih',
+    'putih'               => 'putih',
     'kuning'              => 'kuning',
     'kuning strip hijau'  => 'kuning strip hijau',
     'hijau'               => 'hijau',
