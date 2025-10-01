@@ -182,4 +182,10 @@ class Siswa extends Model
     return null;
 
     }
+
+    public function user()
+{
+    return $this->belongsTo(\App\Models\User::class);
+}
+
 }

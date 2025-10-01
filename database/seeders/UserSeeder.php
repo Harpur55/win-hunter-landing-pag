@@ -46,7 +46,7 @@ class UserSeeder extends Seeder
         $siswa = User::firstOrCreate(
             ['email' => 'siswa@example.com'],
             [
-                'name' => 'Siswa',
+                'name'     => 'Siswa',
                 'password' => bcrypt('iniakunsiswa'),
             ]
         );

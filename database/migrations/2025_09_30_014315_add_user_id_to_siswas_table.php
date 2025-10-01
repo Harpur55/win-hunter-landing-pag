@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('kejuaraan_siswa', function (Blueprint $table) {
-                $table->string('tingkat_kategori')->nullable()->after('tageuk');
-
+        Schema::table('siswas', function (Blueprint $table) {
+            //
+              $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
         });
     }
 
@@ -22,10 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('kejuaraan_siswa', function (Blueprint $table) {
-            //
-                        $table->dropColumn('tingkat_kategori');
-
+        Schema::table('siswas', function (Blueprint $table) {
+            $table->dropForeign(['user_id']);
+        $table->dropColumn('user_id');
         });
     }
 };

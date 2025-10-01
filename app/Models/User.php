@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 
 
@@ -35,7 +36,21 @@ class User extends Authenticatable implements FilamentUser
     }
 
     public function canAccessPanel(Panel $panel): bool
-    {
+{
+    if ($panel->getId() === 'admin') {
         return $this->hasRole(['admin', 'super-admin']);
     }
+
+    if ($panel->getId() === 'siswa') {
+        return $this->hasRole('siswa');
+    }
+
+    return false;
+}
+
+   public function siswa(): HasOne
+    {
+        return $this->hasOne(Siswa::class, 'user_id');
+    }
+
 }
