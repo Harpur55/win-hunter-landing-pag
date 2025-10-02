@@ -7,19 +7,16 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
-use Filament\Actions\Action;
 use App\Models\Siswa;
+use App\Models\Kelas;
+use App\Models\Unit;
 
-/**
- * Halaman Profil Siswa
- */
 class Profile extends Page implements Forms\Contracts\HasForms
 {
     use Forms\Concerns\InteractsWithForms;
 
-    protected static ?string $navigationIcon = 'heroicon-o-user';
-    protected static ?string $navigationLabel = 'Profil Saya';
-    protected static ?string $title = 'Profil Siswa';
+    protected static ?string $navigationIcon = 'heroicon-o-user-circle';
+    protected static ?string $title = 'Profil Saya';
     protected static string $view = 'filament.siswa.pages.profile';
 
     public ?array $data = [];
@@ -27,16 +24,15 @@ class Profile extends Page implements Forms\Contracts\HasForms
 
     public function mount(): void
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
-        $siswa = $user->siswa;
+        $siswa = Siswa::where('user_id', $user->id)->first();
 
         if ($siswa) {
             $this->form->fill($siswa->toArray());
         } else {
             $this->form->fill([
                 'nama_lengkap' => $user->name,
-                'email'        => $user->email,
+                'email' => $user->email,
             ]);
         }
     }
@@ -45,8 +41,8 @@ class Profile extends Page implements Forms\Contracts\HasForms
     {
         return $form
             ->schema([
-                // isi form kamu di sini (sama seperti sebelumnya)...
-                Forms\Components\Section::make('Informasi Pribadi')
+                // 🔹 Biodata
+                Forms\Components\Section::make('Biodata')
                     ->columns(2)
                     ->schema([
                         Forms\Components\TextInput::make('nama_lengkap')
@@ -57,14 +53,11 @@ class Profile extends Page implements Forms\Contracts\HasForms
                         Forms\Components\TextInput::make('nis')
                             ->label('NIS')
                             ->disabled()
-                            ->dehydrated(false), // tidak ikut update
+                            ->dehydrated(false),
 
                         Forms\Components\Select::make('jenis_kelamin')
                             ->label('Jenis Kelamin')
-                            ->options([
-                                'L' => 'Laki-laki',
-                                'P' => 'Perempuan',
-                            ])
+                            ->options(['L' => 'Laki-laki', 'P' => 'Perempuan'])
                             ->disabled(fn() => !$this->isEditing),
 
                         Forms\Components\TextInput::make('tempat_lahir')
@@ -73,20 +66,20 @@ class Profile extends Page implements Forms\Contracts\HasForms
 
                         Forms\Components\DatePicker::make('tanggal_lahir')
                             ->label('Tanggal Lahir')
-                            ->native(false)
                             ->disabled(fn() => !$this->isEditing),
 
-                        Forms\Components\TextInput::make('golongan_darah')
+                        Forms\Components\Select::make('golongan_darah')
                             ->label('Golongan Darah')
-                            ->maxLength(3)
+                            ->options(['A' => 'A', 'B' => 'B', 'AB' => 'AB', 'O' => 'O'])
                             ->disabled(fn() => !$this->isEditing),
                     ]),
 
+                // 🔹 Kontak
                 Forms\Components\Section::make('Kontak')
                     ->columns(2)
                     ->schema([
                         Forms\Components\Textarea::make('alamat_lengkap')
-                            ->label('Alamat Lengkap')
+                            ->label('Alamat')
                             ->rows(3)
                             ->disabled(fn() => !$this->isEditing),
 
@@ -96,7 +89,8 @@ class Profile extends Page implements Forms\Contracts\HasForms
                             ->disabled(fn() => !$this->isEditing),
                     ]),
 
-                Forms\Components\Section::make('Data Orang Tua')
+                // 🔹 Data Orang Tua
+                Forms\Components\Section::make('Orang Tua')
                     ->columns(2)
                     ->schema([
                         Forms\Components\TextInput::make('nama_ayah')
@@ -116,32 +110,34 @@ class Profile extends Page implements Forms\Contracts\HasForms
                             ->disabled(fn() => !$this->isEditing),
                     ]),
 
-                Forms\Components\Section::make('Sekolah & Unit')
+                // 🔹 Akademik & Unit
+                Forms\Components\Section::make('Akademik & Unit Latihan')
                     ->columns(2)
                     ->schema([
                         Forms\Components\Select::make('kelas_id')
                             ->label('Kelas')
-                            ->relationship('kelas', 'nama_kelas')
+                            ->options(Kelas::pluck('name', 'id'))
                             ->searchable()
                             ->preload()
                             ->disabled(fn() => !$this->isEditing),
 
                         Forms\Components\Select::make('units_id')
                             ->label('Unit Latihan')
-                            ->relationship('unit', 'nama_unit')
+                            ->options(Unit::pluck('name', 'id'))
                             ->searchable()
                             ->preload()
                             ->disabled(fn() => !$this->isEditing),
                     ]),
 
+                // 🔹 Lain-lain
                 Forms\Components\Section::make('Lain-lain')
-                    ->columns(1)
                     ->schema([
                         Forms\Components\TextInput::make('beladiri_yang_pernah_diikuti')
-                            ->label('Beladiri yang Pernah Diikuti')
+                            ->label('Beladiri Pernah Diikuti')
                             ->disabled(fn() => !$this->isEditing),
                     ]),
 
+                // 🔹 Foto Profil
                 Forms\Components\Section::make('Foto Profil')
                     ->schema([
                         Forms\Components\FileUpload::make('image')
@@ -156,62 +152,33 @@ class Profile extends Page implements Forms\Contracts\HasForms
             ->statePath('data');
     }
 
-    protected function getHeaderActions(): array
+    public function edit(): void
     {
-        return [
-            Action::make('edit')
-                ->label(fn() => $this->isEditing ? 'Batal' : 'Edit Profil')
-                ->icon(fn() => $this->isEditing ? 'heroicon-o-x-mark' : 'heroicon-o-pencil-square')
-                ->color(fn() => $this->isEditing ? 'danger' : 'primary')
-                ->action(fn() => $this->isEditing = !$this->isEditing),
+        $this->isEditing = true;
+    }
 
-            Action::make('save')
-                ->label('Simpan')
-                ->icon('heroicon-o-check-circle')
-                ->color('success')
-                ->requiresConfirmation()
-                ->visible(fn() => $this->isEditing)
-                ->action(function () {
-                    /** @var \App\Models\User $user */
-                    $user = Auth::user();
-                    $data = $this->form->getState();
+    public function save(): void
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-                    $allowed = collect($data)->only([
-                        'nama_lengkap',
-                        'jenis_kelamin',
-                        'tempat_lahir',
-                        'tanggal_lahir',
-                        'golongan_darah',
-                        'alamat_lengkap',
-                        'no_telepon',
-                        'nama_ayah',
-                        'pekerjaan_ayah',
-                        'nama_ibu',
-                        'pekerjaan_ibu',
-                        'beladiri_yang_pernah_diikuti',
-                        'image',
-                        'kelas_id',
-                        'units_id',
-                    ])->toArray();
+        // Simpan atau buat siswa
+        $siswa = Siswa::updateOrCreate(
+            ['user_id' => $user->id],
+            $this->form->getState()
+        );
 
-                    // Update atau buat siswa baru
-                    $user->siswa()->updateOrCreate(
-                        ['user_id' => $user->id],
-                        $allowed
-                    );
+        // Sinkron nama user dengan nama_lengkap siswa
+        if (!empty($siswa->nama_lengkap)) {
+            $user->fill(['name' => $siswa->nama_lengkap])->save();
+        }
 
-                    if (!empty($allowed['nama_lengkap'])) {
-                        $user->update(['name' => $allowed['nama_lengkap']]);
-                    }
+        $this->isEditing = false;
 
-                    $this->isEditing = false;
-
-                    Notification::make()
-                        ->title('Berhasil')
-                        ->success()
-                        ->body('Profil berhasil diperbarui.')
-                        ->send();
-                }),
-        ];
+        Notification::make()
+            ->title('Berhasil')
+            ->success()
+            ->body('Profil berhasil diperbarui.')
+            ->send();
     }
 }

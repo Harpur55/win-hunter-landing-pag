@@ -30,7 +30,8 @@ class Siswa extends Model
         // 'next_belt_level',
         'joint_date',
         'status',
-        'units_id'
+        'units_id',
+        'user_id',
     ];
 
     protected $casts = [

@@ -23,7 +23,7 @@ class Unit extends Model
     return $this->hasMany(Siswa::class, 'units_id');
 }
  
-    // Define any relationships or additional methods if needed
+    
 }
 
 

@@ -71,6 +71,14 @@ class UnitSeeder extends Seeder
             'alamat' => 'Metland Transyogi, Jl. Trans Yogie No.km.1, Cileungsi Kidul, Kec. Cileungsi, Kabupaten Bogor, Jawa Barat 16820'
            
         ],
+
+        [
+            'image' =>'assets/images/download.jpg',
+            'name' => 'LIMUS NUNGGAL PRATAMA',
+            'link' => 'https://g.co/kgs/p1Fy5WH',
+            'description' => '',
+            'alamat' =>'Limusnunggal, Cileungsi, Bogor Regency, West Java 16820'
+        ],
        
 
         ]);
