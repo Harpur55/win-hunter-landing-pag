@@ -118,10 +118,14 @@ class Siswa extends Model
         return $this->belongsTo(Kelas::class, 'kelas_id');
     }
 
-    public function kejuaraan()
-    {
-        return $this->hasMany(KejuaraanSiswa::class, 'siswa_id');
-    }
+   public function kejuaraan()
+{
+    // return $this->hasMany(KejuaraanSiswa::class, 'siswa_id');
+
+    return $this->belongsToMany(\App\Models\Kejuaraan::class, 'kejuaraan_siswa', 'siswa_id', 'kejuaraan_id')
+        ->withPivot(['medali']) // kalau ada kolom medal di pivot
+        ->withTimestamps();
+}
 
     public function model(array $row)
     {
