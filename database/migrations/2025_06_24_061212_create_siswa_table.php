@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('no_register')->nullable()->unique(); // Nomor Registrasi, unik dan penting untuk identifikasi
             $table->string('nis')->unique(); // Nomor Induk Siswa, unik
             $table->string('nama_lengkap'); 
-            $table->string('jenis_kelamin')->nullable(); ; 
-            $table->string('tempat_lahir')->nullable(); ; 
+            $table->string('jenis_kelamin')->nullable(); 
+            $table->string('tempat_lahir')->nullable(); 
             $table->date('tanggal_lahir')->nullable(); 
             $table->string('golongan_darah')->nullable(); 
             $table->string('image')->nullable(); 

@@ -246,6 +246,32 @@ class SiswaResource extends Resource
         return $table
             ->columns([
 
+                TextColumn::make('new_badge')
+                    ->label('')
+                    ->getStateUsing(function ($record) {
+                        // Pastikan ada tanggal dibuat
+                        $createdAt = $record->created_at ?? now();
+                        $beltLevel = strtolower($record->current_belt_level ?? '');
+                        $days = now()->diffInDays($createdAt);
+
+                        // Tampilkan badge hanya jika:
+                        // 1. Belum punya nomor register
+                        // 2. Sabuk masih putih
+                        // 3. Data dibuat kurang dari 30 hari
+                        $isNew = (
+                            empty($record->no_register) ||
+                            $beltLevel === 'putih' ||
+                            $days <= 30
+                        );
+
+                        // Jika lebih dari 30 hari, jangan tampilkan badge
+                        return $isNew && $days <= 30 ? 'NEW' : null;
+                    })
+                    ->badge()
+                    ->color('success')
+                    ->tooltip(fn($record) => 'Siswa baru terdaftar kurang dari 30 hari atau belum memiliki no register')
+                    ->sortable(false)
+                    ->extraAttributes(['style' => 'text-align:center; width:70px;']),
 
                 TextColumn::make('nis')
                     ->label('NIS')
@@ -401,7 +427,7 @@ class SiswaResource extends Resource
                         'Tidak Aktif' => 'Tidak Aktif',
                     ])
                     ->placeholder('Semua Status'),
-                    
+
 
 
             ])

@@ -59,7 +59,7 @@ class SiswaDashboardStats extends BaseWidget
                           " | 📍 " . $eventUjian->lokasi_ujian
                         : 'Belum ada jadwal ujian'
                 )
-                ->descriptionIcon('heroicon-m-academic-cap')
+                
                 ->color($eventUjian ? 'primary' : 'gray'),
 
             // ✅ Kejuaraan

@@ -10,10 +10,21 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        $superAdmin = Role::firstOrCreate(['name' => 'super-admin']);
-        $admin = Role::firstOrCreate(['name' => 'admin']);
+        // Buat role default dengan guard 'web'
+        $roles = [
+            'super-admin',
+            'admin',
+            'siswa',
+            'pelatih',
+        ];
 
-        // contoh assign ke user pertama
+        foreach ($roles as $role) {
+            Role::firstOrCreate(
+                ['name' => $role, 'guard_name' => 'web']
+            );
+        }
+
+        // Contoh assign role ke user pertama
         $user = User::find(1);
         if ($user) {
             $user->assignRole('super-admin');

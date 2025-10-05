@@ -16,6 +16,8 @@ use App\Models\Siswa;
 use App\Imports\EventUjianSiswaImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\EventUjianSiswaExport;
+use Filament\Tables\Enums\ActionsPosition;
+use Illuminate\Support\Facades\Artisan;
 
 
 class SiswaRelationManager extends RelationManager
@@ -25,7 +27,7 @@ class SiswaRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
-       return $table
+        return $table
             ->recordTitleAttribute('nama_lengkap')
             ->columns([
                 Tables\Columns\TextColumn::make('index')->label('NO')->rowIndex(),
@@ -59,13 +61,13 @@ class SiswaRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('pivot.keterangan')
                     ->label('Hasil Ujian')
                     ->badge()
-                    ->color(fn ($state) => match ($state) {
+                    ->color(fn($state) => match ($state) {
                         'lulus'       => 'success',
                         'tidak_lulus' => 'danger',
                         'on_proses'   => 'warning',
                         default       => 'gray',
                     })
-                    ->formatStateUsing(fn ($state) => match ($state) {
+                    ->formatStateUsing(fn($state) => match ($state) {
                         'lulus'       => 'Lulus',
                         'tidak_lulus' => 'Tidak Lulus',
                         'on_proses'   => 'On Proses',
@@ -79,51 +81,53 @@ class SiswaRelationManager extends RelationManager
                     ->icon('heroicon-o-plus-circle')
                     ->color('primary')
                     ->form([
-                         Select::make('siswa_id')
-                ->label('Pilih Siswa')
-                ->options(Siswa::pluck('nama_lengkap', 'id'))
-                ->searchable()
-                ->required()
-                ->reactive()
-                ->afterStateUpdated(function ($state, callable $set) {
-                    $siswa = Siswa::with(['unit', 'kelas'])->find($state);
-                    if ($siswa) {
-                        $set('no_register', $siswa->no_register);
-                        $set('unit', $siswa->unit?->name ?? '-');
-                        $set('kelas', $siswa->kelas?->name ?? '-');
-                        $set('tempat_lahir', $siswa->tempat_lahir);
-                        $set('tanggal_lahir', optional($siswa->tanggal_lahir)->format('Y-m-d'));
-                        $set('current_belt_level', $siswa->current_belt_level);
-                    }
-                }),
+                        Select::make('siswa_id')
+                            ->label('Pilih Siswa')
+                            ->options(Siswa::pluck('nama_lengkap', 'id'))
+                            ->searchable()
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $siswa = Siswa::with(['unit', 'kelas'])->find($state);
+                                if ($siswa) {
+                                    $set('no_register', $siswa->no_register);
 
-            // Info otomatis dari master
-            Forms\Components\Grid::make(2)->schema([
-                TextInput::make('no_register')
-                    ->label('No Register')
-                    ->reactive()
-                    ->rules(function (callable $get) {
-                        $sabuk = strtolower($get('current_belt_level') ?? '');
-                        if ($sabuk === 'putih') {
-                            return ['nullable', 'string', 'max:255'];
-                        }
-                        return ['required', 'string', 'max:255'];
-                    })
-                    ->helperText('Wajib diisi untuk sabuk di atas Putih, boleh kosong jika sabuk Putih'),
+                                    // kontrol input no_register
+                                    if (!empty($siswa->no_register)) {
+                                        $set('no_register_disabled', true);
+                                    } else {
+                                        $set('no_register_disabled', false);
+                                    }
 
-                TextInput::make('unit')->label('Unit')->readOnly(),
-                TextInput::make('kelas')->label('Kelas')->readOnly(),
-                TextInput::make('tempat_lahir')->label('Tempat Lahir')->disabled(),
-                TextInput::make('tanggal_lahir')->label('Tanggal Lahir')->disabled(),
-                TextInput::make('current_belt_level')->label('Sabuk Saat Ini')->readOnly(),
-            ]),
+                                    $set('unit', $siswa->unit?->name ?? '-');
+                                    $set('kelas', $siswa->kelas?->name ?? '-');
+                                    $set('tempat_lahir', $siswa->tempat_lahir);
+                                    $set('tanggal_lahir', optional($siswa->tanggal_lahir)->format('Y-m-d'));
+                                    $set('current_belt_level', $siswa->current_belt_level);
+                                }
+                            }),
 
-            // Input ujian (pivot)
-                     Forms\Components\Grid::make(2)->schema([
-                     Select::make('next_belt_level')
-                    ->label('Sabuk Berikutnya (Pivot)')
-                    ->options(self::beltOptions())
-                    ->required(),
+                        Forms\Components\Hidden::make('no_register_disabled')->default(false),
+
+                        Forms\Components\Grid::make(2)->schema([
+                            TextInput::make('no_register')
+                                ->label('No Register')
+                                ->disabled(fn(callable $get) => $get('no_register_disabled'))
+                                ->required(fn(callable $get) => !$get('no_register_disabled'))
+                                ->helperText('Jika kosong di master, isi manual di sini.'),
+
+                            TextInput::make('unit')->label('Unit')->readOnly(),
+                            TextInput::make('kelas')->label('Kelas')->readOnly(),
+                            TextInput::make('tempat_lahir')->label('Tempat Lahir')->disabled(),
+                            TextInput::make('tanggal_lahir')->label('Tanggal Lahir')->disabled(),
+                            TextInput::make('current_belt_level')->label('Sabuk Saat Ini')->readOnly(),
+                        ]),
+
+                        Forms\Components\Grid::make(2)->schema([
+                            Select::make('next_belt_level')
+                                ->label('Sabuk Berikutnya (Pivot)')
+                                ->options(self::beltOptions())
+                                ->required(),
 
                             Select::make('keterangan')
                                 ->label('Status Ujian')
@@ -132,7 +136,7 @@ class SiswaRelationManager extends RelationManager
                                     'lulus'       => 'Lulus',
                                     'tidak_lulus' => 'Tidak Lulus',
                                 ])
-                                ->default('on_proses') // default
+                                ->default('on_proses')
                                 ->required(),
                         ]),
                     ])
@@ -144,63 +148,109 @@ class SiswaRelationManager extends RelationManager
                             return;
                         }
 
+                        // update no_register ke tabel siswa jika masih kosong
+                        $siswa = Siswa::find($data['siswa_id']);
+                        if ($siswa && empty($siswa->no_register) && !empty($data['no_register'])) {
+                            $siswa->update([
+                                'no_register' => $data['no_register'],
+                            ]);
+                        }
+
+                        // simpan ke pivot ujian
                         $eventUjian->siswa()->attach($data['siswa_id'], [
                             'current_belt_level' => $data['current_belt_level'], // dari master
                             'next_belt_level'    => $data['next_belt_level'],   // input manual
-                            'keterangan'         => $data['keterangan'],        // default = on_proses
+                            'keterangan'         => $data['keterangan'],        // default
                         ]);
 
                         Notification::make()->title('Siswa berhasil ditambahkan ke ujian.')->success()->send();
                     }),
 
+                Action::make('updateBelt')
+                    ->label('Jalankan Update Sabuk')
+                    ->button()
+                    ->color('success')
+                    ->icon('heroicon-o-bolt')
+                    ->requiresConfirmation()
+                    ->modalHeading('Jalankan Cron Job Update Sabuk')
+                    ->modalDescription('Ini akan memproses semua siswa yang lulus dan memperbarui sabuk mereka.')
+                    ->modalSubmitActionLabel('Jalankan Sekarang')
+                    ->action(function () {
+                        try {
+                            Artisan::call('belt:update --instant'); // mode instan
+                            $output = Artisan::output();
+
+                            Notification::make()
+                                ->title('Proses Berhasil')
+                                ->success()
+                                ->body("Cron job `belt:update --instant` telah dijalankan.<br><br><pre>{$output}</pre>")
+                                ->send();
+                        } catch (\Throwable $th) {
+                            Notification::make()
+                                ->title('Terjadi Kesalahan')
+                                ->danger()
+                                ->body($th->getMessage())
+                                ->send();
+                        }
+                    }),
+
+
                 // Impor Excel
-             Action::make('import_data_siswa_ujian')
-                ->label('Impor dari Excel')
-                ->color('info')
-                ->icon('heroicon-o-document-arrow-down')
-                ->form([
-                    FileUpload::make('file_excel')
-                        ->label('File Excel')
-                        ->disk('local')
-                        ->directory('imports')
-                        ->required(),
-                ])
-                ->action(function (array $data) {
-                    $eventUjian = $this->getOwnerRecord();
-                    $filePath = storage_path('app/' . $data['file_excel']);
-                
-                    \Maatwebsite\Excel\Facades\Excel::import(
-                        new \App\Imports\EventUjianSiswaImport($eventUjian),
-                        $filePath
-                    );
-                
-                    \Filament\Notifications\Notification::make()
-                        ->title('✅ Data siswa ujian berhasil diimport')
-                        ->success()
-                        ->send();
-                }),
+                Action::make('import_data_siswa_ujian')
+                    ->label('Impor dari Excel')
+                    ->color('info')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->form([
+                        FileUpload::make('file_excel')
+                            ->label('File Excel')
+                            ->disk('local')
+                            ->directory('imports')
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        $eventUjian = $this->getOwnerRecord();
+                        $filePath = storage_path('app/' . $data['file_excel']);
 
-              Action::make('export_siswa')
-        ->label('Export Peserta Ujian')
-        ->icon('heroicon-o-arrow-down-tray')
-        ->color('success')
-        ->action(function () {
-            $eventUjian = $this->getOwnerRecord();
+                        Excel::import(
+                            new EventUjianSiswaImport($eventUjian),
+                            $filePath
+                        );
 
-            return Excel::download(
-                new EventUjianSiswaExport($eventUjian),
-                'peserta_ujian_' . $eventUjian->id . '.xlsx'
-            );
-        }),
-    
+                        Notification::make()
+                            ->title('✅ Data siswa ujian berhasil diimport')
+                            ->success()
+                            ->send();
+                    }),
+
+                Action::make('export_siswa')
+                    ->label('Export Peserta Ujian')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->action(function () {
+                        $eventUjian = $this->getOwnerRecord();
+
+                        return Excel::download(
+                            new EventUjianSiswaExport($eventUjian),
+                            'peserta_ujian_' . $eventUjian->id . '.xlsx'
+                        );
+                    }),
             ])
-
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->label('Edit Data Ujian Siswa')
+                    ->label('Edit')
+                    ->icon('heroicon-o-pencil')
+                    ->modalHeading('Edit Data Ujian Siswa')
                     ->form([
-                        TextInput::make('pivot.current_belt_level')->label('Sabuk UKT Saat Ini')->required(),
-                        TextInput::make('pivot.next_belt_level')->label('Sabuk UKT Berikutnya')->required(),
+                        TextInput::make('pivot.current_belt_level')
+                            ->label('Sabuk UKT Saat Ini')
+                            ->disabled()
+                            ->dehydrated(false),
+
+                        Select::make('pivot.next_belt_level')
+                            ->label('Sabuk UKT Berikutnya')
+                            ->options(self::beltOptions())
+                            ->required(),
+
                         Select::make('pivot.keterangan')
                             ->label('Status Ujian')
                             ->options([
@@ -210,10 +260,23 @@ class SiswaRelationManager extends RelationManager
                             ])
                             ->required(),
                     ])
-                    ->action(fn (Siswa $record, array $data) =>
-                        $this->getOwnerRecord()->siswa()->updateExistingPivot($record->id, $data['pivot'])
-                    ),
-                Tables\Actions\DetachAction::make(),
+                    ->action(function (Siswa $record, array $data) {
+                        $this->getOwnerRecord()
+                            ->siswa()
+                            ->updateExistingPivot($record->id, [
+                                'next_belt_level' => $data['pivot']['next_belt_level'],
+                                'keterangan'      => $data['pivot']['keterangan'],
+                            ]);
+                    }),
+
+                Tables\Actions\DetachAction::make()
+                    ->label('Hapus')
+                    ->icon('heroicon-o-trash'),
+            ])
+            ->actionsPosition(ActionsPosition::BeforeColumns) // 👈 tombol pindah ke kiri, biar selalu kelihatan
+            ->bulkActions([
+                Tables\Actions\DetachBulkAction::make()
+                    ->label('Hapus Terpilih'),
             ]);
     }
 
@@ -228,10 +291,9 @@ class SiswaRelationManager extends RelationManager
             'biru'               => 'Biru',
             'biru strip merah'   => 'Biru Strip Merah',
             'merah'              => 'Merah',
-            'merah strip hitam 1'=> 'Merah Strip Hitam 1',
-            'merah strip hitam 2'=> 'Merah Strip Hitam 2',
+            'merah strip hitam 1' => 'Merah Strip Hitam 1',
+            'merah strip hitam 2' => 'Merah Strip Hitam 2',
             'hitam'              => 'Hitam',
         ];
     }
 }
-

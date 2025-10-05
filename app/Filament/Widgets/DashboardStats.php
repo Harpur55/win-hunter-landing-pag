@@ -59,6 +59,39 @@ class DashboardStats extends BaseWidget
         $bronze = $upcomingChampionship?->siswa->where('pivot.medali', 'perunggu')->count() ?? 0;
 
 
+        //best atlet
+        $today = now()->format('m-d'); // format bulan-hari
+
+        if ($today === '12-31') {
+            // Hitung Best Atlet
+            $bestAtlet = Siswa::withCount('kejuaraan')
+                ->with('kejuaraan')
+                ->get()
+                ->map(function ($siswa) {
+                    $siswa->total_emas = $siswa->kejuaraan->where('pivot.medali', 'emas')->count();
+                    $siswa->total_perak = $siswa->kejuaraan->where('pivot.medali', 'perak')->count();
+                    $siswa->total_perunggu = $siswa->kejuaraan->where('pivot.medali', 'perunggu')->count();
+                    return $siswa;
+                })
+                ->sortByDesc(fn($s) => [$s->kejuaraan_count, $s->total_emas, $s->total_perak, $s->total_perunggu])
+                ->first();
+
+            $bestAtletName = $bestAtlet?->nama_lengkap ?? 'Tidak ada';
+            $bestAtletKejuaraan = $bestAtlet?->kejuaraan_count ?? 0;
+            $bestAtletGold = $bestAtlet?->total_emas ?? 0;
+            $bestAtletSilver = $bestAtlet?->total_perak ?? 0;
+            $bestAtletBronze = $bestAtlet?->total_perunggu ?? 0;
+
+            $bestAtletDescription = new HtmlString("
+        🏆 Total Kejuaraan: {$bestAtletKejuaraan}<br>
+        🥇 Medali: 🥇 {$bestAtletGold} 🥈 {$bestAtletSilver} 🥉 {$bestAtletBronze}
+    ");
+        } else {
+            $bestAtletName = 'Menunggu Hasil';
+            $bestAtletDescription = new HtmlString("Hasil akan diumumkan pada 31 Desember");
+        }
+
+
         return [
             Stat::make('Jumlah Siswa', Siswa::count())
                 ->description('Total siswa terdaftar')
@@ -80,14 +113,20 @@ class DashboardStats extends BaseWidget
                 ->descriptionIcon('heroicon-m-academic-cap')
                 ->color('info'),
 
-Stat::make('Kejuaraan Akan Datang', strtoupper($championshipName))
-    ->description(new HtmlString("
-        Jumlah Peserta : {$championshipParticipants}<br>
-        📅 Tanggal : {$championshipDate}<br>
-        🥇 Medali : 🥇 {$gold} 🥈 {$silver} 🥉 {$bronze}
-    "))
-    ->color('info')
-    ->extraAttributes(['class' => 'whitespace-pre-line'])
+            Stat::make('Kejuaraan Akan Datang', strtoupper($championshipName))
+                ->description(new HtmlString("
+                 Jumlah Peserta : {$championshipParticipants}<br>
+                 📅 Tanggal : {$championshipDate}<br>
+                 🥇 Medali : 🥇 {$gold} 🥈 {$silver} 🥉 {$bronze}
+                "))
+                ->color('info')
+                ->extraAttributes(['class' => 'whitespace-pre-line']),
+
+            Stat::make('Best Atlet', strtoupper($bestAtletName))
+                ->description($bestAtletDescription)
+                ->color('primary')
+                ->extraAttributes(['class' => 'whitespace-pre-line'])
+
         ];
     }
 }

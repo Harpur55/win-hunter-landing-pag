@@ -7,6 +7,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
+use Filament\Forms\Components\Select;
 use App\Models\Siswa;
 use App\Models\Kelas;
 use App\Models\Unit;
@@ -32,7 +33,6 @@ class Profile extends Page implements Forms\Contracts\HasForms
         } else {
             $this->form->fill([
                 'nama_lengkap' => $user->name,
-                'email' => $user->email,
             ]);
         }
     }
@@ -41,23 +41,43 @@ class Profile extends Page implements Forms\Contracts\HasForms
     {
         return $form
             ->schema([
+
+                // 🔹 Identitas Dasar
+                Forms\Components\Section::make('Identitas Dasar')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\FileUpload::make('image')
+                            ->label('Foto Profil')
+                            ->image()
+                            ->imageEditor()
+                            ->directory('siswa')
+                            ->previewable(true)
+                            ->columnSpan(1)
+                            ->disabled(fn() => !$this->isEditing),
+
+                        Forms\Components\Group::make([
+                            Forms\Components\TextInput::make('nama_lengkap')
+                                ->label('Nama Lengkap')
+                                ->required()
+                                ->disabled(fn() => !$this->isEditing),
+
+                            Forms\Components\TextInput::make('nis')
+                                ->label('NIS')
+                                ->disabled()
+                                ->dehydrated(false),
+                        ])->columnSpan(1),
+                    ]),
+
                 // 🔹 Biodata
                 Forms\Components\Section::make('Biodata')
                     ->columns(2)
                     ->schema([
-                        Forms\Components\TextInput::make('nama_lengkap')
-                            ->label('Nama Lengkap')
-                            ->required()
-                            ->disabled(fn() => !$this->isEditing),
-
-                        Forms\Components\TextInput::make('nis')
-                            ->label('NIS')
-                            ->disabled()
-                            ->dehydrated(false),
-
                         Forms\Components\Select::make('jenis_kelamin')
                             ->label('Jenis Kelamin')
-                            ->options(['L' => 'Laki-laki', 'P' => 'Perempuan'])
+                            ->options([
+                                'Laki-laki' => 'Laki-laki',
+                                'Perempuan' => 'Perempuan',
+                            ])
                             ->disabled(fn() => !$this->isEditing),
 
                         Forms\Components\TextInput::make('tempat_lahir')
@@ -78,19 +98,20 @@ class Profile extends Page implements Forms\Contracts\HasForms
                 Forms\Components\Section::make('Kontak')
                     ->columns(2)
                     ->schema([
-                        Forms\Components\Textarea::make('alamat_lengkap')
-                            ->label('Alamat')
-                            ->rows(3)
-                            ->disabled(fn() => !$this->isEditing),
-
                         Forms\Components\TextInput::make('no_telepon')
                             ->label('No. Telepon')
                             ->tel()
                             ->disabled(fn() => !$this->isEditing),
+
+                        Forms\Components\Textarea::make('alamat_lengkap')
+                            ->label('Alamat Lengkap')
+                            ->rows(3)
+                            ->columnSpan(2)
+                            ->disabled(fn() => !$this->isEditing),
                     ]),
 
-                // 🔹 Data Orang Tua
-                Forms\Components\Section::make('Orang Tua')
+                // 🔹 Orang Tua
+                Forms\Components\Section::make('Informasi Orang Tua')
                     ->columns(2)
                     ->schema([
                         Forms\Components\TextInput::make('nama_ayah')
@@ -112,18 +133,28 @@ class Profile extends Page implements Forms\Contracts\HasForms
 
                 // 🔹 Akademik & Unit
                 Forms\Components\Section::make('Akademik & Unit Latihan')
-                    ->columns(2)
+                    ->columns(1)
                     ->schema([
-                        Forms\Components\Select::make('kelas_id')
-                            ->label('Kelas')
-                            ->options(Kelas::pluck('name', 'id'))
-                            ->searchable()
-                            ->preload()
+                        Forms\Components\TextInput::make('no_register')
+                            ->label('No. Register')
                             ->disabled(fn() => !$this->isEditing),
+
+                        Select::make('current_belt_level')
+                            ->label('Tingkatan Sabuk')
+                            ->options(self::beltOptions())
+                            ->required()
+                            ->reactive(),
 
                         Forms\Components\Select::make('units_id')
                             ->label('Unit Latihan')
                             ->options(Unit::pluck('name', 'id'))
+                            ->searchable()
+                            ->preload()
+                            ->disabled(fn() => !$this->isEditing),
+
+                        Forms\Components\Select::make('kelas_id')
+                            ->label('Kelas')
+                            ->options(Kelas::pluck('name', 'id'))
                             ->searchable()
                             ->preload()
                             ->disabled(fn() => !$this->isEditing),
@@ -133,19 +164,7 @@ class Profile extends Page implements Forms\Contracts\HasForms
                 Forms\Components\Section::make('Lain-lain')
                     ->schema([
                         Forms\Components\TextInput::make('beladiri_yang_pernah_diikuti')
-                            ->label('Beladiri Pernah Diikuti')
-                            ->disabled(fn() => !$this->isEditing),
-                    ]),
-
-                // 🔹 Foto Profil
-                Forms\Components\Section::make('Foto Profil')
-                    ->schema([
-                        Forms\Components\FileUpload::make('image')
-                            ->label('Foto Profil')
-                            ->image()
-                            ->imageEditor()
-                            ->directory('siswa')
-                            ->previewable(true)
+                            ->label('Beladiri yang Pernah Diikuti')
                             ->disabled(fn() => !$this->isEditing),
                     ]),
             ])
@@ -155,6 +174,12 @@ class Profile extends Page implements Forms\Contracts\HasForms
     public function edit(): void
     {
         $this->isEditing = true;
+
+        Notification::make()
+            ->title('Mode Edit')
+            ->body('Sekarang kamu bisa mengubah data profil.')
+            ->info()
+            ->send();
     }
 
     public function save(): void
@@ -180,5 +205,42 @@ class Profile extends Page implements Forms\Contracts\HasForms
             ->success()
             ->body('Profil berhasil diperbarui.')
             ->send();
+    }
+
+    // 🔹 Tambah action tombol Edit & Simpan
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\Action::make('edit')
+                ->label('Edit Profil')
+                ->icon('heroicon-o-pencil')
+                ->action('edit')
+                ->hidden(fn() => $this->isEditing),
+
+            \Filament\Actions\Action::make('save')
+                ->label('Simpan Perubahan')
+                ->icon('heroicon-o-check')
+                ->color('success')
+                ->action('save')
+                ->hidden(fn() => !$this->isEditing),
+        ];
+    }
+
+
+    private static function beltOptions(): array
+    {
+        return [
+            'putih'               => 'Putih',
+            'kuning'              => 'Kuning',
+            'kuning strip hijau'  => 'Kuning Strip Hijau',
+            'hijau'               => 'Hijau',
+            'hijau strip biru'    => 'Hijau Strip Biru',
+            'biru'                => 'Biru',
+            'biru strip merah'    => 'Biru Strip Merah',
+            'merah'               => 'Merah',
+            'merah strip hitam 1' => 'Merah Strip Hitam 1',
+            'merah strip hitam 2' => 'Merah Strip Hitam 2',
+            'hitam'               => 'Hitam',
+        ];
     }
 }

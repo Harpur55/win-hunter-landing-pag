@@ -33,16 +33,20 @@ class Register extends BaseRegister
                     ->required()
                     ->maxLength(255),
 
+                // 🔐 Password dengan tombol show/hide
                 Forms\Components\TextInput::make('password')
                     ->label('Password')
                     ->password()
+                    ->revealable() // <-- ini menambahkan tombol mata 👁️
                     ->required()
                     ->confirmed()
                     ->minLength(6),
 
+                // 🔐 Konfirmasi Password juga bisa show/hide
                 Forms\Components\TextInput::make('password_confirmation')
                     ->label('Konfirmasi Password')
                     ->password()
+                    ->revealable() // <-- tombol show/hide juga di sini
                     ->required(),
             ])
             ->statePath('data');
@@ -53,17 +57,17 @@ class Register extends BaseRegister
         $data = $this->form->getState();
 
         DB::transaction(function () use ($data, &$user) {
-            // 1. Buat user baru
+            // 1️⃣ Buat user baru
             $user = User::create([
                 'name'     => $data['nama_lengkap'],
                 'email'    => $data['email'],
                 'password' => Hash::make($data['password']),
             ]);
 
-            // 2. Assign role siswa
+            // 2️⃣ Assign role siswa
             $user->assignRole('siswa');
 
-            // 3. Cek apakah nama sudah ada di tabel siswas
+            // 3️⃣ Cek apakah nama sudah ada di tabel siswas
             $siswa = Siswa::where('nama_lengkap', 'like', "%{$data['nama_lengkap']}%")->first();
 
             if ($siswa) {
@@ -79,14 +83,14 @@ class Register extends BaseRegister
             }
         });
 
-        // Notifikasi sukses
+        // ✅ Notifikasi sukses
         Notification::make()
             ->title('Registrasi Berhasil')
             ->success()
             ->body('Akun berhasil dibuat. Silakan login.')
             ->send();
 
-        // Redirect ke login siswa
+        // 🔁 Redirect ke halaman login siswa
         return new class implements RegistrationResponse {
             public function toResponse($request)
             {
