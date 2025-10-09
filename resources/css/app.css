@@ -1,114 +1,39 @@
-@import 'animate.css';
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-.animate__animated.animate__lightSpeedInLeft {
-  --animate-duration: 2s;
-    --animate-delay: 5s;
-}
-.animate__animated .animate__fadeInDownBig {
-  --animate-duration: 6s;
-    --animate-delay: 2s;
-}
-
- 
-
-    body {
-      background: #000;
-      font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
-      font-size: 14px;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-
-     .swiper {
-      width: 100%;
-      height: auto;
-    }
-
-    .swiper-slide {
-      text-align: center;
-      /* font-size: 18px; */
-      /* background: #444; */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-
-  /* service */
-
- .swiper-service {
-      width: 240px;
-      height: 320px;
-    }
-
-    .swiper-slide-service {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 18px;
-      font-size: 22px;
-      font-weight: bold;
-      color: #fff;
-    }
-
-    .swiper-slide-service:nth-child(1n) {
-      background-color: rgb(206, 17, 17);
-    }
-
-    .swiper-slide-service:nth-child(2n) {
-      background-color: rgb(0, 140, 255);
-    }
-
-    .swiper-slide-service:nth-child(3n) {
-      background-color: rgb(10, 184, 111);
-    }
-
-  
-  /* ===== */
-
-
-/* unit slider */
-@keyframes autoScroll {
-  0% {
-    transform: translateX(0);
+/* Tambahan style global */
+@layer base {
+  html {
+    scroll-behavior: smooth;
   }
-  100% {
-    transform: translateX(-50%);
+
+  body {
+    @apply bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 antialiased;
   }
 }
 
-#unit-slider.paused {
-  animation-play-state: paused !important;
-}
-#unit-slider-wrapper {
-  scrollbar-width: none;       /* Firefox */
-  -ms-overflow-style: none;    /* IE & Edge */
-}
-#unit-slider-wrapper::-webkit-scrollbar {
-  display: none;               /* Chrome, Safari, Opera */
-}
-.fi-ta {
-    width: 100% !important; /* Ganti sesuai keinginan */
-    margin: 0 auto; /* opsional, untuk center */
+@layer components {
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-soft border border-gray-200 dark:border-gray-700 p-4;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white font-semibold px-4 py-2 rounded-xl 
+           hover:bg-indigo-700 transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-white font-semibold px-4 py-2 rounded-xl 
+           hover:bg-amber-600 transition-all duration-200;
+  }
 }
 
+/* Optional efek animasi halus */
+.fade-in {
+  @apply opacity-0 transition-opacity duration-700 ease-in-out;
+}
 
-/* unit slider end */
-/* kelas animation  */
-
-        @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-5px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in {
-        animation: fadeIn 0.3s ease-out;
-    }
-
-    #home{
-       background-image: url('public/assets/images/bg-hero.png');
-    }
+.fade-in.show {
+  @apply opacity-100;
+}

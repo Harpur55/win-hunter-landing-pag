@@ -10,22 +10,17 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
-use App\Filament\Widgets\SiswaDashboardStats;
-use App\Filament\Siswa\Pages\Auth\Login;
-use App\Filament\Siswa\Pages\Auth\Register;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-
-// Tambahkan use statement untuk page siswa
+use App\Filament\Siswa\Pages\Auth\Login;
+use App\Filament\Siswa\Pages\Auth\Register;
+use App\Filament\Siswa\Pages\DashboardSiswa;
 use App\Filament\Siswa\Pages\Profile;
-use App\Models\Siswa;
-
-// 🔑 tambahan untuk menu custom
+use App\Filament\Widgets\SiswaDashboardStats;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
 
@@ -43,15 +38,21 @@ class SiswaPanelProvider extends PanelProvider
             ->authGuard('siswa')
             ->login(Login::class)
             ->registration(Register::class)
+             ->sidebarCollapsibleOnDesktop()
+
+
             ->discoverResources(in: app_path('Filament/Siswa/Resources'), for: 'App\\Filament\\Siswa\\Resources')
             ->discoverPages(in: app_path('Filament/Siswa/Pages'), for: 'App\\Filament\\Siswa\\Pages')
 
             ->pages([
-                Pages\Dashboard::class,
+                // DashboardSiswa::class,
                 Profile::class,
             ])
+            ->widgets([
+                // Daftarkan widget global di sini jika ada
+                // SiswaDashboardStats::class,
+            ])
 
-            // 🚀 Tambahan menu sidebar Ujian & Kejuaraan
             ->navigationGroups([
                 NavigationGroup::make()
                     ->label('Ujian')
@@ -76,11 +77,12 @@ class SiswaPanelProvider extends PanelProvider
                     ]),
             ])
 
-            ->discoverWidgets(in: app_path('Filament/Siswa/Widgets'), for: 'App\\Filament\\Siswa\\Widgets')
-            ->widgets([
-                Widgets\AccountWidget::class,
-                SiswaDashboardStats::class,
-            ])
+            // ✅ Biarkan Filament otomatis temukan widget dari folder
+            ->discoverWidgets(
+                in: app_path('Filament/Siswa/Widgets'),
+                for: 'App\\Filament\\Siswa\\Widgets'
+            )
+
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

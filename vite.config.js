@@ -4,8 +4,19 @@ import laravel from 'laravel-vite-plugin';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css',
-                 'resources/js/app.js'],
+            input: [
+                'resources/**/*.blade.php',
+                 'resources/**/*.js',
+                'resources/css/app.css',
+                 'resources/js/app.js',
+                  'resources/css/filament/admin/theme.css',
+
+                // Kalau kamu pakai panel siswa, tambahkan juga ini:
+                'resources/css/filament/siswa/theme.css',
+                'resources/js/filament/siswa/theme.js',
+                
+                ],
+
             refresh: true,
         }),
     ],
