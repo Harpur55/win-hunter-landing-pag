@@ -39,7 +39,7 @@ class SiswaPanelProvider extends PanelProvider
             ->login(Login::class)
             ->registration(Register::class)
              ->sidebarCollapsibleOnDesktop()
-
+                     ->viteTheme('resources/css/filament/siswa/theme.css')
 
             ->discoverResources(in: app_path('Filament/Siswa/Resources'), for: 'App\\Filament\\Siswa\\Resources')
             ->discoverPages(in: app_path('Filament/Siswa/Pages'), for: 'App\\Filament\\Siswa\\Pages')

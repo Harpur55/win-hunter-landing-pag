@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tema khusus untuk panel siswa */
+:root {
+  --color-primary: #10B981; /* hijau emerald */
+  --color-secondary: #3B82F6; /* biru */
+}
+
+body {
+  @apply bg-gray-50 dark:bg-gray-900 text-neutral;
+}
+
+.filament-sidebar {
+  @apply bg-emerald-600 text-white;
+}
+
+.filament-main {
+  @apply bg-base-100 dark:bg-gray-950;
+}

@@ -16,7 +16,6 @@ use Filament\Notifications\Notification;
 use Illuminate\Support\Carbon;
 use Filament\Tables\Actions\Action;
 use App\Exports\KejuaraanExport;
-use Filament\Forms\Components\Tabs\Tab;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SiswaRelationManager extends RelationManager
@@ -25,7 +24,7 @@ class SiswaRelationManager extends RelationManager
     protected static ?string $title = 'Peserta Kejuaraan';
 
     /**
-     * Helper untuk hitung kategori umur dari tanggal lahir
+     * Hitung kategori usia otomatis berdasarkan tanggal lahir
      */
     private function hitungKategoriUmur(?string $tanggalLahir): ?string
     {
@@ -51,7 +50,10 @@ class SiswaRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('nama_lengkap')->label('Nama'),
                 Tables\Columns\TextColumn::make('jenis_kelamin')->label('JK')->badge(),
                 Tables\Columns\TextColumn::make('sabuk')->label('Sabuk')->badge(),
-                Tables\Columns\TextColumn::make('kategori_pertandingan')->label('Kategori'),
+                Tables\Columns\TextColumn::make('kategori_pertandingan')
+                    ->label('Kategori')
+                    ->badge()
+                    ->color(fn($state) => strtolower($state) === 'kyorugi' ? 'primary' : 'info'),
 
                 Tables\Columns\TextColumn::make('berat_badan')
                     ->label('BB (kg)')
@@ -61,8 +63,13 @@ class SiswaRelationManager extends RelationManager
                     ->label('TB (cm)')
                     ->hidden(fn($record): bool => strtolower((string)($record?->kategori_pertandingan ?? '')) === 'poomsae'),
 
-                Tables\Columns\TextColumn::make('tageuk')->label('Taegeuk'),
-                Tables\Columns\TextColumn::make('tingkat_kategori')->label('Kategori (Beginer / Advance)'),
+                Tables\Columns\TextColumn::make('tageuk')->label('Taegeuk')
+                    ->hidden(fn($record): bool => strtolower((string)($record?->kategori_pertandingan ?? '')) === 'kyorugi'),
+
+                Tables\Columns\TextColumn::make('tingkat_kategori')
+                    ->label('Kategori (Beginer / Advance)')
+                    ->hidden(fn($record): bool => strtolower((string)($record?->kategori_pertandingan ?? '')) === 'kyorugi'),
+
                 Tables\Columns\TextColumn::make('kategori_atlit')->label('Kelompok Umur'),
 
                 Tables\Columns\TextColumn::make('medali')
@@ -82,6 +89,7 @@ class SiswaRelationManager extends RelationManager
                     }),
             ])
             ->headerActions([
+                // 🔹 Export data peserta
                 Action::make('export_data')
                     ->label('Export Data')
                     ->color('primary')
@@ -91,18 +99,19 @@ class SiswaRelationManager extends RelationManager
                         return Excel::download(new KejuaraanExport($event), 'data_kejuaraan.xlsx');
                     }),
 
+                // 🔹 Tambah peserta ke kejuaraan
                 Tables\Actions\Action::make('tambah_peserta')
                     ->label('Tambah Peserta')
                     ->icon('heroicon-o-plus-circle')
                     ->form([
                         Select::make('siswa_id')
                             ->label('Nama Lengkap')
-                            ->options(fn() => \App\Models\Siswa::all()->pluck('nama_lengkap', 'id'))
+                            ->options(fn() => Siswa::all()->pluck('nama_lengkap', 'id'))
                             ->searchable()
                             ->required()
                             ->reactive()
                             ->afterStateUpdated(function ($state, callable $set) {
-                                $siswa = \App\Models\Siswa::find($state);
+                                $siswa = Siswa::find($state);
                                 if ($siswa) {
                                     $set('nama_lengkap', $siswa->nama_lengkap);
                                     $set('tempat_lahir', $siswa->tempat_lahir);
@@ -119,9 +128,9 @@ class SiswaRelationManager extends RelationManager
                         DatePicker::make('tanggal_lahir')
                             ->label('Tanggal Lahir')
                             ->reactive()
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                $set('kategori_atlit', $this->hitungKategoriUmur($state));
-                            }),
+                            ->afterStateUpdated(fn($state, callable $set) =>
+                                $set('kategori_atlit', $this->hitungKategoriUmur($state))
+                            ),
 
                         TextInput::make('jenis_kelamin')->readOnly(),
                         TextInput::make('sabuk')->readOnly(),
@@ -135,6 +144,7 @@ class SiswaRelationManager extends RelationManager
                             ->required()
                             ->reactive(),
 
+                        // Untuk Kyorugi
                         TextInput::make('berat_badan')
                             ->numeric()
                             ->suffix('kg')
@@ -147,36 +157,32 @@ class SiswaRelationManager extends RelationManager
                             ->required()
                             ->visible(fn($get) => $get('kategori_pertandingan') === 'kyorugi'),
 
-                        Grid::make(2) // grid 2 kolom
-                            ->schema([
+                        // Untuk Poomsae
+                        Grid::make(2)->schema([
+                            Select::make('tageuk')
+                                ->label('Taegeuk')
+                                ->options([
+                                    '1' => 'Taegeuk 1',
+                                    '2' => 'Taegeuk 2',
+                                    '3' => 'Taegeuk 3',
+                                    '4' => 'Taegeuk 4',
+                                    '5' => 'Taegeuk 5',
+                                    '6' => 'Taegeuk 6',
+                                    '7' => 'Taegeuk 7',
+                                    '8' => 'Taegeuk 8',
+                                ])
+                                ->required()
+                                ->visible(fn($get) => strtolower((string)$get('kategori_pertandingan')) === 'poomsae'),
 
-                                Select::make('tageuk')
-                                    ->label('Taegeuk')
-                                    ->options([
-                                        '1' => 'Taegeuk 1',
-                                        '2' => 'Taegeuk 2',
-                                        '3' => 'Taegeuk 3',
-                                        '4' => 'Taegeuk 4',
-                                        '5' => 'Taegeuk 5',
-                                        '6' => 'Taegeuk 6',
-                                        '7' => 'Taegeuk 7',
-                                        '8' => 'Taegeuk 8',
-                                    ])
-                                    ->required()
-                                    ->visible(fn($get) => strtolower((string) $get('kategori_pertandingan')) === 'poomsae'),
-
-                                Select::make('tingkat_kategori')
-                                    ->label('Kategori (Beginer / Advance)')
-                                    ->options([
-                                        'Beginer' => 'Beginer',
-                                        'Advance' => 'Advance',
-                                    ])
-                                    ->required()
-                                    ->visible(fn($get) => strtolower((string) $get('kategori_pertandingan')) === 'poomsae'),
-
-                            ]),
-
-
+                            Select::make('tingkat_kategori')
+                                ->label('Kategori (Beginer / Advance)')
+                                ->options([
+                                    'Beginer' => 'Beginer',
+                                    'Advance' => 'Advance',
+                                ])
+                                ->required()
+                                ->visible(fn($get) => strtolower((string)$get('kategori_pertandingan')) === 'poomsae'),
+                        ]),
 
                         Select::make('kategori_atlit')
                             ->label('Kelompok Usia')
@@ -203,39 +209,64 @@ class SiswaRelationManager extends RelationManager
                     ->action(function (array $data) {
                         $event = $this->getOwnerRecord();
 
-                        if ($event->siswa()->where('siswa_id', $data['siswa_id'])->exists()) {
-                            Notification::make()->title('⚠️ Siswa sudah terdaftar.')->danger()->send();
+                        // 🔹 Cek: apakah siswa sudah terdaftar di kategori pertandingan yang sama
+                        $sudahAda = $event->siswa()
+                            ->where('kejuaraan_siswa.siswa_id', $data['siswa_id'])
+                            ->where('kejuaraan_siswa.kategori_pertandingan', $data['kategori_pertandingan'])
+                            ->exists();
+
+                        if ($sudahAda) {
+                            Notification::make()
+                                ->title('⚠️ Siswa sudah terdaftar di kategori ini.')
+                                ->danger()
+                                ->send();
                             return;
                         }
 
+                        // 🔹 Simpan ke pivot
                         $event->siswa()->attach($data['siswa_id'], $data);
 
-                        Notification::make()->title('✅ Peserta berhasil ditambahkan.')->success()->send();
+                        Notification::make()
+                            ->title('✅ Peserta berhasil ditambahkan.')
+                            ->success()
+                            ->send();
                     }),
             ])
             ->actions([
+                // 🔹 Edit Data Peserta
                 Tables\Actions\EditAction::make()
                     ->form([
                         TextInput::make('berat_badan')
                             ->numeric()
                             ->suffix('kg')
-                            ->required()
-                            ->visible(fn($record) => $record->pivot->kategori_pertandingan === 'kyorugi'),
+                            ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'kyorugi'),
 
                         TextInput::make('tinggi_badan')
                             ->numeric()
                             ->suffix('cm')
-                            ->required()
-                            ->visible(fn($record) => $record->pivot->kategori_pertandingan === 'kyorugi'),
+                            ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'kyorugi'),
 
                         Select::make('tageuk')
                             ->label('Taegeuk')
                             ->options([
+                                '1' => 'Taegeuk 1',
+                                '2' => 'Taegeuk 2',
+                                '3' => 'Taegeuk 3',
+                                '4' => 'Taegeuk 4',
+                                '5' => 'Taegeuk 5',
+                                '6' => 'Taegeuk 6',
+                                '7' => 'Taegeuk 7',
+                                '8' => 'Taegeuk 8',
+                            ])
+                            ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'poomsae'),
+
+                        Select::make('tingkat_kategori')
+                            ->label('Kategori (Beginer / Advance)')
+                            ->options([
                                 'Beginer' => 'Beginer',
                                 'Advance' => 'Advance',
                             ])
-                            ->required()
-                            ->visible(fn($record) => strtolower((string)($record?->pivot?->kategori_pertandingan ?? '')) === 'poomsae'),
+                            ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'poomsae'),
 
                         Select::make('kategori_atlit')
                             ->label('Kelompok Usia')
@@ -244,10 +275,10 @@ class SiswaRelationManager extends RelationManager
                                 'cadet'    => 'Cadet',
                                 'junior'   => 'Junior',
                                 'senior'   => 'Senior',
-                            ])
-                            ->required(),
+                            ]),
 
                         Select::make('medali')
+                            ->label('Medali')
                             ->options([
                                 'tidak_ada' => 'Tidak Ada',
                                 'emas'      => 'Emas',
@@ -256,15 +287,10 @@ class SiswaRelationManager extends RelationManager
                             ]),
                     ])
                     ->mutateFormDataUsing(function (array $data, $record): array {
-                        // simpan ke pivot
                         $record->pivot->update($data);
                         return $data;
                     })
-                    ->fillForm(function ($record) {
-                        // isi default dari pivot
-                        return $record->pivot->toArray();
-                    }),
-
+                    ->fillForm(fn($record) => $record->pivot->toArray()),
             ]);
     }
 }

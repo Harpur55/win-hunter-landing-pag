@@ -31,5 +31,36 @@ class Kejuaraan extends Model
             ])
             ->withTimestamps();
     }
+
+public function sisaKuota(): int
+{
+    $terdaftar = $this->siswa()->count();
+    return max(0, $this->kuota - $terdaftar);
+}
+
+    public function sisaKuotaReguler(): int
+{
+    $terdaftar = $this->siswa()->wherePivot('kategori', 'reguler')->count();
+    return max(0, $this->kuota_reguler - $terdaftar);
+}
+
+public function sisaKuotaPrestasi(): int
+{
+    $terdaftar = $this->siswa()->wherePivot('kategori', 'prestasi')->count();
+    return max(0, $this->kuota_prestasi - $terdaftar);
+}
+
+public function sisaKuotaKhusus(): int
+{
+    $terdaftar = $this->siswa()->wherePivot('kategori', 'khusus')->count();
+    return max(0, $this->kuota_khusus - $terdaftar);
     
+
+}
+public function sisaKuotaKelasPoomsae(): int
+{
+    $terdaftar = $this->siswa()->wherePivot('kategori', 'kelas_poomsae')->count();
+    return max(0, $this->kuota_kelas_poomsae - $terdaftar);
+
+}
 }

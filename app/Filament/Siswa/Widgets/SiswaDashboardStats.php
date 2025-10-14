@@ -78,12 +78,18 @@ class SiswaDashboardStats extends BaseWidget
 
             // ✅ Medali
             Stat::make(
-                'Jumlah Medali',
-                new HtmlString("🥇 {$medali->emas} | 🥈 {$medali->perak} | 🥉 {$medali->perunggu}")
-            )
-                ->description('Total medali yang diperoleh')
-                ->descriptionIcon('heroicon-m-star')
-                ->color('warning'),
+    'Jumlah Medali',
+    new HtmlString("
+        <ul class='space-y-1 text-left'>
+            <li>🥇 <span class='font-semibold text-yellow-600 dark:text-yellow-400'>{$medali->emas}</span></li>
+            <li>🥈 <span class='font-semibold text-gray-500 dark:text-gray-300'>{$medali->perak}</span></li>
+            <li>🥉 <span class='font-semibold text-amber-800 dark:text-amber-400'>{$medali->perunggu}</span></li>
+        </ul>
+    ")
+)
+    ->description('Total medali yang diperoleh')
+    ->descriptionIcon('heroicon-m-star')
+    ->color('warning'),
         ];
     }
 }
