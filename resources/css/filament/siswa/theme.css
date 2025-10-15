@@ -19,3 +19,17 @@ body {
 .filament-main {
   @apply bg-base-100 dark:bg-gray-950;
 }
+
+
+.stat-ujian {
+    background-color: #22c55e !important;
+    color: white !important;
+}
+.stat-kejuaraan {
+    background-color: #38bdf8 !important;
+    color: white !important;
+}
+.stat-medali {
+    background-color: #fcd34d !important;
+    color: white !important;
+}

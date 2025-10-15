@@ -13,6 +13,11 @@ class SiswaDashboardStats extends BaseWidget
 {
     protected static ?int $sort = 1;
 
+    protected function getColumns(): int
+    {
+        return 3;
+    }
+
     protected function getStats(): array
     {
         $user = Auth::user();
@@ -22,22 +27,19 @@ class SiswaDashboardStats extends BaseWidget
             return [
                 Stat::make('Data Tidak Ditemukan', 'Silakan lengkapi profil dulu')
                     ->description('Profil siswa belum ada')
-                    ->color('danger'),
+                    ->color('danger')
+                    ->extraAttributes([
+                        'class' => 'bg-red-500 text-white shadow-lg rounded-xl',
+                    ]),
             ];
         }
 
-        // 🔹 Event ujian yang diikuti siswa (hanya satu)
-        $eventUjian = $siswa->ujian()
-            ->orderBy('tanggal_ujian', 'asc')
-            ->first();
-
-        // 🔹 Kejuaraan
+        $eventUjian = $siswa->ujian()->orderBy('tanggal_ujian', 'asc')->first();
         $kejuaraan = $siswa->kejuaraan()
             ->whereDate('tanggal_mulai', '>=', Carbon::today())
             ->orderBy('tanggal_mulai', 'asc')
             ->first();
 
-        // 🔹 Hitung medali
         $medali = DB::table('kejuaraan_siswa')
             ->where('siswa_id', $siswa->id)
             ->selectRaw("
@@ -48,10 +50,10 @@ class SiswaDashboardStats extends BaseWidget
             ->first();
 
         return [
-            // ✅ Event Ujian
+            // 🧾 Ujian (Hijau #22c55e)
             Stat::make(
-                'UJIAN yang diikuti',
-                $eventUjian?->nama_ujian ?? 'Kamu belum daftar ujian sekarang'
+                'Ujian yang Diikuti',
+                $eventUjian?->nama_ujian ?? 'Belum ada ujian'
             )
                 ->description(
                     $eventUjian
@@ -59,13 +61,25 @@ class SiswaDashboardStats extends BaseWidget
                           " | 📍 " . $eventUjian->lokasi_ujian
                         : 'Belum ada jadwal ujian'
                 )
-                
-                ->color($eventUjian ? 'primary' : 'gray'),
+                ->color('success')
+               ->extraAttributes([ 'class' => '
+                bg-[#22c55e] 
+                dark:bg-[#15803d]
+                text-gray-900 
+                dark:text-white 
+                shadow-lg 
+                border-none 
+                rounded-xl 
+                transition 
+                duration-300 
+                hover:bg-[#16a34a] 
+                dark:hover:bg-[#166534]
+            ',]),
 
-            // ✅ Kejuaraan
+            // 🏆 Kejuaraan (Biru #38bdf8)
             Stat::make(
-                'Kejuaraan yang diikuti',
-                $kejuaraan?->nama_kejuaraan ?? 'Kamu belum daftar kejuaraan sekarang'
+                'Kejuaraan yang Diikuti',
+                $kejuaraan?->nama_kejuaraan ?? 'Belum ada kejuaraan'
             )
                 ->description(
                     $kejuaraan
@@ -74,22 +88,51 @@ class SiswaDashboardStats extends BaseWidget
                         : 'Belum ada jadwal kejuaraan'
                 )
                 ->descriptionIcon('heroicon-m-trophy')
-                ->color($kejuaraan ? 'success' : 'gray'),
+                ->color('primary')
+                ->extraAttributes(['class' => '
+                bg-[#38bdf8] 
+                dark:bg-[#0ea5e9]
+                text-gray-900 
+                dark:text-white 
+                shadow-lg 
+                border-none 
+                rounded-xl 
+                transition 
+                duration-300 
+                hover:bg-[#0ea5e9]/90 
+                dark:hover:bg-[#0284c7]
+            ',]),
 
-            // ✅ Medali
+            // 🥇 Medali (Lime #a3e635)
             Stat::make(
-    'Jumlah Medali',
-    new HtmlString("
-        <ul class='space-y-1 text-left'>
-            <li>🥇 <span class='font-semibold text-yellow-600 dark:text-yellow-400'>{$medali->emas}</span></li>
-            <li>🥈 <span class='font-semibold text-gray-500 dark:text-gray-300'>{$medali->perak}</span></li>
-            <li>🥉 <span class='font-semibold text-amber-800 dark:text-amber-400'>{$medali->perunggu}</span></li>
-        </ul>
-    ")
-)
-    ->description('Total medali yang diperoleh')
-    ->descriptionIcon('heroicon-m-star')
-    ->color('warning'),
+                'Jumlah Medali',
+                new HtmlString("
+                    <ul class='space-y-1 text-left'>
+                        <li>🥇 <span class='font-semibold text-white'>{$medali->emas}</span></li>
+                        <li>🥈 <span class='font-semibold text-white'>{$medali->perak}</span></li>
+                        <li>🥉 <span class='font-semibold text-white'>{$medali->perunggu}</span></li>
+                    </ul>
+                ")
+            )
+                ->description('Total medali yang diperoleh')
+                ->descriptionIcon('heroicon-m-star')
+                ->color('warning')
+                ->extraAttributes([
+                     'class' => '
+                bg-yellow-600 
+                dark:bg-yellow-300
+                text-gray-900 
+                dark:text-white 
+                shadow-lg 
+                border-none 
+                rounded-xl 
+                transition 
+                duration-300 
+                hover:bg-lime-500 
+                dark:hover:bg-lime-700
+            
+            ',]),
+
         ];
     }
 }

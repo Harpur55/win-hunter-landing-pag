@@ -31,15 +31,15 @@ class SiswaPanelProvider extends PanelProvider
         return $panel
             ->id('siswa')
             ->path('siswa')
-            ->brandName('Sacti Win Hunter') 
+            ->brandName('Sacti Win Hunter')
             ->colors([
                 'primary' => Color::Green,
             ])
             ->authGuard('siswa')
             ->login(Login::class)
             ->registration(Register::class)
-             ->sidebarCollapsibleOnDesktop()
-                     ->viteTheme('resources/css/filament/siswa/theme.css')
+            ->sidebarCollapsibleOnDesktop()
+            ->viteTheme('resources/css/filament/siswa/theme.css')
 
             ->discoverResources(in: app_path('Filament/Siswa/Resources'), for: 'App\\Filament\\Siswa\\Resources')
             ->discoverPages(in: app_path('Filament/Siswa/Pages'), for: 'App\\Filament\\Siswa\\Pages')

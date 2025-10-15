@@ -12,7 +12,7 @@ class DaftarUjian extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationGroup = 'UJIAN';
-    protected static ?string $title = 'Daftar Ujian';
+    protected static ?string $title = 'Daftar Ujian Taekwondo Win Hunter';
     protected static string $view = 'filament.siswa.pages.daftar-ujian';
 
     public $events = [];
