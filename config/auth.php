@@ -107,6 +107,14 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+        'passwords' => [
+    'siswa' => [
+        'provider' => 'siswa',
+        'table' => 'password_reset_tokens',
+        'expire' => 60,
+        'throttle' => 60,
+    ],
+],
     ],
 
     /*

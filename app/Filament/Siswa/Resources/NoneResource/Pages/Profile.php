@@ -2,15 +2,16 @@
 
 namespace App\Filament\Siswa\Pages;
 
-use Filament\Pages\Page;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Illuminate\Support\Facades\Auth;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\Select;
 use App\Models\Siswa;
 use App\Models\Kelas;
 use App\Models\Unit;
+use Filament\Pages\Page;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Notifications\Notification;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\FileUpload;
+use Illuminate\Support\Facades\Auth;
 
 class Profile extends Page implements Forms\Contracts\HasForms
 {
@@ -28,51 +29,49 @@ class Profile extends Page implements Forms\Contracts\HasForms
         $user = Auth::user();
         $siswa = Siswa::where('user_id', $user->id)->first();
 
-        if ($siswa) {
-            $this->form->fill($siswa->toArray());
-        } else {
-            $this->form->fill([
-                'nama_lengkap' => $user->name,
-            ]);
-        }
+        // ✅ Pastikan $data selalu berupa array
+        $this->data = $siswa
+            ? $siswa->toArray()
+            : ['nama_lengkap' => $user->name];
+
+        $this->form->fill($this->data);
     }
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-
-                // 🔹 Identitas Dasar
                 Forms\Components\Section::make('Identitas Dasar')
-                    ->columns(2)
+                    ->columns(1)
                     ->schema([
-                        Forms\Components\FileUpload::make('image')
+                        FileUpload::make('image')
                             ->label('Foto Profil')
                             ->image()
+                            ->avatar()
+                            ->directory('profil_photos')
+                            ->disk('public')
+                            ->visibility('public')
+                            ->maxSize(1024)
+                            ->acceptedFileTypes(['image/jpeg', 'image/png'])
                             ->imageEditor()
-                            ->directory('siswa')
                             ->previewable(true)
-                            ->columnSpan(1)
+                            ->columnSpan(1),
+
+                        Forms\Components\TextInput::make('nama_lengkap')
+                            ->label('Nama Lengkap')
+                            ->required()
                             ->disabled(fn() => !$this->isEditing),
 
-                        Forms\Components\Group::make([
-                            Forms\Components\TextInput::make('nama_lengkap')
-                                ->label('Nama Lengkap')
-                                ->required()
-                                ->disabled(fn() => !$this->isEditing),
-
-                            Forms\Components\TextInput::make('nis')
-                                ->label('NIS')
-                                ->disabled()
-                                ->dehydrated(false),
-                        ])->columnSpan(1),
+                        Forms\Components\TextInput::make('nis')
+                            ->label('NIS')
+                            ->disabled()
+                            ->dehydrated(false),
                     ]),
 
-                // 🔹 Biodata
                 Forms\Components\Section::make('Biodata')
                     ->columns(2)
                     ->schema([
-                        Forms\Components\Select::make('jenis_kelamin')
+                        Select::make('jenis_kelamin')
                             ->label('Jenis Kelamin')
                             ->options([
                                 'Laki-laki' => 'Laki-laki',
@@ -88,13 +87,12 @@ class Profile extends Page implements Forms\Contracts\HasForms
                             ->label('Tanggal Lahir')
                             ->disabled(fn() => !$this->isEditing),
 
-                        Forms\Components\Select::make('golongan_darah')
+                        Select::make('golongan_darah')
                             ->label('Golongan Darah')
                             ->options(['A' => 'A', 'B' => 'B', 'AB' => 'AB', 'O' => 'O'])
                             ->disabled(fn() => !$this->isEditing),
                     ]),
 
-                // 🔹 Kontak
                 Forms\Components\Section::make('Kontak')
                     ->columns(2)
                     ->schema([
@@ -106,11 +104,10 @@ class Profile extends Page implements Forms\Contracts\HasForms
                         Forms\Components\Textarea::make('alamat_lengkap')
                             ->label('Alamat Lengkap')
                             ->rows(3)
-                            ->columnSpan(2)
+                            ->columnSpanFull()
                             ->disabled(fn() => !$this->isEditing),
                     ]),
 
-                // 🔹 Orang Tua
                 Forms\Components\Section::make('Informasi Orang Tua')
                     ->columns(2)
                     ->schema([
@@ -131,21 +128,24 @@ class Profile extends Page implements Forms\Contracts\HasForms
                             ->disabled(fn() => !$this->isEditing),
                     ]),
 
-                // 🔹 Akademik & Unit
                 Forms\Components\Section::make('Akademik & Unit Latihan')
-                    ->columns(1)
+                    ->columns(2)
                     ->schema([
                         Forms\Components\TextInput::make('no_register')
-                            ->label('No. Register')
-                            ->disabled(fn() => !$this->isEditing),
+                            ->label('Nomor Register')
+                            ->helperText('Nomor register akan tertera pada sertifikat ujian.')
+                            ->placeholder('Contoh: REG-2025-001')
+                            ->maxLength(50)
+                            ->disabled(fn() => !$this->isEditing)
+                            ->required(fn() => $this->isEditing),
 
                         Select::make('current_belt_level')
                             ->label('Tingkatan Sabuk')
                             ->options(self::beltOptions())
-                            ->required()
-                            ->reactive(),
+                            ->disabled()
+                            ->required(),
 
-                        Forms\Components\Select::make('units_id')
+                        Select::make('units_id')
                             ->label('Unit Latihan')
                             ->options(Unit::pluck('name', 'id'))
                             ->searchable()
@@ -157,10 +157,10 @@ class Profile extends Page implements Forms\Contracts\HasForms
                             ->options(Kelas::pluck('name', 'id'))
                             ->searchable()
                             ->preload()
-                            ->disabled(fn() => !$this->isEditing),
+                            ->disabled()
+                            ->dehydrated(false),
                     ]),
 
-                // 🔹 Lain-lain
                 Forms\Components\Section::make('Lain-lain')
                     ->schema([
                         Forms\Components\TextInput::make('beladiri_yang_pernah_diikuti')
@@ -176,56 +176,32 @@ class Profile extends Page implements Forms\Contracts\HasForms
         $this->isEditing = true;
 
         Notification::make()
-            ->title('Mode Edit')
-            ->body('Sekarang kamu bisa mengubah data profil.')
+            ->title('Mode Edit Aktif')
+            ->body('Sekarang kamu dapat mengubah data profil.')
             ->info()
             ->send();
     }
 
     public function save(): void
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
+        $data = $this->form->getState();
 
-        // Simpan atau buat siswa
-        $siswa = Siswa::updateOrCreate(
-            ['user_id' => $user->id],
-            $this->form->getState()
-        );
+        $siswa = Siswa::updateOrCreate(['user_id' => $user->id], $data);
 
-        // Sinkron nama user dengan nama_lengkap siswa
         if (!empty($siswa->nama_lengkap)) {
-            $user->fill(['name' => $siswa->nama_lengkap])->save();
+            $user->name = $siswa->nama_lengkap;
+            $user->save();
         }
 
         $this->isEditing = false;
 
         Notification::make()
-            ->title('Berhasil')
+            ->title('Profil Berhasil Disimpan')
             ->success()
-            ->body('Profil berhasil diperbarui.')
+            ->body('Profil telah diperbarui. Nomor register digunakan untuk sertifikat ujian.')
             ->send();
     }
-
-    // 🔹 Tambah action tombol Edit & Simpan
-    protected function getHeaderActions(): array
-    {
-        return [
-            \Filament\Actions\Action::make('edit')
-                ->label('Edit Profil')
-                ->icon('heroicon-o-pencil')
-                ->action('edit')
-                ->hidden(fn() => $this->isEditing),
-
-            \Filament\Actions\Action::make('save')
-                ->label('Simpan Perubahan')
-                ->icon('heroicon-o-check')
-                ->color('success')
-                ->action('save')
-                ->hidden(fn() => !$this->isEditing),
-        ];
-    }
-
 
     private static function beltOptions(): array
     {

@@ -50,7 +50,7 @@ class SiswaDashboardStats extends BaseWidget
             ->first();
 
         return [
-            // 🧾 Ujian (Hijau #22c55e)
+            // 🧾 Ujian (Hijau #2bdb6bff #38ef7bff)
             Stat::make(
                 'Ujian yang Diikuti',
                 $eventUjian?->nama_ujian ?? 'Belum ada ujian'
@@ -58,13 +58,14 @@ class SiswaDashboardStats extends BaseWidget
                 ->description(
                     $eventUjian
                         ? "📅 " . Carbon::parse($eventUjian->tanggal_ujian)->format('d-m-Y') .
-                          " | 📍 " . $eventUjian->lokasi_ujian
+                        " | 📍 " . $eventUjian->lokasi_ujian
                         : 'Belum ada jadwal ujian'
                 )
                 ->color('success')
-               ->extraAttributes([ 'class' => '
-                bg-[#22c55e] 
-                dark:bg-[#15803d]
+                ->extraAttributes(['class' => '
+                bg-violet-400 
+                dark:bg-violet-600
+                 hover:bg-violet-500
                 text-gray-900 
                 dark:text-white 
                 shadow-lg 
@@ -72,8 +73,8 @@ class SiswaDashboardStats extends BaseWidget
                 rounded-xl 
                 transition 
                 duration-300 
-                hover:bg-[#16a34a] 
-                dark:hover:bg-[#166534]
+                
+                dark:hover:bg-[##15803d]
             ',]),
 
             // 🏆 Kejuaraan (Biru #38bdf8)
@@ -84,14 +85,14 @@ class SiswaDashboardStats extends BaseWidget
                 ->description(
                     $kejuaraan
                         ? "📅 " . Carbon::parse($kejuaraan->tanggal_mulai)->format('d-m-Y') .
-                          " s/d " . Carbon::parse($kejuaraan->tanggal_selesai)->format('d-m-Y')
+                        " s/d " . Carbon::parse($kejuaraan->tanggal_selesai)->format('d-m-Y')
                         : 'Belum ada jadwal kejuaraan'
                 )
                 ->descriptionIcon('heroicon-m-trophy')
                 ->color('primary')
                 ->extraAttributes(['class' => '
-                bg-[#38bdf8] 
-                dark:bg-[#0ea5e9]
+                bg-blue-500
+                dark:bg-blue-800
                 text-gray-900 
                 dark:text-white 
                 shadow-lg 
@@ -99,8 +100,7 @@ class SiswaDashboardStats extends BaseWidget
                 rounded-xl 
                 transition 
                 duration-300 
-                hover:bg-[#0ea5e9]/90 
-                dark:hover:bg-[#0284c7]
+               
             ',]),
 
             // 🥇 Medali (Lime #a3e635)
@@ -108,19 +108,19 @@ class SiswaDashboardStats extends BaseWidget
                 'Jumlah Medali',
                 new HtmlString("
                     <ul class='space-y-1 text-left'>
-                        <li>🥇 <span class='font-semibold text-white'>{$medali->emas}</span></li>
-                        <li>🥈 <span class='font-semibold text-white'>{$medali->perak}</span></li>
-                        <li>🥉 <span class='font-semibold text-white'>{$medali->perunggu}</span></li>
+                         <li>🥇 <span class='font-semibold text-white'>" . ($medali->emas ?? 0) . "</span></li>
+            <li>🥈 <span class='font-semibold text-white'>" . ($medali->perak ?? 0) . "</span></li>
+            <li>🥉 <span class='font-semibold text-white'>" . ($medali->perunggu ?? 0) . "</span></li>
                     </ul>
                 ")
             )
                 ->description('Total medali yang diperoleh')
                 ->descriptionIcon('heroicon-m-star')
-                ->color('warning')
+                // ->color('warning')
                 ->extraAttributes([
-                     'class' => '
-                bg-yellow-600 
-                dark:bg-yellow-300
+                    'class' => '
+                 bg-yellow-300
+                dark:bg-yellow-800
                 text-gray-900 
                 dark:text-white 
                 shadow-lg 
@@ -128,10 +128,11 @@ class SiswaDashboardStats extends BaseWidget
                 rounded-xl 
                 transition 
                 duration-300 
-                hover:bg-lime-500 
-                dark:hover:bg-lime-700
+              
+                
             
-            ',]),
+            ',
+                ]),
 
         ];
     }

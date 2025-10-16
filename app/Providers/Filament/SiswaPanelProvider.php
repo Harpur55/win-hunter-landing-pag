@@ -53,6 +53,7 @@ class SiswaPanelProvider extends PanelProvider
                 // SiswaDashboardStats::class,
             ])
 
+        
             ->navigationGroups([
                 NavigationGroup::make()
                     ->label('Ujian')
@@ -60,6 +61,7 @@ class SiswaPanelProvider extends PanelProvider
                         NavigationItem::make('Daftar Ujian')
                             ->icon('heroicon-o-clipboard-document-check')
                             ->url('/siswa/ujian/daftar'),
+
                         NavigationItem::make('History Ujian')
                             ->icon('heroicon-o-clock')
                             ->url('/siswa/ujian/history'),
@@ -71,11 +73,22 @@ class SiswaPanelProvider extends PanelProvider
                         NavigationItem::make('Daftar Kejuaraan')
                             ->icon('heroicon-o-trophy')
                             ->url('/siswa/kejuaraan/daftar'),
+
                         NavigationItem::make('History Kejuaraan')
                             ->icon('heroicon-o-archive-box')
                             ->url('/siswa/kejuaraan/history'),
                     ]),
+
+                NavigationGroup::make()
+                    ->label('Pengaturan')
+                    ->items([
+                        NavigationItem::make('Setting / Lupa Password')
+                            ->icon('heroicon-o-cog')
+                            ->url(url('/siswa/password/reset'), shouldOpenInNewTab: false),
+                    ]),
             ])
+
+
 
             // ✅ Biarkan Filament otomatis temukan widget dari folder
             ->discoverWidgets(

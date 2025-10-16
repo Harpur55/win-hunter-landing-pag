@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Crypt;
 class Siswa extends Model
 {
     protected $fillable = [
+        
         'no_register',
         'nis',
         'nama_lengkap',

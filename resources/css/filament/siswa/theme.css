@@ -2,34 +2,126 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Tema khusus untuk panel siswa */
+/* ======================================================
+   SACTI WIN HUNTER - PANEL SISWA
+   Tema hijau emerald + biru sekunder
+   ====================================================== */
+
 :root {
-  --color-primary: #10B981; /* hijau emerald */
-  --color-secondary: #3B82F6; /* biru */
+  --color-primary: #10B981;   /* Hijau emerald */
+  --color-primary-dark: #059669;
+  --color-secondary: #3B82F6; /* Biru */
+  --color-warning: #facc15;   /* Kuning */
+  --color-bg-dark: #0f172a;
 }
 
+/* ================================
+   BASE STYLE
+   ================================ */
 body {
-  @apply bg-gray-50 dark:bg-gray-900 text-neutral;
+  @apply bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200;
 }
 
+/* ================================
+   SIDEBAR
+   ================================ */
 .filament-sidebar {
   @apply bg-emerald-600 text-white;
 }
 
+.filament-sidebar .filament-sidebar-item {
+  @apply text-white hover:bg-emerald-700/60 transition;
+}
+
+.filament-sidebar .filament-sidebar-item-active {
+  @apply bg-emerald-700 font-semibold;
+}
+
+/* ================================
+   MAIN CONTENT AREA
+   ================================ */
 .filament-main {
-  @apply bg-base-100 dark:bg-gray-950;
+  @apply bg-white dark:bg-gray-950;
 }
 
+.filament-main-content {
+  @apply p-4 md:p-6;
+}
 
+/* ================================
+   HEADER & TITLES
+   ================================ */
+.filament-header-heading {
+  @apply text-emerald-500 font-bold uppercase tracking-wide;
+}
+
+/* ================================
+   BUTTONS
+   ================================ */
+.filament-button[data-color='primary'] {
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.filament-button[data-color='primary']:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.filament-button[data-color='secondary'] {
+  background-color: var(--color-secondary);
+  color: white;
+}
+
+/* ================================
+   INPUTS
+   ================================ */
+.filament-input {
+  @apply bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700 rounded-md text-gray-900 dark:text-gray-100;
+}
+
+.filament-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+/* ================================
+   CUSTOM STATS (DASHBOARD)
+   ================================ */
 .stat-ujian {
-    background-color: #22c55e !important;
-    color: white !important;
+  background-color: #22c55e !important; /* hijau */
+  color: white !important;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
 }
+
 .stat-kejuaraan {
-    background-color: #38bdf8 !important;
-    color: white !important;
+  background-color: #38bdf8 !important; /* biru muda */
+  color: white !important;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
 }
+
 .stat-medali {
-    background-color: #fcd34d !important;
-    color: white !important;
+  background-color: #fcd34d !important; /* kuning */
+  color: #1f2937 !important;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+/* ================================
+   SCROLLBAR (HIJAU HALUS)
+   ================================ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-primary-dark);
 }
