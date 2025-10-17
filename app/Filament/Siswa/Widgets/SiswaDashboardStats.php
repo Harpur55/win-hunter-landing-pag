@@ -92,7 +92,7 @@ class SiswaDashboardStats extends BaseWidget
                 ->color('primary')
                 ->extraAttributes(['class' => '
                 bg-blue-500
-                dark:bg-blue-800
+                dark:bg-blue-400
                 text-gray-900 
                 dark:text-white 
                 shadow-lg 

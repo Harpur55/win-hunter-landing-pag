@@ -32,16 +32,22 @@
                         </div>
 
                         {{-- Tombol Daftar --}}
-                        <div class="flex-shrink-0">
-                            <button wire:click="openForm({{ $event->id }})"
-                                class="w-full sm:w-auto px-6 py-2.5 bg-[#22c55e] hover:bg-[#16a34a] 
-                                       text-white font-semibold rounded-lg transition focus:ring-2 
-                                       focus:ring-offset-2 focus:ring-[#22c55e]">
-                                ✅ Daftar Sekarang
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                       <div class="flex-shrink-0">
+    @if (in_array($event->id, $this->sudahTerdaftar ?? []))
+        <button 
+            class="w-full sm:w-auto px-6 py-2.5 bg-gray-400 text-white font-semibold 
+                   rounded-lg cursor-not-allowed select-none">
+            🟢 Sudah Terdaftar
+        </button>
+    @else
+        <button wire:click="openForm({{ $event->id }})"
+            class="w-full sm:w-auto px-6 py-2.5 bg-[#22c55e] hover:bg-[#16a34a] 
+                   text-white font-semibold rounded-lg transition focus:ring-2 
+                   focus:ring-offset-2 focus:ring-[#22c55e]">
+            ✅ Daftar Sekarang
+        </button>
+    @endif
+</div>
             @empty
                 <div
                     class="w-full py-12 text-center text-gray-500 dark:text-gray-400 
@@ -69,41 +75,72 @@
                         {{-- === KOLOM KIRI === --}}
                         <div class="space-y-4">
                             {{-- Nama Lengkap --}}
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Nama Lengkap</label>
-                                <input type="text" wire:model="nama_lengkap"
-                                    class="w-full rounded-lg border-gray-300 dark:border-gray-700 
-                                           bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
-                            </div>
+                           <div>
+    <label class="block text-sm font-medium mb-1">Nama Lengkap</label>
+    <input type="text" wire:model="data.nama_lengkap"
+        class="w-full rounded-lg border-gray-300 dark:border-gray-700 
+               bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
+</div>
 
                             {{-- Tempat Lahir --}}
                             <div>
                                 <label class="block text-sm font-medium mb-1">Tempat Lahir</label>
-                                <input type="text" wire:model="tempat_lahir"
+                                <input type="text" wire:model="data.tempat_lahir"
                                     class="w-full rounded-lg border-gray-300 dark:border-gray-700 
-                                           bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
+                                           bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" readonly />
                             </div>
 
                             {{-- Tanggal Lahir --}}
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Tanggal Lahir</label>
-                                <input type="date" wire:model="tanggal_lahir"
-                                    class="w-full rounded-lg border-gray-300 dark:border-gray-700 
-                                           bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
-                            </div>
+                           <div>
+    <label class="block text-sm font-medium mb-1">Tanggal Lahir</label>
+    <input type="date" wire:model="data.tanggal_lahir"
+        class="w-full rounded-lg border-gray-300 dark:border-gray-700 
+               bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
+</div>
+<div>
+    <label class="block text-sm font-medium mb-1">Jenis Kelamin</label>
+    <select wire:model="data.jenis_kelamin"
+        class="w-full rounded-lg border-gray-300 dark:border-gray-700 
+               bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]">
+        <option value="">-- Pilih Jenis Kelamin --</option>
+        <option value="Laki-laki">Laki-laki</option>
+        <option value="Perempuan">Perempuan</option>
+    </select>
+</div>
 
-                            {{-- Sabuk Saat Ini --}}
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Sabuk Saat Ini</label>
-                                <input type="text" wire:model="current_belt_level" readonly
-                                    class="w-full rounded-lg border-gray-300 dark:border-gray-700 
-                                           bg-gray-100 dark:bg-gray-800 px-4 py-2.5 cursor-not-allowed" />
-                            </div>
+                            {{-- Sabuk --}}
+                      {{-- Sabuk --}}
+<div>
+    <label class="block text-sm font-medium mb-1">Sabuk Saat Ini</label>
+    <input type="text" wire:model="data.sabuk" readonly
+        class="w-full rounded-lg border-gray-300 dark:border-gray-700 
+               bg-gray-100 dark:bg-gray-800 px-4 py-2.5 cursor-not-allowed" />
 
+    {{-- Jika sabuk bukan putih, tampilkan input No Register --}}
+    @if (!empty($data['sabuk']) && strtolower($data['sabuk']) !== 'putih')
+        <div class="mt-3">
+            <label class="block text-sm font-medium mb-1">Nomor Registrasi</label>
+            <input type="text" wire:model="data.no_register"
+                placeholder="Masukkan nomor registrasi ujian..."
+                class="w-full rounded-lg border-gray-300 dark:border-gray-700 
+                       bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
+
+            {{-- Peringatan jika belum diisi --}}
+            @if (empty($data['no_register']))
+                <p class="mt-2 text-yellow-600 dark:text-yellow-400 text-sm font-medium">
+                    ⚠️ Nomor registrasi wajib diisi untuk sabuk di atas putih.
+                </p>
+                <p class="text-gray-500 dark:text-gray-400 text-xs">
+                    Petunjuk: Nomor registrasi dapat dilihat pada sertifikat ujian terakhir.
+                </p>
+            @endif
+        </div>
+    @endif
+</div>
                             {{-- Kategori Atlit --}}
                             <div>
                                 <label class="block text-sm font-medium mb-1">Kategori Atlit</label>
-                                <input type="text" wire:model="kategori_atlit" readonly
+                                <input type="text" wire:model="data.kategori_atlit" readonly
                                     class="w-full rounded-lg border-gray-300 dark:border-gray-700 
                                            bg-gray-100 dark:bg-gray-800 px-4 py-2.5 cursor-not-allowed" />
                             </div>
@@ -115,7 +152,7 @@
                             {{-- Kategori Pertandingan --}}
                             <div>
                                 <label class="block text-sm font-medium mb-1">Kategori Pertandingan</label>
-                                <select wire:model="kategori_pertandingan"
+                                <select wire:model="data.kategori_pertandingan"
                                     class="w-full rounded-md border border-gray-300 dark:border-gray-700
                                            bg-gray-50 dark:bg-gray-800 px-3 py-1.5 text-sm text-gray-800 dark:text-gray-100
                                            focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e]
@@ -128,38 +165,37 @@
                             </div>
 
                             {{-- Jika Kyorugi --}}
-                            @if ($kategori_pertandingan === 'kyorugi')
+                            @if ($data['kategori_pertandingan'] === 'kyorugi')
                                 <div class="transition-all duration-300">
                                     <label class="block text-sm font-medium mb-1">Berat Badan (kg)</label>
-                                    <input type="number" wire:model="berat_badan"
+                                    <input type="number" wire:model="data.berat_badan"
                                         class="w-full rounded-lg border-gray-300 dark:border-gray-700 
                                                bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
                                 </div>
                                 <div class="transition-all duration-300">
                                     <label class="block text-sm font-medium mb-1">Tinggi Badan (cm)</label>
-                                    <input type="number" wire:model="tinggi_badan"
+                                    <input type="number" wire:model="data.tinggi_badan"
                                         class="w-full rounded-lg border-gray-300 dark:border-gray-700 
                                                bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
                                 </div>
                             @endif
 
                             {{-- Jika Poomsae --}}
-                            @if ($kategori_pertandingan === 'poomsae')
+                            @if ($data['kategori_pertandingan'] === 'poomsae')
                                 <div class="transition-all duration-300">
                                     <label class="block text-sm font-medium mb-1">Tageuk (boleh kosong)</label>
-                                    <input type="text" wire:model="tageuk"
+                                    <input type="text" wire:model="data.tageuk"
                                         class="w-full rounded-lg border-gray-300 dark:border-gray-700 
                                                bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
                                 </div>
                                 <div class="transition-all duration-300">
                                     <label class="block text-sm font-medium mb-1">Tingkat Kategori</label>
-                                    <select wire:model="tingkat_kategori"
+                                    <select wire:model="data.tingkat_kategori"
                                         class="w-full rounded-lg border-gray-300 dark:border-gray-700 
                                                bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]">
                                         <option value="">-- Pilih Tingkat --</option>
-                                        @foreach ($tingkatKategoriOptions as $key => $label)
-                                            <option value="{{ $key }}">{{ $label }}</option>
-                                        @endforeach
+                                        <option value="Beginer">Beginer</option>
+                                        <option value="Advance">Advance</option>
                                     </select>
                                 </div>
                             @endif
