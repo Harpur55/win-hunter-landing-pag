@@ -53,7 +53,7 @@
                                 @endif
                             @else
                                 <button wire:click="confirmDaftar({{ $event->id }})"
-                                    class="px-5 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg focus:ring-2 focus:ring-primary-500 transition w-full sm:w-auto">
+                                    class="px-5 py-2 text-sm font-semibold text-black bg-green-400 hover:bg-primary-700 rounded-lg focus:ring-2 focus:ring-primary-500 transition w-full sm:w-auto">
                                     Daftar Sekarang
                                 </button>
                             @endif

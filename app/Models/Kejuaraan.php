@@ -9,7 +9,7 @@ class Kejuaraan extends Model
     //
     protected $table = 'kejuaraans';
     protected $fillable = [
-       'nama_kejuaraan','tanggal_mulai','tanggal_selesai','lokasi'
+       'nama_kejuaraan','tanggal_mulai','tanggal_selesai','lokasi','is_registration_closed'
     ];
 
      public function siswa()

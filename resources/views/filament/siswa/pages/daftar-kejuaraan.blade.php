@@ -11,35 +11,50 @@
             </p>
         </div>
 
-        {{-- LIST KEJUARAAN --}}
-        <div class="flex flex-col gap-4 mt-4">
-            @forelse ($events as $event)
-                <div
-                    class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 
-                           rounded-xl shadow-sm hover:shadow-md transition duration-300 overflow-hidden">
+       
+       {{-- LIST KEJUARAAN --}}
+<div class="space-y-4 mt-4">
+    @forelse ($events as $event)
+        <div
+            class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 
+                   rounded-xl shadow-sm hover:shadow-md transition duration-300 overflow-hidden">
 
-                    <div class="p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div class="flex-1">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">
-                                {{ $event->nama_kejuaraan }}
-                            </h3>
-                            <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                <p>📅 {{ \Carbon\Carbon::parse($event->tanggal_mulai)->translatedFormat('d F Y') }}
-                                    – {{ \Carbon\Carbon::parse($event->tanggal_selesai)->translatedFormat('d F Y') }}
-                                </p>
-                                <p>📍 {{ $event->lokasi }}</p>
-                            </div>
-                        </div>
+            <div class="p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                {{-- Info Kejuaraan --}}
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                        {{ strtoupper($event->nama_kejuaraan) }}
+                    </h3>
+                    <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                        <p>📅 {{ \Carbon\Carbon::parse($event->tanggal_mulai)->translatedFormat('d F Y') }}
+                            – {{ \Carbon\Carbon::parse($event->tanggal_selesai)->translatedFormat('d F Y') }}
+                        </p>
+                        <p>📍 {{ $event->lokasi }}</p>
+                    </div>
+                </div>
 
-                        {{-- Tombol Daftar --}}
-                       <div class="flex-shrink-0">
+                {{-- Tombol --}}
+              
+{{-- Tombol --}}
+<div class="flex-shrink-0 w-full sm:w-auto">
     @if (in_array($event->id, $this->sudahTerdaftar ?? []))
+        {{-- 🟢 Jika siswa sudah terdaftar --}}
         <button 
             class="w-full sm:w-auto px-6 py-2.5 bg-gray-400 text-white font-semibold 
                    rounded-lg cursor-not-allowed select-none">
             🟢 Sudah Terdaftar
         </button>
+
+    @elseif ($event->is_registration_closed)
+        {{-- 🔒 Jika pendaftaran ditutup oleh admin --}}
+        <button 
+            class="w-full sm:w-auto px-6 py-2.5 bg-gray-500 text-white font-semibold 
+                   rounded-lg cursor-not-allowed select-none">
+            ⛔ Pendaftaran Ditutup oleh Admin
+        </button>
+
     @else
+        {{-- ✅ Jika masih terbuka dan belum daftar --}}
         <button wire:click="openForm({{ $event->id }})"
             class="w-full sm:w-auto px-6 py-2.5 bg-[#22c55e] hover:bg-[#16a34a] 
                    text-white font-semibold rounded-lg transition focus:ring-2 
@@ -48,14 +63,19 @@
         </button>
     @endif
 </div>
-            @empty
-                <div
-                    class="w-full py-12 text-center text-gray-500 dark:text-gray-400 
-                           border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
-                    ⚠️ Belum ada kejuaraan tersedia.
-                </div>
-            @endforelse
+
+
+            </div>
         </div>
+    @empty
+        <div
+            class="w-full py-12 text-center text-gray-500 dark:text-gray-400 
+                   border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
+            ⚠️ Belum ada kejuaraan tersedia.
+        </div>
+    @endforelse
+</div>
+
 
         {{-- MODAL PENDAFTARAN --}}
         @if ($isOpen)
@@ -91,12 +111,23 @@
                             </div>
 
                             {{-- Tanggal Lahir --}}
-                           <div>
-    <label class="block text-sm font-medium mb-1">Tanggal Lahir</label>
+                          <div>
+    <label class="block text-sm font-medium mb-1">
+        Tanggal Lahir <span class="text-red-600">*</span>
+    </label>
     <input type="date" wire:model="data.tanggal_lahir"
         class="w-full rounded-lg border-gray-300 dark:border-gray-700 
-               bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
+               bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]
+               @error('data.tanggal_lahir') border-red-500 dark:border-red-500 @enderror" />
+
+    {{-- Pesan error wajib isi --}}
+    @error('data.tanggal_lahir')
+        <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+            ⚠️ {{ $message }}
+        </p>
+    @enderror
 </div>
+
 <div>
     <label class="block text-sm font-medium mb-1">Jenis Kelamin</label>
     <select wire:model="data.jenis_kelamin"
@@ -108,7 +139,7 @@
     </select>
 </div>
 
-                            {{-- Sabuk --}}
+                           
                       {{-- Sabuk --}}
 <div>
     <label class="block text-sm font-medium mb-1">Sabuk Saat Ini</label>
@@ -118,23 +149,31 @@
 
     {{-- Jika sabuk bukan putih, tampilkan input No Register --}}
     @if (!empty($data['sabuk']) && strtolower($data['sabuk']) !== 'putih')
-        <div class="mt-3">
-            <label class="block text-sm font-medium mb-1">Nomor Registrasi</label>
-            <input type="text" wire:model="data.no_register"
-                placeholder="Masukkan nomor registrasi ujian..."
-                class="w-full rounded-lg border-gray-300 dark:border-gray-700 
-                       bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
+      <div class="mt-3">
+    <label class="block text-sm font-medium mb-1">Nomor Registrasi</label>
+    <input type="text" wire:model="data.no_register"
+        placeholder="Masukkan nomor registrasi ujian..."
+        class="w-full rounded-lg border-gray-300 dark:border-gray-700 
+               bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
 
-            {{-- Peringatan jika belum diisi --}}
-            @if (empty($data['no_register']))
-                <p class="mt-2 text-yellow-600 dark:text-yellow-400 text-sm font-medium">
-                    ⚠️ Nomor registrasi wajib diisi untuk sabuk di atas putih.
+    {{-- Peringatan & Petunjuk --}}
+    @if (empty($data['no_register']))
+        <div class="mt-2 space-y-1">
+            <p class="text-yellow-600 dark:text-yellow-400 text-sm font-medium flex items-center gap-1">
+                ⚠️ Nomor registrasi wajib diisi untuk sabuk di atas putih.
+            </p>
+            <div class="flex items-start gap-2 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800 rounded-md p-2.5 text-xs text-gray-700 dark:text-gray-300">
+                <span class="text-yellow-600 dark:text-yellow-400 text-lg">📜</span>
+                <p>
+                    Petunjuk: Nomor registrasi dapat ditemukan pada 
+                    <span class="font-semibold text-gray-900 dark:text-white">sertifikat ujian terakhir</span> 
+                    Anda (biasanya di bagian atas sertifikat).
                 </p>
-                <p class="text-gray-500 dark:text-gray-400 text-xs">
-                    Petunjuk: Nomor registrasi dapat dilihat pada sertifikat ujian terakhir.
-                </p>
-            @endif
+            </div>
         </div>
+    @endif
+</div>
+
     @endif
 </div>
                             {{-- Kategori Atlit --}}

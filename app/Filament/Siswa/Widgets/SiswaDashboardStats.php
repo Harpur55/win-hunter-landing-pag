@@ -63,7 +63,7 @@ class SiswaDashboardStats extends BaseWidget
                 )
                 ->color('success')
                 ->extraAttributes(['class' => '
-                bg-violet-400 
+                bg-violet-300 
                 dark:bg-violet-600
                  hover:bg-violet-500
                 text-gray-900 
@@ -91,7 +91,7 @@ class SiswaDashboardStats extends BaseWidget
                 ->descriptionIcon('heroicon-m-trophy')
                 ->color('primary')
                 ->extraAttributes(['class' => '
-                bg-blue-500
+                bg-blue-300
                 dark:bg-blue-400
                 text-gray-900 
                 dark:text-white 
@@ -121,7 +121,7 @@ class SiswaDashboardStats extends BaseWidget
                     'class' => '
                  bg-yellow-300
                 dark:bg-yellow-800
-                text-gray-900 
+                text-black
                 dark:text-white 
                 shadow-lg 
                 border-none 

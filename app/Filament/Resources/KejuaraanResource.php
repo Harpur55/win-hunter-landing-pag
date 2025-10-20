@@ -10,6 +10,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -41,8 +43,14 @@ class KejuaraanResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nama_kejuaraan')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('nama_kejuaraan')->label('Nama Kejuaraan')->searchable(),
+            Tables\Columns\IconColumn::make('is_registration_closed')
+                ->label('Status Pendaftaran')
+                ->boolean()
+                ->trueIcon('heroicon-o-lock-closed')
+                ->falseIcon('heroicon-o-lock-open')
+                ->trueColor('danger')
+                ->falseColor('success'),
                 Tables\Columns\TextColumn::make('tanggal_mulai')
                     ->date()
                     ->sortable(),
@@ -64,6 +72,22 @@ class KejuaraanResource extends Resource
                 //
             ])
             ->actions([
+                  Action::make('toggle_registration')
+                ->label(fn ($record) => $record->is_registration_closed ? 'Buka Pendaftaran' : 'Tutup Pendaftaran')
+                ->color(fn ($record) => $record->is_registration_closed ? 'success' : 'danger')
+                ->icon(fn ($record) => $record->is_registration_closed ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
+                ->requiresConfirmation()
+                ->action(function ($record) {
+                    $record->is_registration_closed = ! $record->is_registration_closed;
+                    $record->save();
+
+                    Notification::make()
+                        ->title($record->is_registration_closed 
+                            ? '⛔ Pendaftaran telah ditutup.' 
+                            : '✅ Pendaftaran telah dibuka kembali.')
+                        ->success()
+                        ->send();
+                }),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

@@ -9,6 +9,7 @@ use App\Models\Kejuaraan;
 use App\Models\KejuaraanSiswa;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 
 class DaftarKejuaraan extends Page
 {
@@ -17,10 +18,11 @@ class DaftarKejuaraan extends Page
     protected static ?string $navigationLabel = 'Daftar Kejuaraan';
     protected static string $view = 'filament.siswa.pages.daftar-kejuaraan';
 
-    public ?array $data = [];
+    /** @var array<string, mixed> */
+    public Collection $events;
+    public array $data = [];
     public bool $isOpen = false;
     public ?int $selectedEventId = null;
-    public $events = [];
     public array $sudahTerdaftar = [];
 
     public function mount(): void
@@ -28,6 +30,15 @@ class DaftarKejuaraan extends Page
         $this->events = Kejuaraan::orderBy('tanggal_mulai', 'asc')->get();
         $this->loadSiswaData();
         $this->loadTerdaftar();
+
+        // 🔔 Kirim notifikasi ke siswa jika semua pendaftaran ditutup
+        if ($this->events->every(fn($event) => $event->is_registration_closed)) {
+            Notification::make()
+                ->title('Pendaftaran Ditutup ⛔')
+                ->body('Semua kejuaraan saat ini sedang ditutup oleh panitia. Silakan cek kembali nanti.')
+                ->warning()
+                ->send();
+        }
     }
 
     private function loadTerdaftar(): void
@@ -50,8 +61,8 @@ class DaftarKejuaraan extends Page
                 'tempat_lahir' => $siswa->tempat_lahir,
                 'tanggal_lahir' => $siswa->tanggal_lahir,
                 'jenis_kelamin' => $siswa->jenis_kelamin,
-                'sabuk' => $siswa->current_belt_level, // pastikan nama kolom sesuai
-                'no_register' => $siswa->no_register ?? null, // tambahkan kolom ini
+                'sabuk' => $siswa->current_belt_level,
+                'no_register' => $siswa->no_register ?? null,
                 'kategori_atlit' => $this->hitungKategoriUmur($siswa->tanggal_lahir),
                 'kategori_pertandingan' => '',
                 'tageuk' => '',
@@ -64,6 +75,26 @@ class DaftarKejuaraan extends Page
 
     public function openForm(int $id): void
     {
+        $event = Kejuaraan::find($id);
+
+        if (!$event) {
+            Notification::make()
+                ->title('Kejuaraan tidak ditemukan.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // 🔒 Cegah form terbuka jika pendaftaran ditutup
+        if ($event->is_registration_closed) {
+            Notification::make()
+                ->title('Pendaftaran Ditutup ⛔')
+                ->body('Pendaftaran untuk kejuaraan ini telah ditutup oleh panitia.')
+                ->danger()
+                ->send();
+            return;
+        }
+
         $this->selectedEventId = $id;
         $this->isOpen = true;
         $this->loadSiswaData();
@@ -81,6 +112,39 @@ class DaftarKejuaraan extends Page
 
         if (!$siswa || !$this->selectedEventId) {
             Notification::make()->title('Terjadi kesalahan.')->danger()->send();
+            return;
+        }
+
+        $event = Kejuaraan::find($this->selectedEventId);
+        if (!$event) {
+            Notification::make()
+                ->title('Kejuaraan tidak ditemukan.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        /**
+         * 🔒 Validasi pendaftaran ditutup
+         */
+        if ($event->is_registration_closed) {
+            Notification::make()
+                ->title('Pendaftaran Ditutup ⛔')
+                ->body('Pendaftaran untuk kejuaraan ini telah ditutup oleh panitia.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        /**
+         * 🕓 Validasi batas waktu
+         */
+        if (Carbon::now()->greaterThan(Carbon::parse($event->tanggal_selesai))) {
+            Notification::make()
+                ->title('Pendaftaran sudah ditutup ⛔')
+                ->body('Batas waktu pendaftaran telah berakhir pada ' . Carbon::parse($event->tanggal_selesai)->format('d M Y') . '.')
+                ->danger()
+                ->send();
             return;
         }
 
@@ -148,6 +212,12 @@ class DaftarKejuaraan extends Page
             return;
         }
 
+        $jenisKelamin = match ($this->data['jenis_kelamin']) {
+            'Laki-laki' => 'L',
+            'Perempuan' => 'P',
+            default => null,
+        };
+
         /**
          * ✅ Simpan data ke tabel kejuaraan_siswa
          */
@@ -157,7 +227,7 @@ class DaftarKejuaraan extends Page
             'nama_lengkap' => $this->data['nama_lengkap'],
             'tempat_lahir' => $this->data['tempat_lahir'],
             'tanggal_lahir' => $this->data['tanggal_lahir'],
-            'jenis_kelamin' => $this->data['jenis_kelamin'],
+            'jenis_kelamin' => $jenisKelamin,
             'sabuk' => $this->data['sabuk'],
             'kategori_pertandingan' => $this->data['kategori_pertandingan'],
             'tageuk' => $this->data['tageuk'] ?: null,
@@ -187,5 +257,26 @@ class DaftarKejuaraan extends Page
             $umur <= 17 => 'junior',
             default => 'senior',
         };
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $user = Auth::user();
+        if (!$user || !$user->siswa) return null;
+
+        $siswa = $user->siswa;
+
+        $jumlahBaru = Kejuaraan::whereNotIn('id', function ($query) use ($siswa) {
+            $query->select('kejuaraan_id')
+                ->from('kejuaraan_siswa')
+                ->where('siswa_id', $siswa->id);
+        })->count();
+
+        return $jumlahBaru > 0 ? (string) $jumlahBaru : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
     }
 }
