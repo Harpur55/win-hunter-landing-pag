@@ -75,6 +75,35 @@ class SiswaRelationManager extends RelationManager
                     }),
             ])
             ->headerActions([
+
+                //buatkan tombol untuk tutuppendaftaran
+              Action::make('toggle_registration')
+        ->label(function () {
+            $event = $this->getOwnerRecord(); // Ambil kejuaraan induk
+            return $event->is_registration_closed ? 'Buka Pendaftaran' : 'Tutup Pendaftaran';
+        })
+        ->color(function () {
+            $event = $this->getOwnerRecord();
+            return $event->is_registration_closed ? 'success' : 'danger';
+        })
+        ->icon(function () {
+            $event = $this->getOwnerRecord();
+            return $event->is_registration_closed ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed';
+        })
+        ->requiresConfirmation()
+        ->action(function () {
+            $event = $this->getOwnerRecord();
+            $event->is_registration_closed = ! $event->is_registration_closed;
+            $event->save();
+
+            Notification::make()
+                ->title($event->is_registration_closed 
+                    ? '⛔ Pendaftaran telah ditutup.' 
+                    : '✅ Pendaftaran telah dibuka kembali.')
+                ->success()
+                ->send();
+        }),
+
     // Tambah Peserta Manual
     Action::make('tambah_siswa_manual')
         ->label('Tambah Peserta')

@@ -25,6 +25,8 @@
 
                 <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition duration-300">
                     <div class="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+                        {{-- INFO EVENT --}}
                         <div class="w-full sm:w-auto">
                             <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-3">
                                 {{ $event->nama_ujian }}
@@ -32,10 +34,21 @@
                             <div class="mt-1 sm:mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
                                 <p>📅 {{ \Carbon\Carbon::parse($event->tanggal_ujian)->translatedFormat('d F Y') }}</p>
                                 <p>📍 {{ $event->lokasi_ujian ?? '-' }}</p>
+
+                                {{-- STATUS PENDAFTARAN --}}
+                                @if ($event->is_registration_closed)
+                                    <span class="inline-flex items-center mt-1 px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-full">
+                                        🔴 Pendaftaran Ditutup
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center mt-1 px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-full">
+                                        🟢 Pendaftaran Dibuka
+                                    </span>
+                                @endif
                             </div>
                         </div>
 
-                        {{-- Tombol Aksi --}}
+                        {{-- TOMBOL AKSI --}}
                         <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                             @if ($isRegistered)
                                 @if ($isLulus)
@@ -52,10 +65,17 @@
                                     </button>
                                 @endif
                             @else
-                                <button wire:click="confirmDaftar({{ $event->id }})"
-                                    class="px-5 py-2 text-sm font-semibold text-black bg-green-400 hover:bg-primary-700 rounded-lg focus:ring-2 focus:ring-primary-500 transition w-full sm:w-auto">
-                                    Daftar Sekarang
-                                </button>
+                                @if ($event->is_registration_closed)
+                                    <button disabled
+                                        class="px-5 py-2 text-sm font-semibold text-gray-400 bg-gray-200 dark:bg-gray-700 dark:text-gray-500 rounded-lg cursor-not-allowed w-full sm:w-auto">
+                                        ⛔ Pendaftaran Ditutup
+                                    </button>
+                                @else
+                                    <button wire:click="confirmDaftar({{ $event->id }})"
+                                        class="px-5 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg focus:ring-2 focus:ring-green-500 transition w-full sm:w-auto">
+                                        ✅ Daftar Sekarang
+                                    </button>
+                                @endif
                             @endif
                         </div>
                     </div>
@@ -82,7 +102,6 @@
                     {{-- FORM --}}
                     <div class="flex-1 overflow-y-auto px-5 sm:px-10 py-6 bg-gray-50 dark:bg-gray-900 text-white">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
                             {{-- Nama Siswa --}}
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Lengkap</label>

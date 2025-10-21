@@ -7,6 +7,7 @@ use App\Models\EventUjian;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
 use Livewire\Attributes\Validate;
+use Carbon\Carbon;
 
 class DaftarUjian extends Page
 {
@@ -27,7 +28,7 @@ class DaftarUjian extends Page
     public $unit_nama;
     public $kelas_nama;
     public $current_belt_level;
-    
+
     #[Validate('required', message: 'Sabuk berikutnya wajib dipilih.')]
     public $next_belt_level;
 
@@ -41,6 +42,17 @@ class DaftarUjian extends Page
     public function confirmDaftar($eventId)
     {
         $this->selectedEvent = EventUjian::findOrFail($eventId);
+
+        // 🔒 Cek apakah pendaftaran ditutup
+        if ($this->selectedEvent->is_registration_closed) {
+            Notification::make()
+                ->title('Pendaftaran Ditutup ⛔')
+                ->body('Pendaftaran untuk kejuaraan ini telah ditutup oleh panitia.')
+                ->danger()
+                ->send();
+            return;
+        }
+
         $siswa = Auth::user()->siswa;
 
         $this->nama_lengkap = $siswa->nama_lengkap;
@@ -66,11 +78,12 @@ class DaftarUjian extends Page
 
     public function daftarUjian()
     {
-        $this->validate(); // ✅ validasi sabuk berikutnya
+        $this->validate();
 
         $siswa = Auth::user()->siswa;
+        $event = $this->selectedEvent;
 
-        if (!$siswa || !$this->selectedEvent) {
+        if (!$siswa || !$event) {
             Notification::make()
                 ->title('Gagal')
                 ->danger()
@@ -79,8 +92,28 @@ class DaftarUjian extends Page
             return;
         }
 
-        // Cegah duplikasi
-        if ($this->selectedEvent->siswa()->where('siswa_id', $siswa->id)->exists()) {
+        // 🚫 Cek status pendaftaran
+        if ($event->is_registration_closed) {
+            Notification::make()
+                ->title('Pendaftaran Ditutup ⛔')
+                ->body('Pendaftaran untuk kejuaraan ini telah ditutup oleh panitia.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // 🕓 Cek tanggal selesai jika ada
+        if (isset($event->tanggal_selesai) && Carbon::now()->greaterThan(Carbon::parse($event->tanggal_selesai))) {
+            Notification::make()
+                ->title('Pendaftaran sudah ditutup ⛔')
+                ->body('Batas waktu pendaftaran telah berakhir pada ' . Carbon::parse($event->tanggal_selesai)->format('d M Y') . '.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // 🔁 Cegah duplikasi
+        if ($event->siswa()->where('siswa_id', $siswa->id)->exists()) {
             Notification::make()
                 ->title('Sudah Terdaftar')
                 ->warning()
@@ -89,8 +122,8 @@ class DaftarUjian extends Page
             return;
         }
 
-        // Simpan data pivot
-        $this->selectedEvent->siswa()->attach($siswa->id, [
+        // ✅ Simpan data pendaftaran
+        $event->siswa()->attach($siswa->id, [
             'current_belt_level' => $this->current_belt_level,
             'next_belt_level'    => $this->next_belt_level,
             'keterangan'         => 'on progres',
@@ -105,7 +138,6 @@ class DaftarUjian extends Page
             ->send();
     }
 
-    /** 🔥 Fungsi untuk batal daftar dan hapus pivot */
     public function batalDaftar($eventId)
     {
         $siswa = Auth::user()->siswa;
@@ -128,25 +160,23 @@ class DaftarUjian extends Page
             ->body('Pendaftaran ujian kamu telah dibatalkan.')
             ->send();
 
-        // Refresh daftar event
         $this->mount();
     }
 
-    /** ✅ Dropdown Sabuk Berikutnya */
     private static function beltOptions(): array
     {
         return [
-            'putih'              => 'Putih',
-            'kuning'             => 'Kuning',
+            'putih' => 'Putih',
+            'kuning' => 'Kuning',
             'kuning strip hijau' => 'Kuning Strip Hijau',
-            'hijau'              => 'Hijau',
-            'hijau strip biru'   => 'Hijau Strip Biru',
-            'biru'               => 'Biru',
-            'biru strip merah'   => 'Biru Strip Merah',
-            'merah'              => 'Merah',
-            'merah strip hitam 1'=> 'Merah Strip Hitam 1',
-            'merah strip hitam 2'=> 'Merah Strip Hitam 2',
-            'hitam'              => 'Hitam',
+            'hijau' => 'Hijau',
+            'hijau strip biru' => 'Hijau Strip Biru',
+            'biru' => 'Biru',
+            'biru strip merah' => 'Biru Strip Merah',
+            'merah' => 'Merah',
+            'merah strip hitam 1' => 'Merah Strip Hitam 1',
+            'merah strip hitam 2' => 'Merah Strip Hitam 2',
+            'hitam' => 'Hitam',
         ];
     }
 

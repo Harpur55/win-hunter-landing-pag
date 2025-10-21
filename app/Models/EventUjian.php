@@ -10,6 +10,7 @@ class EventUjian extends Model
     protected $fillable = [
         'nama_ujian',
         'tanggal_ujian',
+        'is_regitration_closed',
         'lokasi_ujian',
     ];
    

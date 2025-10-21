@@ -1,5 +1,4 @@
 <?php
-namespace App\Imports; // <--- PASTIKAN INI
 
 namespace App\Filament\Resources;
 
@@ -16,8 +15,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\Action;
-
-
+use Filament\Notifications\Notification;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\EventUjianExport;
 
@@ -26,7 +24,7 @@ class EventUjianResource extends Resource
     protected static ?string $model = EventUjian::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
-    protected static ?string $navigationGroup = 'Ujian Kenaikan Tingkat'; // Untuk grup menu
+    protected static ?string $navigationGroup = 'Ujian Kenaikan Tingkat';
     protected static ?string $navigationLabel = 'Event Ujian';
 
     public static function form(Form $form): Form
@@ -37,9 +35,11 @@ class EventUjianResource extends Resource
                     ->label('Nama Event Ujian')
                     ->required()
                     ->maxLength(255),
+
                 DatePicker::make('tanggal_ujian')
                     ->label('Tanggal Ujian')
                     ->required(),
+
                 TextInput::make('lokasi_ujian')
                     ->label('Lokasi Ujian')
                     ->maxLength(255)
@@ -55,43 +55,70 @@ class EventUjianResource extends Resource
                     ->label('Nama Event')
                     ->searchable()
                     ->sortable(),
+
                 TextColumn::make('tanggal_ujian')
                     ->label('Tanggal Ujian')
                     ->date()
                     ->sortable(),
-            TextColumn::make('lokasi_ujian')
-                ->label('Lokasi'),
-         ])
+
+
+                TextColumn::make('lokasi_ujian')
+                    ->label('Lokasi'),
+                Tables\Columns\TextColumn::make('is_registration_closed')
+                    ->label('Status Pendaftaran')
+                    ->formatStateUsing(function (bool $state) {
+                        return $state
+                            ? '🔒 Tertutup'
+                            : '🔓 Terbuka';
+                    })
+                    ->badge()
+                    ->color(fn(bool $state) => $state ? 'danger' : 'success'),
+
+            ])
             ->filters([
-                // Filter event berdasarkan tanggal atau lokasi jika perlu
+                //
             ])
             ->actions([
-                // Tables\Actions\ViewAction::make(), // Untuk melihat detail event dan peserta
-                // Tables\Actions\EditAction::make(),
-                // Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+
+                // ✅ Tombol Toggle Pendaftaran di setiap baris
+                // Action::make('toggle_registration')
+                //     ->label(fn(EventUjian $record) => $record->is_registration_closed
+                //         ? 'Buka Pendaftaran'
+                //         : 'Tutup Pendaftaran')
+                //     ->icon(fn(EventUjian $record) => $record->is_registration_closed
+                //         ? 'heroicon-o-check-circle'
+                //         : 'heroicon-o-x-circle')
+                //     ->color(fn(EventUjian $record) => $record->is_registration_closed
+                //         ? 'success'
+                //         : 'danger')
+                //     ->requiresConfirmation()
+                //     ->action(function (EventUjian $record) {
+                //         $newStatus = !$record->is_registration_closed;
+
+                //         $record->update([
+                //             'is_registration_closed' => $newStatus,
+                //         ]);
+
+                //         Notification::make()
+                //             ->title($newStatus ? 'Pendaftaran Ditutup' : 'Pendaftaran Dibuka')
+                //             ->body('Pendaftaran untuk ' . $record->nama_ujian . ' telah ' . ($newStatus ? 'ditutup.' : 'dibuka kembali.'))
+                //             ->success()
+                //             ->send();
+                //     }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ])
-              ->headerActions([
-            
-
-            // Action::make('export_siswa')
-            //     ->label('Ekspor ke Excel')
-            //     ->color('success') // Warna hijau
-            //     ->icon('heroicon-o-document-arrow-up') 
-            //     ->action(fn () => Excel::download(new SiswaExport, 'data_siswa_' . date('Ymd_His') . '.xlsx')),
-              ]);
+            ]);
     }
-    
 
     public static function getRelations(): array
     {
         return [
-            // Daftarkan Relation Manager untuk Siswa
-             RelationManagers\SiswaRelationManager::class,
+            RelationManagers\SiswaRelationManager::class,
         ];
     }
 

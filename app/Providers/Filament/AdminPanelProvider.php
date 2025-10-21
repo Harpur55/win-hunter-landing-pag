@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('admin')
+            ->path('cms.dashboard')
              ->login(CustomLogin::class)
            
             ->registration(\Filament\Pages\Auth\Register::class)
