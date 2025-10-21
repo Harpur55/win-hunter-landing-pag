@@ -1,0 +1,41 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@config 'tailwind.config.js';
+
+body {
+    @apply bg-gradient-to-b from-[#faf8f7] via-[#f7f4f2] to-[#efe9e8] text-gray-800;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        @apply bg-gradient-to-b from-[#121214] via-[#1c1c1e] to-[#261b23] text-gray-200;
+    }
+}
+.fi-sidebar {
+    @apply bg-gradient-to-b from-[#1b1b1f] via-[#1f1f25] to-[#2a1f28]
+           text-gray-200 border-r border-amber-900/20 shadow-inner;
+}
+
+.fi-sidebar .fi-sidebar-item {
+    @apply hover:bg-amber-600/10 hover:text-amber-300 transition-colors duration-300 rounded-lg;
+}
+
+.fi-sidebar .fi-sidebar-item-active {
+    @apply bg-amber-500/20 text-amber-300 font-semibold shadow-md;
+}
+
+.fi-sidebar .fi-sidebar-group-label {
+    @apply text-gray-400 uppercase tracking-wide text-xs mt-4 mb-1;
+}
+
+.fi-sidebar .fi-sidebar-item-icon {
+    @apply text-amber-400;
+}
+
+.fi-sidebar .fi-sidebar-item:hover .fi-sidebar-item-icon {
+    @apply text-amber-300;
+}
+.topbar {
+    @apply bg-gradient-to-b from-[#1b1b1f] via-[#1f1f25] to-[#2a1f28]
+           border-b border-amber-900/20 shadow-inner;
+}

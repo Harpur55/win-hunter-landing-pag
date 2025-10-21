@@ -29,11 +29,13 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('cms.dashboard')
+            ->path('wh.dashboard')
              ->login(CustomLogin::class)
            
             ->registration(\Filament\Pages\Auth\Register::class)
             ->sidebarCollapsibleOnDesktop()
+            
+
            
 
 
@@ -48,6 +50,8 @@ class AdminPanelProvider extends PanelProvider
             ])
 
             // Resources, Pages, Widgets
+                ->viteTheme('resources/css/filament/admin/theme.css')
+
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([

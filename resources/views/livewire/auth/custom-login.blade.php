@@ -27,15 +27,7 @@
             </x-filament-panels::form>
 
             {{-- Tambahan bagian register --}}
-            <div class="mt-6 text-center space-y-2">
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Belum punya akun?
-                </p>
-                <a href="{{ route('filament.admin.auth.register') }}"
-                   class="block w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition text-center font-medium">
-                    Daftar Sekarang
-                </a>
-            </div>
+            
         </div>
     </div>
 </x-filament-panels::page.simple>
