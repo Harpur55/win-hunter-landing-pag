@@ -120,12 +120,12 @@ class DashboardStats extends BaseWidget
                  🥇 Medali : 🥇 {$gold} 🥈 {$silver} 🥉 {$bronze}
                 "))
                 ->color('info')
-                ->extraAttributes(['class' => 'whitespace-pre-line']),
+                ->extraAttributes(['class' => '']),
 
             Stat::make('Best Atlet', strtoupper($bestAtletName))
                 ->description($bestAtletDescription)
                 ->color('primary')
-                ->extraAttributes(['class' => 'whitespace-pre-line'])
+                ->extraAttributes(['class' => ''])
 
         ];
     }
