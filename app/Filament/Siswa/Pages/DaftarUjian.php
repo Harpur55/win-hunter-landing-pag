@@ -32,12 +32,38 @@ class DaftarUjian extends Page
     #[Validate('required', message: 'Sabuk berikutnya wajib dipilih.')]
     public $next_belt_level;
 
-    public function mount(): void
-    {
-        $this->events = EventUjian::whereDate('tanggal_ujian', '>=', now())
-            ->orderBy('tanggal_ujian', 'asc')
-            ->get();
+   public function mount(): void
+{
+    $this->events = EventUjian::whereDate('tanggal_ujian', '>=', now())
+        ->orderBy('tanggal_ujian', 'asc')
+        ->get();
+
+    // Cek event baru (dibuat dalam 3 hari terakhir)
+    $latestEvent = EventUjian::where('created_at', '>=', now()->subDays(3))
+        ->latest('created_at')
+        ->first();
+
+    if ($latestEvent && !session()->has('ujian_notification_seen')) {
+        // Tampilkan popup
+        Notification::make()
+            ->title('📢 Event Ujian Baru!')
+            ->body('Ujian "' . $latestEvent->nama_ujian . '" telah dibuka. Yuk, daftar sekarang!')
+            ->success()
+            ->icon('heroicon-o-megaphone')
+            ->send();
+
+        // Tambahkan angka badge di sidebar
+        session(['ujian_notification_count' => 1]);
+    } else {
+        session(['ujian_notification_count' => 0]);
     }
+
+    // Tandai sudah dilihat ketika halaman dibuka
+    session(['ujian_notification_seen' => true]);
+}
+
+
+
 
     public function confirmDaftar($eventId)
     {
@@ -184,4 +210,11 @@ class DaftarUjian extends Page
     {
         return self::beltOptions();
     }
+    public static function getNavigationBadge(): ?string
+{
+    // Ambil dari session
+    return session('ujian_notification_count', 0) > 0
+        ? (string) session('ujian_notification_count')
+        : null;
+}
 }
