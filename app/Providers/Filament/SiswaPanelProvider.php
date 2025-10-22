@@ -35,7 +35,8 @@ class SiswaPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Green,
             ])
-            ->authGuard('siswa')
+        ->authGuard('siswa')
+        
             ->login(Login::class)
             ->registration(Register::class)
             ->sidebarCollapsibleOnDesktop()

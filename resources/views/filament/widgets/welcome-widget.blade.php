@@ -15,7 +15,7 @@
                     opacity-70 blur-3xl animate-[aurora_15s_ease-in-out_infinite]"></div>
 
         {{-- 🌈 Efek kilau lembut --}}
-        <div class="absolute inset-0 rounded-2xl ring-1 ring-amber-100/50 dark:ring-purple-700/15"></div>
+        {{-- <div class="absolute inset-0 rounded-2xl ring-1 ring-amber-100/50 dark:ring-purple-700/15"></div> --}}
 
         {{-- 🪶 Konten utama --}}
         <div class="relative p-6 flex flex-col gap-3 animate-[fadeInUp_0.8s_ease-out]">

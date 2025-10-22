@@ -33,13 +33,22 @@
                 </div>
             </form>
 
+            <div class="mt-4">
+    <a href="{{ route('google.redirect') }}"
+       class="w-full flex justify-center items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
+        <x-filament::icon icon="heroicon-o-arrow-right-on-rectangle" class="w-5 h-5" />
+        Login dengan Google
+    </a>
+</div>
+
+
             {{-- Daftar --}}
             <div class="mt-4 text-center">
                 <a href="/siswa/register"
                    class="inline-block w-full px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition text-center">
                     Daftar di sini
                 </a>
-            </div>
+            </div> 
 
         </div>
     </div>

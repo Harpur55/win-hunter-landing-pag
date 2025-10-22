@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\Auth\SiswaRegisterController;
 use App\Http\Controllers\Auth\SiswaForgotPasswordController;
+use App\Http\Controllers\Auth\GoogleController;
 
 
 Route::get('/', [LandingPageController::class, 'show'])->name('landing-page');
@@ -20,4 +21,5 @@ Route::get('/siswa/reset-password/{token}', [SiswaForgotPasswordController::clas
 Route::post('/siswa/reset-password', [SiswaForgotPasswordController::class, 'reset'])->name('siswa.password.update');
 
 });
-
+Route::get('auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
+Route::get('auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
