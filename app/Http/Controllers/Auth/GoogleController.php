@@ -20,58 +20,46 @@ class GoogleController extends Controller
     public function callback()
     {
         try {
-            // 🔹 Gunakan stateful login (normal)
             $googleUser = Socialite::driver('google')->user();
         } catch (InvalidStateException $e) {
-            // 🔹 Gunakan stateless jika sesi tidak cocok
             $googleUser = Socialite::driver('google')->stateless()->user();
         }
 
-        // 🔹 Buat atau update data user
+        // Buat atau update user berdasarkan email, set nama sesuai google
         $user = User::updateOrCreate(
             ['email' => $googleUser->getEmail()],
             [
-                'name' => $googleUser->getName(),
+                'name' => $googleUser->getName() ?? $googleUser->getEmail(),
                 'google_id' => $googleUser->getId(),
                 'avatar' => $googleUser->getAvatar(),
                 'password' => bcrypt(str()->random(16)),
             ]
         );
 
-        // 🔹 Tambahkan role siswa jika belum ada
+        // Pastikan role siswa
         $role = Role::firstOrCreate(['name' => 'siswa']);
         if (!$user->hasRole('siswa')) {
             $user->assignRole($role);
         }
 
-        // 🔹 Cek apakah user sudah punya data siswa
-        $siswa = $user->siswa;
-
-        if (!$siswa) {
-            $siswa = Siswa::where('nama_lengkap', 'LIKE', $user->name)->first();
-
-            if ($siswa) {
-                $siswa->update([
+        // Jika user belum punya siswa, coba cari siswa dengan nama sama (case-insensitive).
+        // Jika ditemukan, hubungkan user ke data siswa lama (JANGAN timpa biodata).
+        if (!$user->siswa) {
+            $matched = Siswa::whereRaw('LOWER(nama_lengkap) = ?', [strtolower($user->name)])->first();
+            if ($matched) {
+                $matched->update([
                     'user_id' => $user->id,
                     'email' => $user->email,
                 ]);
-            } else {
-                $siswa = Siswa::create([
-                    'user_id' => $user->id,
-                    'nama_lengkap' => $user->name,
-                    'jenis_kelamin' => 'Laki-laki',
-                    'email' => $user->email,
-                    'nomor_register' => null,
-                    'current_belt_level' => 'Putih',
-                    'status' => 'Aktif',
-                ]);
+                // set relation supaya $user->siswa langsung tersedia
+                $user->setRelation('siswa', $matched);
             }
+            // jika tidak ada yang cocok, jangan buat data siswa otomatis di sini
+            // (biarkan dibuat saat user menyimpan profil)
         }
 
-        // 🔹 Login menggunakan guard siswa
         Auth::guard('siswa')->login($user);
 
-        // 🔹 Redirect ke dashboard siswa
-return redirect()->to(url('/siswa'));
+        return redirect('/siswa');
     }
 }
