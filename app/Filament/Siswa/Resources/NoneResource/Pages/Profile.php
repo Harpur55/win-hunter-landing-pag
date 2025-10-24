@@ -26,46 +26,44 @@ class Profile extends Page implements Forms\Contracts\HasForms
     {
         $user = Auth::user();
 
-        // ✅ Pastikan user memiliki name (hindari error field 'name')
+        // Pastikan user punya nama
         if (empty($user->name)) {
             $user->update(['name' => 'User ' . $user->id]);
         }
 
+        // Ambil data siswa berdasarkan user_id
         $siswa = Siswa::firstOrCreate(
             ['user_id' => $user->id],
             [
                 'nama_lengkap' => $user->name ?? 'Siswa Baru',
                 'email' => $user->email,
-                'jenis_kelamin' => 'Laki-laki',
-                'tempat_lahir' => 'Bogor',
+                'jenis_kelamin' => null,
+                'tempat_lahir' => null,
                 'tanggal_lahir' => null,
-                'golongan_darah' => null,
-                'image' => null,
-                'alamat_lengkap' => null,
-                'no_telepon' => null,
-                'nama_ayah' => null,
-                'pekerjaan_ayah' => null,
-                'nama_ibu' => null,
-                'pekerjaan_ibu' => null,
-                'kelas_id' => null,
-                'current_belt_level' => 'putih',
-                'beladiri_yang_pernah_diikuti' => null,
-                'joint_date' => now(),
-                'status' => 'aktif',
-                'units_id' => null,
+                'current_belt_level' => null,
                 'no_register' => null,
-                'nis' => null,
+                'units_id' => null,
+                'kelas_id' => null,
+                'golongan_darah' => null,
+                'nama_ayah' => null,
+                'nama_ibu' => null,
+                'pekerjaan_ayah' => null,
+                'pekerjaan_ibu' => null,
+                'no_telepon' => null,
+                'alamat_lengkap' => null,
+                'status' => 'aktif',
+                'joint_date' => now(),
             ]
         );
 
-        // Fallback data kosong
+        // Isi default bila masih kosong
         $siswa->fill([
             'jenis_kelamin' => $siswa->jenis_kelamin ?? 'Laki-laki',
             'tempat_lahir' => $siswa->tempat_lahir ?? 'Bogor',
             'current_belt_level' => $siswa->current_belt_level ?? 'putih',
-            'status' => $siswa->status ?? 'aktif',
         ])->save();
 
+        // Simpan ke state form
         $this->data = $siswa->toArray();
         $this->form->fill($this->data);
     }
@@ -88,102 +86,78 @@ class Profile extends Page implements Forms\Contracts\HasForms
                         ->imageEditor()
                         ->previewable(true),
 
-                Forms\Components\TextInput::make('nama_lengkap')
-    ->label('Nama Lengkap')
-    ->required()
-    ->disabled(fn() => !$this->isEditing)
-    ->reactive()
-    ->rules(['string', 'min:3', 'max:191'])
-    ->afterStateUpdated(function ($state, callable $set, callable $get) {
-        $user = \Illuminate\Support\Facades\Auth::user();
-        if (!$user) {
-            return;
-        }
+                    Forms\Components\TextInput::make('nama_lengkap')
+                        ->label('Nama Lengkap')
+                        ->required()
+                        ->disabled(fn() => !$this->isEditing)
+                        ->reactive()
+                        ->rules(['string', 'min:3', 'max:191'])
+                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                            $user = Auth::user();
+                            if (!$user) return;
 
-        // Validasi cepat: nama tidak boleh berupa email
-        if (filter_var($state, FILTER_VALIDATE_EMAIL)) {
-            \Filament\Notifications\Notification::make()
-                ->title('Nama tidak valid')
-                ->body('Nama tidak boleh berupa alamat email.')
-                ->warning()
-                ->send();
-            return;
-        }
+                            // Nama tidak boleh berupa email
+                            if (filter_var($state, FILTER_VALIDATE_EMAIL)) {
+                                Notification::make()
+                                    ->title('Nama tidak valid')
+                                    ->body('Nama tidak boleh berupa alamat email.')
+                                    ->warning()
+                                    ->send();
+                                return;
+                            }
 
-        // Cari siswa yang cocok (case-insensitive)
-        $matched = \App\Models\Siswa::whereRaw('LOWER(nama_lengkap) = ?', [strtolower($state)])->first();
+                            // Cari siswa di database
+                            $matched = Siswa::whereRaw('LOWER(nama_lengkap) = ?', [strtolower($state)])->first();
 
-        if ($matched) {
-            // Jika sudah terhubung ke user lain, *jika* kamu tidak ingin
-            // mengambilnya otomatis, kamu bisa memeriksa matched->user_id.
-            // Di sini kita akan mengaitkan matched ke user saat ini (jika belum)
-            if ($matched->user_id !== $user->id) {
-                // hubungkan account (tapi jangan timpa biodata)
-                $matched->update([
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                ]);
-            }
+                            if ($matched) {
+                                if ($matched->user_id !== $user->id) {
+                                    $matched->update([
+                                        'user_id' => $user->id,
+                                        'email' => $user->email,
+                                    ]);
+                                }
 
-            // Pastikan relasi pada model Users langsung tersedia
-            $user->setRelation('siswa', $matched);
+                                $user->setRelation('siswa', $matched);
 
-            // Ambil state sekarang untuk menentukan field mana yang kosong
-            $current = $get(); // seluruh state array
+                                $current = $get();
 
-            // Daftar field yang kita ingin isi otomatis jika kosong
-            $fieldsToPopulate = [
-                'nis',
-                'jenis_kelamin',
-                'tempat_lahir',
-                'tanggal_lahir',
-                'golongan_darah',
-                'alamat_lengkap',
-                'no_telepon',
-                'nama_ayah',
-                'pekerjaan_ayah',
-                'nama_ibu',
-                'pekerjaan_ibu',
-                'kelas_id',
-                'current_belt_level',
-                'beladiri_yang_pernah_diikuti',
-                'joint_date',
-                'status',
-                'units_id',
-                'no_register',
-                'image',
-            ];
+                                // Field yang akan diisi otomatis
+                                $fieldsToPopulate = [
+                                    'jenis_kelamin',
+                                    'tempat_lahir',
+                                    'tanggal_lahir',
+                                    'current_belt_level',
+                                    'no_register',
+                                ];
 
-            foreach ($fieldsToPopulate as $field) {
-                // jika field belum ada di state atau kosong/null/'' maka isi dari matched
-                $valueInState = data_get($current, $field);
-                $valueFromMatched = data_get($matched, $field);
+                                foreach ($fieldsToPopulate as $field) {
+                                    $valueInState = data_get($current, $field);
+                                    $valueFromMatched = data_get($matched, $field);
 
-                if ((is_null($valueInState) || $valueInState === '') && !is_null($valueFromMatched)) {
-                    // set nilai di form tanpa mereload halaman
-                    $set($field, $valueFromMatched);
-                }
-            }
+                                    if ((is_null($valueInState) || $valueInState === '') && !is_null($valueFromMatched)) {
+                                        $set($field, $valueFromMatched);
+                                    }
+                                }
 
-            \Filament\Notifications\Notification::make()
-                ->title('Data ditemukan')
-                ->body("Data siswa '{$matched->nama_lengkap}' ditemukan dan biodata terisi otomatis.")
-                ->success()
-                ->send();
-        } else {
-            // jika tidak cocok, jangan buat data baru di sini; user akan menyimpan sendiri
-            \Filament\Notifications\Notification::make()
-                ->title('Tidak ditemukan')
-                ->body('Tidak ada data siswa dengan nama tersebut. Akan dibuat saat Anda menyimpan profil.')
-                ->info()
-                ->send();
-        }
+                                Notification::make()
+                                    ->title('Data ditemukan')
+                                    ->body("Data siswa '{$matched->nama_lengkap}' ditemukan dan biodata terisi otomatis.")
+                                    ->success()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Tidak ditemukan')
+                                    ->body('Tidak ada data siswa dengan nama tersebut. Data baru akan dibuat saat Anda menyimpan.')
+                                    ->info()
+                                    ->send();
+                            }
 
-        // Sinkronkan juga nama ke tabel users (agar konsisten)
-        if ($user->name !== $state) {
-            $user->update(['name' => $state]);
-        }
-    }),
+                            // Sinkron nama di tabel users
+                            if ($user->name !== $state) {
+                                $user->update(['name' => $state]);
+                            }
+                        }),
+
                     Forms\Components\TextInput::make('nis')
                         ->label('NIS')
                         ->disabled()
@@ -239,7 +213,7 @@ class Profile extends Page implements Forms\Contracts\HasForms
                 ]),
 
             Forms\Components\Section::make('Akademik & Unit Latihan')
-                ->columns(2)
+                ->columns(3)
                 ->schema([
                     Forms\Components\TextInput::make('no_register')
                         ->label('Nomor Register')
@@ -269,6 +243,15 @@ class Profile extends Page implements Forms\Contracts\HasForms
                         ->disabled(fn() => !auth()->user()->hasRole('admin'))
                         ->dehydrated(true)
                         ->helperText('Kelas hanya dapat diatur oleh admin.'),
+
+
+                    Forms\Components\TextInput::make('status')
+                        ->label('Status Siswa')
+                        ->default('Tidak Aktif')
+                        ->disabled(fn() => !auth()->user()->hasRole('admin'))
+                        ->dehydrated(true)
+                        ->helperText('Status hanya dapat diatur oleh admin.'),
+
                 ]),
 
             Forms\Components\Section::make('Lain-lain')
@@ -282,21 +265,20 @@ class Profile extends Page implements Forms\Contracts\HasForms
 
     public function save(): void
     {
-         $user = Auth::user();
-    $data = $this->form->getState();
+        $user = Auth::user();
+        $data = $this->form->getState();
 
-    // sanitize minimal
-    $data = collect($data)->mapWithKeys(fn($v, $k) => [$k => is_string($v) ? strip_tags($v) : $v])->toArray();
+        $data = collect($data)->mapWithKeys(fn($v, $k) => [$k => is_string($v) ? strip_tags($v) : $v])->toArray();
 
-    $siswa = Siswa::updateOrCreate(['user_id' => $user->id], $data);
+        $siswa = Siswa::updateOrCreate(['user_id' => $user->id], $data);
 
-    // sinkron nama di users
-    if (!empty($siswa->nama_lengkap)) {
-        $user->update(['name' => $siswa->nama_lengkap]);
+        if (!empty($siswa->nama_lengkap)) {
+            $user->update(['name' => $siswa->nama_lengkap]);
+        }
+
+        Notification::make()->title('Profil tersimpan')->success()->send();
+        $this->isEditing = false;
     }
-
-    Notification::make()->title('Profil tersimpan')->success()->send();
-    $this->isEditing = false;}
 
     private static function beltOptions(): array
     {

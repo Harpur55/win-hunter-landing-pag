@@ -8,6 +8,19 @@
     <title>Win-Hunter.com</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/images/download.jpg') }} " class="rounded-full " /> 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+
+    
+    <style>
+        /* Hilangkan scrollbar horizontal */
+        html, body {
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+      
+        
+    </style>
   </head>
   <body class="font-sans scroll-smooth">
     <section id="navbar" class="  bg-blue-800 shadow-md">
@@ -148,29 +161,33 @@
   </div>
 </section>
 
-    <section id="coach" class="py-10 px-4 sm:px-6 lg:px-2 bg-gray-300">
-      <div class="container mx-auto flex flex-col items-center">
-        <h2 class="text-3xl font-extrabold text-black sm:text-4xl mb-8">Pelatih</h2>
-        <div class="swiper mySwiper ">
-          <div class="swiper-wrapper"> 
-            @foreach($coaches as $coach) <div class="swiper-slide bg-white p-4 rounded-lg shadow-lg flex justify-center items-center">
-              <div>
-                {{-- <a href="#" class="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row md:max-w-xl hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"></a> --}}
-                <img class="object-cover w-full rounded-t-lg h-50 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg " src="{{ asset($coach->foto) }}" alt="{{ $coach->coach_name }}">
-                <div class="flex flex-col justify-between p-4 leading-normal">
-                  <h4 class="mb-2  font-bold tracking-tight text-black dark:text-black">{{ $coach->nama }}</h4>
-                  <p class="mb-3 font-normal text-lg text-black dark:text-black">{{ $coach->Sabuk}}</p>
-                  <p class="mb-3 font-normal text-lg text-black dark:text-black">{{ $coach->role }}</p>
-                </div>
-              </div>
-            </div> @endforeach 
-          </div>
-        
-          <div class="swiper-pagination mt-6"></div>
-        </div>
-      </div>
-    </section>
+  <section id="coach" class="py-10 px-4 sm:px-6 lg:px-2 bg-gray-300">
+  <div class="container mx-auto flex flex-col items-center">
+    <h2 class="text-3xl font-extrabold text-black sm:text-4xl mb-8">Pelatih</h2>
 
+    <div class="swiper mySwiper w-full">
+      <div class="swiper-wrapper">
+        @foreach($coaches as $coach)
+        <div class="swiper-slide bg-white p-4 rounded-lg shadow-lg flex flex-col items-center justify-center text-center">
+          <img class="object-cover w-40 h-40 rounded-full mb-4"
+               src="{{ asset($coach->foto) }}"
+               alt="{{ $coach->nama }}">
+          <h4 class="font-bold text-lg text-black">{{ $coach->nama }}</h4>
+          <p class="text-gray-700">{{ $coach->sabuk }}</p>
+          <p class="text-gray-700">{{ $coach->role }}</p>
+        </div>
+        @endforeach
+      </div>
+
+      <!-- Pagination -->
+      <div class="swiper-pagination mt-6"></div>
+
+      <!-- Navigation Buttons (optional) -->
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+    </div>
+  </div>
+</section>
     
 <section id="service" class="bg-gray-100 py-10 px-4 sm:px-6 lg:px-20">
     <h1 class="text-4xl font-extrabold mb-10 text-center text-gray-900">Kelas Taekwondo</h1>
@@ -297,10 +314,6 @@
     </div> --}}
   </div>
 </section>
-
-
-
-
 
     
     <section class="bg-white" id="contact">

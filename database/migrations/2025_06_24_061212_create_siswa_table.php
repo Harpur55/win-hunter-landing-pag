@@ -25,17 +25,17 @@ return new class extends Migration
             $table->longText('no_telepon')->nullable(); 
 
             // Informasi Orang Tua
-            $table->longText('nama_ayah')->nullable(); // Nama Ayah
-            $table->string('pekerjaan_ayah')->nullable(); // Pekerjaan Ayah
-            $table->longText('nama_ibu')->nullable(); // Nama Ibu
-            $table->string('pekerjaan_ibu')->nullable(); // Pekerjaan Ibu
+            $table->longText('nama_ayah')->nullable(); 
+            $table->string('pekerjaan_ayah')->nullable(); 
+            $table->longText('nama_ibu')->nullable(); 
+            $table->string('pekerjaan_ibu')->nullable(); 
 
-            // Informasi Akademik/Pelatihan
-            $table->foreignId('units_id')->constrained()->onDelete('cascade');
-            $table->foreignId('kelas_id')->constrained('kelas')->cascadeOnDelete();
+          
+            $table->foreignId('units_id')->constrained()->onDelete('cascade')->nullable();
+            $table->foreignId('kelas_id')->constrained('kelas')->cascadeOnDelete()->nullable();
             $table->string('beladiri_yang_pernah_diikuti')->nullable();
             $table->string('current_belt_level')->default('Putih'); 
-            // $table->string('next_belt_level')->nullable(); 
+           
             $table->date('joint_date')->nullable(); 
 
             $table->string('status')->default('Aktif'); 
