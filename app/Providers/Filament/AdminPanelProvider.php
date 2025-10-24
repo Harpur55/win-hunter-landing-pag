@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('wh.dashboard')
+            ->path('cms.winhunter')
              ->login(CustomLogin::class)
            
             ->registration(\Filament\Pages\Auth\Register::class)
