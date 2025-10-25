@@ -18,6 +18,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\EventUjianSiswaExport;
 use Filament\Tables\Enums\ActionsPosition;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 
 class SiswaRelationManager extends RelationManager
@@ -241,19 +242,24 @@ class SiswaRelationManager extends RelationManager
                 ->directory('imports')
                 ->required(),
         ])
-        ->action(function (array $data) {
-            $eventUjian = $this->getOwnerRecord();
-            $filePath = storage_path('app/' . $data['file_excel']);
+       ->action(function (array $data) {
+    $eventUjian = $this->getOwnerRecord();
+    $filePath = storage_path('app/' . $data['file_excel']);
 
-            Excel::import(
-                new EventUjianSiswaImport($eventUjian),
-                $filePath
-            );
+    Log::info('🚀 MULAI IMPORT FILE:', ['path' => $filePath]);
+    Log::info('📄 FILE EXISTS? ' . (file_exists($filePath) ? '✅ YES' : '❌ NO'));
 
-            Notification::make()
-                ->title('✅ Data siswa ujian berhasil diimport')
-                ->success()
-                ->send();
+    Excel::import(
+        new EventUjianSiswaImport($eventUjian),
+        $filePath
+    );
+
+    Log::info('✅ SELESAI IMPORT FILE');
+    Notification::make()
+        ->title('✅ Data siswa ujian berhasil diimport')
+        ->success()
+        ->send();
+
         }),
 
     // Export Peserta

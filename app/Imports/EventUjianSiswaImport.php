@@ -22,58 +22,86 @@ class EventUjianSiswaImport implements ToModel, WithHeadingRow, WithValidation, 
         $this->eventUjian = $eventUjian;
     }
 
-    /**
-     * Header tabel ada di baris ke-5 (setelah judul ujian).
-     */
     public function headingRow(): int
     {
-        return 5;
+        return 5; // baris header pertama
     }
 
-    /**
-     * Proses setiap baris dari file Excel.
-     */
     public function model(array $row)
     {
-        Log::info('Row Import Ujian:', $row);
-
-        // ✅ Cari siswa berdasarkan NO REGISTER
-        $siswa = Siswa::where('no_register', $row['no_register'] ?? null)->first();
-
-        if (!$siswa) {
-            Log::warning("Siswa tidak ditemukan: " . json_encode($row));
+        // Abaikan baris kosong
+        if (empty(array_filter($row))) {
+            Log::warning('⚠️ Baris kosong dilewati.');
             return null;
         }
 
-        // Simpan/Update relasi pivot siswa <-> event ujian
-        $this->eventUjian->siswa()->syncWithoutDetaching([
-            $siswa->id => [
-                'current_belt_level' => $row['sabuk_saat_ini'] ?? null,
-                'next_belt_level'    => $row['sabuk_berikutnya'] ?? null,
-                'keterangan'         => $row['keterangan'] ?? null,
-            ]
+        // 🧭 Ambil hanya kolom yang diperlukan (abaikan kolom "no")
+        $noRegister   = trim($row['no_register'] ?? '');
+        $namaSiswa    = trim($row['nama_siswa'] ?? '');
+        $sabukSaatIni = trim($row['sabuk_saat_ini'] ?? '');
+        $nextBelt     = trim($row['geup_dan'] ?? '');
+        $keterangan   = trim($row['keterangan'] ?? 'on_proses');
+
+        Log::info('📥 Proses import baris:', [
+            'nama_siswa' => $namaSiswa,
+            'no_register' => $noRegister,
+            'sabuk' => $sabukSaatIni,
+            'next_belt' => $nextBelt,
+            'keterangan' => $keterangan,
         ]);
+
+        // 🔍 Cari siswa berdasar no_register atau nama
+        $siswa = null;
+        if (!empty($noRegister)) {
+            $siswa = Siswa::where('no_register', $noRegister)->first();
+        }
+
+        if (!$siswa && !empty($namaSiswa)) {
+            Log::warning("⚠️ NO REGISTER kosong atau tidak cocok, mencari berdasarkan nama: {$namaSiswa}");
+            $siswa = Siswa::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [strtolower(trim($namaSiswa))])->first();
+        }
+
+        if (!$siswa) {
+            Log::warning("❌ Siswa tidak ditemukan: {$namaSiswa} ({$noRegister})");
+            return null; // tetap lanjut ke baris berikutnya
+        }
+
+        // 🧩 Cek apakah siswa sudah terdaftar di pivot
+        $exists = $this->eventUjian
+            ->siswa()
+            ->wherePivot('siswa_id', $siswa->id)
+            ->exists();
+
+        if ($exists) {
+            $this->eventUjian->siswa()->updateExistingPivot($siswa->id, [
+                'current_belt_level' => $sabukSaatIni,
+                'next_belt_level'    => $nextBelt,
+                'keterangan'         => $keterangan,
+            ]);
+            Log::info("♻️ Update data ujian untuk siswa {$siswa->nama_lengkap}");
+        } else {
+            $this->eventUjian->siswa()->attach($siswa->id, [
+                'current_belt_level' => $sabukSaatIni,
+                'next_belt_level'    => $nextBelt,
+                'keterangan'         => $keterangan,
+            ]);
+            Log::info("✅ Tambah siswa {$siswa->nama_lengkap} ke event ID {$this->eventUjian->id}");
+        }
 
         return null;
     }
 
-    /**
-     * Validasi isi file Excel.
-     */
     public function rules(): array
     {
         return [
-            '*.nama_siswa'   => 'required|string',
-            '*.no_register'  => 'required|string',
-            ''
+            '*.nama_siswa' => 'nullable|string',
         ];
     }
 
     public function customValidationMessages()
     {
         return [
-            '*.nama_siswa.required'   => 'Nama siswa wajib diisi.',
-            '*.no_register.required'  => 'No register wajib diisi.',
+            '*.nama_siswa.required' => 'Kolom NAMA SISWA wajib diisi.',
         ];
     }
 }
