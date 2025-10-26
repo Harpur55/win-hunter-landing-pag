@@ -117,11 +117,15 @@ class SiswaRelationManager extends RelationManager
                 ->send();
         }),
 
+         Action::make('import_data')
+        ->label('IMPORT DATA PESERTA')
+        ->color('success')
+        ->icon('heroicon-o-arrow-down-tray'),
     // 🔹 Export data peserta
     Action::make('export_data')
         ->label('Export Data')
         ->color('primary')
-        ->icon('heroicon-o-arrow-down-tray')
+        ->icon('heroicon-o-arrow-up-tray')
         ->action(function () {
             $event = $this->getOwnerRecord();
             return Excel::download(new KejuaraanExport($event), 'data_kejuaraan.xlsx');
