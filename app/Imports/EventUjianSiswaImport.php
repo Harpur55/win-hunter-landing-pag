@@ -4,17 +4,17 @@ namespace App\Imports;
 
 use App\Models\Siswa;
 use App\Models\EventUjian;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Filament\Notifications\Notification;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Illuminate\Support\Collection;
 
-class EventUjianSiswaImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure
+
+
+class EventUjianSiswaImport implements ToCollection, WithHeadingRow
 {
-    use SkipsFailures;
-
     protected EventUjian $eventUjian;
 
     public function __construct(EventUjian $eventUjian)
@@ -24,84 +24,87 @@ class EventUjianSiswaImport implements ToModel, WithHeadingRow, WithValidation, 
 
     public function headingRow(): int
     {
-        return 5; // baris header pertama
+        return 5; // baris header di Excel
     }
 
-    public function model(array $row)
+    public function collection(Collection $rows)
     {
-        // Abaikan baris kosong
-        if (empty(array_filter($row))) {
-            Log::warning('⚠️ Baris kosong dilewati.');
-            return null;
+        foreach ($rows as $row) {
+            // 🔧 Normalisasi header agar lowercase dan underscore
+            $normalized = collect($row)->mapWithKeys(function ($value, $key) {
+                $key = strtolower(trim($key));
+                $key = preg_replace('/\s+/u', '_', $key);
+                $key = str_replace(['/', '\\', '.', '-', '(', ')'], '_', $key);
+                return [$key => trim($value)];
+            });
+
+            Log::info('🧩 Header keys normalisasi:', $normalized->keys()->toArray());
+
+            if (empty(array_filter($normalized->toArray()))) {
+                continue;
+            }
+
+            $noRegister   = trim($normalized['no_register'] ?? '');
+            $namaSiswa    = trim($normalized['nama_siswa'] ?? '');
+            $sabukSaatIni = strtolower(trim($normalized['sabuk_saat_ini'] ?? ''));
+            $geup         = trim($normalized['geup_dan'] ?? $normalized['geup__dan'] ?? '');
+            $keterangan   = trim($normalized['keterangan'] ?? 'on_proses');
+
+            // 🟢 Deteksi "SABUK BERIKUTNYA" lebih cerdas (backup posisi kolom)
+            $nextBeltKey = collect($normalized->keys())->first(function ($key) {
+                return preg_match('/sabuk.*berikut/i', $key) || preg_match('/berikut.*sabuk/i', $key);
+            });
+
+            $nextBelt = strtolower(trim($normalized[$nextBeltKey] ?? ''));
+
+            // fallback jika key kosong → ambil kolom terakhir
+            if (empty($nextBelt) && count($normalized) >= 9) {
+                $nextBelt = strtolower(trim(array_values($normalized->toArray())[8] ?? ''));
+                $nextBeltKey = 'auto_fallback_col';
+            }
+
+            Log::info("🎯 Next Belt Key: {$nextBeltKey} | Value: {$nextBelt}");
+
+            if (empty($namaSiswa)) {
+                continue;
+            }
+
+            // cari siswa
+            $siswa = null;
+            if (!empty($noRegister)) {
+                $siswa = Siswa::where('no_register', $noRegister)->first();
+            }
+            if (!$siswa && !empty($namaSiswa)) {
+                $siswa = Siswa::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [strtolower($namaSiswa)])->first();
+            }
+
+            if (!$siswa) {
+                Log::warning("⚠️ Siswa '$namaSiswa' tidak ditemukan, dilewati.");
+                continue;
+            }
+
+            // simpan ke pivot
+            DB::table('event_ujian_siswa')->updateOrInsert(
+                [
+                    'event_ujian_id' => $this->eventUjian->id,
+                    'siswa_id'       => $siswa->id,
+                ],
+                [
+                    'current_belt_level' => $sabukSaatIni,
+                    'next_belt_level'    => $nextBelt,
+                    'geup'               => $geup,
+                    'keterangan'         => $keterangan,
+                    'updated_at'         => now(),
+                    'created_at'         => now(),
+                ]
+            );
+
+            Log::info("✅ Data tersimpan / diperbarui untuk siswa {$siswa->nama_lengkap} | Next Belt: {$nextBelt}");
         }
-
-        // 🧭 Ambil hanya kolom yang diperlukan (abaikan kolom "no")
-        $noRegister   = trim($row['no_register'] ?? '');
-        $namaSiswa    = trim($row['nama_siswa'] ?? '');
-        $sabukSaatIni = trim($row['sabuk_saat_ini'] ?? '');
-        $nextBelt     = trim($row['geup_dan'] ?? '');
-        $keterangan   = trim($row['keterangan'] ?? 'on_proses');
-
-        Log::info('📥 Proses import baris:', [
-            'nama_siswa' => $namaSiswa,
-            'no_register' => $noRegister,
-            'sabuk' => $sabukSaatIni,
-            'next_belt' => $nextBelt,
-            'keterangan' => $keterangan,
-        ]);
-
-        // 🔍 Cari siswa berdasar no_register atau nama
-        $siswa = null;
-        if (!empty($noRegister)) {
-            $siswa = Siswa::where('no_register', $noRegister)->first();
-        }
-
-        if (!$siswa && !empty($namaSiswa)) {
-            Log::warning("⚠️ NO REGISTER kosong atau tidak cocok, mencari berdasarkan nama: {$namaSiswa}");
-            $siswa = Siswa::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [strtolower(trim($namaSiswa))])->first();
-        }
-
-        if (!$siswa) {
-            Log::warning("❌ Siswa tidak ditemukan: {$namaSiswa} ({$noRegister})");
-            return null; // tetap lanjut ke baris berikutnya
-        }
-
-        // 🧩 Cek apakah siswa sudah terdaftar di pivot
-        $exists = $this->eventUjian
-            ->siswa()
-            ->wherePivot('siswa_id', $siswa->id)
-            ->exists();
-
-        if ($exists) {
-            $this->eventUjian->siswa()->updateExistingPivot($siswa->id, [
-                'current_belt_level' => $sabukSaatIni,
-                'next_belt_level'    => $nextBelt,
-                'keterangan'         => $keterangan,
-            ]);
-            Log::info("♻️ Update data ujian untuk siswa {$siswa->nama_lengkap}");
-        } else {
-            $this->eventUjian->siswa()->attach($siswa->id, [
-                'current_belt_level' => $sabukSaatIni,
-                'next_belt_level'    => $nextBelt,
-                'keterangan'         => $keterangan,
-            ]);
-            Log::info("✅ Tambah siswa {$siswa->nama_lengkap} ke event ID {$this->eventUjian->id}");
-        }
-
-        return null;
-    }
-
-    public function rules(): array
-    {
-        return [
-            '*.nama_siswa' => 'nullable|string',
-        ];
-    }
-
-    public function customValidationMessages()
-    {
-        return [
-            '*.nama_siswa.required' => 'Kolom NAMA SISWA wajib diisi.',
-        ];
+Notification::make()
+    ->title('✅ Import Berhasil')
+    ->body('Data siswa ujian telah disimpan ke database termasuk sabuk berikutnya.')
+    ->success()
+    ->send(); // hanya tampil
     }
 }

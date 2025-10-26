@@ -14,12 +14,14 @@ class EventUjian extends Model
         'lokasi_ujian',
     ];
    
-    public function siswa()
-    {
-        return $this->belongsToMany(Siswa::class, 'event_ujian_siswa', 'event_ujian_id', 'siswa_id')
-                    ->withPivot(['current_belt_level', 'next_belt_level', 'keterangan'])
-                    ->withTimestamps();
-    }
+   public function siswa()
+{
+    return $this->belongsToMany(Siswa::class, 'event_ujian_siswa', 'event_ujian_id', 'siswa_id')
+        ->using(\App\Models\UjianSiswa::class) // ✅ penting supaya pivot pakai model kustom
+        ->withPivot(['current_belt_level', 'next_belt_level', 'geup', 'keterangan'])
+        ->withTimestamps();
+}
+
     public function dataUjians()
 {
     return $this->hasMany(DataUjian::class, 'event_ujian_id');

@@ -110,7 +110,7 @@ class Siswa extends Model
     public function ujian()
     {
         return $this->belongsToMany(EventUjian::class, 'event_ujian_siswa')
-            ->withPivot(['current_belt_level', 'next_belt_level', 'keterangan'])
+            ->withPivot(['current_belt_level', 'next_belt_level','geup', 'keterangan'])
             ->withTimestamps();
     }
 

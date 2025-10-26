@@ -53,11 +53,24 @@ class SiswaRelationManager extends RelationManager
                     ->badge()
                     ->color('warning'),
 
+                    Tables\Columns\TextColumn::make('geup_display')
+    ->label('Geup / Dan')
+    ->getStateUsing(function ($record) {
+        $currentBelt = strtolower($record->pivot->current_belt_level ?? '');
+        return self::beltToGeup($currentBelt);
+    })
+    ->badge()
+    ->color('gray'),
+           
+
+              
                 Tables\Columns\TextColumn::make('pivot.next_belt_level')
-                    ->label('Target Sabuk UKT')
-                    ->sortable()
+                    ->label('Sabuk Berikutnya')
                     ->badge()
-                    ->color('info'),
+                    ->color('warning') // optional: warna kuning
+                    ->sortable(),
+
+              
 
                 Tables\Columns\TextColumn::make('pivot.keterangan')
                     ->label('Hasil Ujian')
@@ -156,11 +169,18 @@ class SiswaRelationManager extends RelationManager
             ]),
 
             Forms\Components\Grid::make(2)->schema([
-                Select::make('next_belt_level')
-                    ->label('Sabuk Berikutnya (Pivot)')
-                    ->options(self::beltOptions())
-                    ->required(),
-
+               Select::make('next_belt_level')
+    ->label('Sabuk Berikutnya (Pivot)')
+    ->options(self::beltOptions())
+    ->required()
+    ->reactive()
+    ->afterStateHydrated(function (callable $set, callable $get) {
+        // Jika current_belt_level sudah ada, isi otomatis sabuk berikutnya
+        $current = strtolower($get('current_belt_level') ?? '');
+        $set('next_belt_level', self::getNextBelt($current));
+    }),
+                
+             
                 Select::make('keterangan')
                     ->label('Status Ujian')
                     ->options([
@@ -192,6 +212,7 @@ class SiswaRelationManager extends RelationManager
             $eventUjian->siswa()->attach($data['siswa_id'], [
                 'current_belt_level' => $data['current_belt_level'], // dari master
                 'next_belt_level'    => $data['next_belt_level'],   // input manual
+                           // default
                 'keterangan'         => $data['keterangan'],        // default
             ]);
 
@@ -246,15 +267,13 @@ class SiswaRelationManager extends RelationManager
     $eventUjian = $this->getOwnerRecord();
     $filePath = storage_path('app/' . $data['file_excel']);
 
-    Log::info('🚀 MULAI IMPORT FILE:', ['path' => $filePath]);
-    Log::info('📄 FILE EXISTS? ' . (file_exists($filePath) ? '✅ YES' : '❌ NO'));
-
+   
     Excel::import(
         new EventUjianSiswaImport($eventUjian),
         $filePath
     );
 
-    Log::info('✅ SELESAI IMPORT FILE');
+   
     Notification::make()
         ->title('✅ Data siswa ujian berhasil diimport')
         ->success()
@@ -290,10 +309,6 @@ class SiswaRelationManager extends RelationManager
                             ->disabled()
                             ->dehydrated(false),
 
-                        Select::make('pivot.next_belt_level')
-                            ->label('Sabuk UKT Berikutnya')
-                            ->options(self::beltOptions())
-                            ->required(),
 
                         Select::make('pivot.keterangan')
                             ->label('Status Ujian')
@@ -340,4 +355,62 @@ class SiswaRelationManager extends RelationManager
             'hitam'              => 'Hitam',
         ];
     }
+
+   private static function beltToGeup(?string $belt): string
+{
+    $mapping = [
+        'putih'               => '10 Geup',
+        'kuning'              => '9 Geup',
+        'kuning strip hijau'  => '8 Geup',
+        'hijau'               => '7 Geup',
+        'hijau strip biru'    => '6 Geup',
+        'biru'                => '5 Geup',
+        'biru strip merah'    => '4 Geup',
+        'merah'               => '3 Geup',
+        'merah strip hitam 1' => '2 Geup',
+        'merah strip hitam 2' => '1 Geup',
+        'hitam'               => '1 Dan',
+    ];
+
+    return $mapping[$belt] ?? '-';
 }
+
+public static function getNextBelt(?string $current): ?string
+{
+    if (!$current) {
+        return null;
+    }
+
+    // Daftar urutan sabuk dari rendah ke tinggi
+    $belts = [
+        'putih',
+        'kuning',
+        'kuning strip hijau',
+        'hijau',
+        'hijau strip biru',
+        'biru',
+        'biru strip merah',
+        'merah',
+        'merah strip hitam satu',
+        'merah strip hitam dua',
+        'hitam',
+    ];
+
+    // Cari posisi sabuk saat ini
+    $index = array_search(strtolower(trim($current)), $belts);
+
+    // Jika ditemukan dan belum sabuk terakhir, ambil sabuk berikutnya
+    if ($index !== false && isset($belts[$index + 1])) {
+        return ucfirst($belts[$index + 1]);
+    }
+
+    // Jika sabuk sudah terakhir atau tidak ditemukan, tetap null
+    return null;
+}
+
+
+
+    
+}
+
+

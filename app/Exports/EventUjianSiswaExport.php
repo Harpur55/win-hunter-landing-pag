@@ -37,34 +37,39 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
                 'TEMPAT LAHIR',
                 'TANGGAL LAHIR',
                 'NO REGISTER',
-                'GEUP/ DAN',
                 'ALAMAT',
                 'NOMOR HP',
                 'SABUK SAAT INI',
-                // 'SABUK BERIKUTNYA',
+                'GEUP/ DAN',
+                'SABUK BERIKUTNYA',
                 'KETERANGAN',
             ],
         ];
     }
 
-    public function map($siswa): array
-    {
-        static $no = 0;
-        $no++;
+   public function map($siswa): array
+{
+    static $no = 0;
+    $no++;
 
-        return [
-            $no, // ✅ nomor urut (bukan id siswa)
-            $siswa->nama_lengkap,
-            $siswa->tempat_lahir,
-            $siswa->tanggal_lahir?->format('d/m/Y'),
-            $siswa->no_register,   // ✅ dipakai untuk import
-            $siswa->geup_dan,
-            $siswa->alamat,
-            $siswa->nomor_telpon,
-            $siswa->pivot->current_belt_level,
-            $siswa->pivot->keterangan,
-        ];
-    }
+    $currentBelt = strtolower($siswa->pivot->current_belt_level ?? '');
+    $nextBelt = $siswa->pivot->next_belt_level ?? '-';
+
+    return [
+        $no,
+        $siswa->nama_lengkap,
+        $siswa->tempat_lahir,
+        $siswa->tanggal_lahir?->format('d/m/Y'),
+        $siswa->no_register,
+        $siswa->alamat,
+        $siswa->nomor_telpon,
+        $siswa->pivot->current_belt_level,       // Sabuk saat ini
+        self::beltToGeup($currentBelt),          // Geup / Dan dari sabuk saat ini
+        $nextBelt,                               // Sabuk berikutnya
+        $siswa->pivot->keterangan,
+    ];
+}
+
 
     public function styles(Worksheet $sheet)
     {
@@ -90,4 +95,24 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
 
         return [];
     }
+
+    private static function beltToGeup(?string $belt): string
+{
+    $mapping = [
+        'putih'               => '10 Geup',
+        'kuning'              => '9 Geup',
+        'kuning strip hijau'  => '8 Geup',
+        'hijau'               => '7 Geup',
+        'hijau strip biru'    => '6 Geup',
+        'biru'                => '5 Geup',
+        'biru strip merah'    => '4 Geup',
+        'merah'               => '3 Geup',
+        'merah strip hitam 1' => '2 Geup',
+        'merah strip hitam 2' => '1 Geup',
+        'hitam'               => '1 Dan',
+    ];
+
+    return $mapping[$belt] ?? '-';
+}
+
 }
