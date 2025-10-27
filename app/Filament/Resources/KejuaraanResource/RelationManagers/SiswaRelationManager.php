@@ -156,9 +156,21 @@ class SiswaRelationManager extends RelationManager
     ->action(function () {
         $kejuaraan = $this->getOwnerRecord();
 
-        return Excel::download(
-            new KejuaraanSiswaExport($kejuaraan),
-            'data_peserta_' . now()->format('Ymd_His') . '.xlsx'
+        if (! $kejuaraan) {
+            \Filament\Notifications\Notification::make()
+                ->title('Gagal Export')
+                ->body('Data kejuaraan tidak ditemukan.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // 🔹 Gunakan nama kejuaraan sebagai nama file (bersih dari karakter ilegal)
+        $namaFile = 'data_peserta_' . \Str::slug($kejuaraan->nama_kejuaraan ?? 'kejuaraan') . '_' . now()->format('Y-m-d') . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\KejuaraanSiswaExport($kejuaraan),
+            $namaFile
         );
     }),
 

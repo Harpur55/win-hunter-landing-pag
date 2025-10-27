@@ -104,28 +104,32 @@ class KejuaraanSiswaExport implements FromCollection, WithHeadings, WithMapping,
 
     public function styles(Worksheet $sheet)
     {
-        // Bold dan ukuran judul
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        // 🔹 Judul besar di tengah
         $sheet->mergeCells('A1:M1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // Bold untuk metadata
+        // 🔹 Bold metadata
         $sheet->getStyle('A2:A5')->getFont()->setBold(true);
 
-        // Bold untuk header tabel
+        // 🔹 Bold header tabel
         $sheet->getStyle('A7:M7')->getFont()->setBold(true);
 
-        // Border untuk header tabel
-        $sheet->getStyle('A7:M7')->getBorders()->getAllBorders()
-            ->setBorderStyle(Border::BORDER_THIN);
-
-        // Auto width semua kolom
+        // 🔹 Auto width semua kolom
         foreach (range('A', 'M') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // Rata tengah kolom tertentu
+        // 🔹 Rata tengah vertikal semua kolom
         $sheet->getStyle('A:M')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+        // 🔹 Tambahkan border solid di seluruh tabel
+        $highestRow = $sheet->getHighestRow();
+        $sheet->getStyle("A7:M{$highestRow}")
+            ->getBorders()
+            ->getAllBorders()
+            ->setBorderStyle(Border::BORDER_THIN)
+            ->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('000000')); // hitam solid
 
         return [];
     }
