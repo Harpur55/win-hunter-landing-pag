@@ -17,6 +17,9 @@ use Illuminate\Support\Carbon;
 use Filament\Tables\Actions\Action;
 use App\Exports\KejuaraanExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\KejuaraanSiswaImport;
+use App\Exports\KejuaraanSiswaExport;
+use Filament\Forms\Components\FileUpload;
 
 class SiswaRelationManager extends RelationManager
 {
@@ -88,185 +91,208 @@ class SiswaRelationManager extends RelationManager
                         default => 'secondary',
                     }),
             ])
-          ->headerActions([
-    // 🔹 Tombol Buka/Tutup Pendaftaran
-    Action::make('toggle_registration')
-        ->label(function () {
-            $event = $this->getOwnerRecord(); // Ambil kejuaraan induk
-            return $event->is_registration_closed ? 'Buka Pendaftaran' : 'Tutup Pendaftaran';
-        })
-        ->color(function () {
-            $event = $this->getOwnerRecord();
-            return $event->is_registration_closed ? 'success' : 'danger';
-        })
-        ->icon(function () {
-            $event = $this->getOwnerRecord();
-            return $event->is_registration_closed ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed';
-        })
-        ->requiresConfirmation()
-        ->action(function () {
-            $event = $this->getOwnerRecord();
-            $event->is_registration_closed = ! $event->is_registration_closed;
-            $event->save();
 
-            Notification::make()
-                ->title($event->is_registration_closed 
-                    ? '⛔ Pendaftaran telah ditutup.' 
-                    : '✅ Pendaftaran telah dibuka kembali.')
-                ->success()
-                ->send();
-        }),
+            ->headerActions([
+                // 🔹 Tombol Buka/Tutup Pendaftaran
+                Action::make('toggle_registration')
+                    ->label(fn() => $this->getOwnerRecord()->is_registration_closed ? 'Buka Pendaftaran' : 'Tutup Pendaftaran')
+                    ->color(fn() => $this->getOwnerRecord()->is_registration_closed ? 'success' : 'danger')
+                    ->icon(fn() => $this->getOwnerRecord()->is_registration_closed ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
+                    ->requiresConfirmation()
+                    ->action(function () {
+                        $event = $this->getOwnerRecord();
+                        $event->is_registration_closed = ! $event->is_registration_closed;
+                        $event->save();
 
-         Action::make('import_data')
-        ->label('IMPORT DATA PESERTA')
+                        Notification::make()
+                            ->title($event->is_registration_closed
+                                ? '⛔ Pendaftaran telah ditutup.'
+                                : '✅ Pendaftaran telah dibuka kembali.')
+                            ->success()
+                            ->send();
+                    }),
+
+                // 🔹 Import Data Peserta
+             Action::make('import_data')
+        ->label('Import Data Peserta')
+        ->icon('heroicon-o-arrow-down-tray')
         ->color('success')
-        ->icon('heroicon-o-arrow-down-tray'),
-    // 🔹 Export data peserta
-    Action::make('export_data')
-        ->label('Export Data')
-        ->color('primary')
-        ->icon('heroicon-o-arrow-up-tray')
-        ->action(function () {
-            $event = $this->getOwnerRecord();
-            return Excel::download(new KejuaraanExport($event), 'data_kejuaraan.xlsx');
-        }),
-
-    // 🔹 Tambah peserta ke kejuaraan
-    Tables\Actions\Action::make('tambah_peserta')
-        ->label('Tambah Peserta')
-        ->icon('heroicon-o-plus-circle')
         ->form([
-            Select::make('siswa_id')
-                ->label('Nama Lengkap')
-                ->options(fn() => Siswa::all()->pluck('nama_lengkap', 'id'))
-                ->searchable()
+            FileUpload::make('file')
+                ->label('Pilih File Excel')
                 ->required()
-                ->reactive()
-                ->afterStateUpdated(function ($state, callable $set) {
-                    $siswa = Siswa::find($state);
-                    if ($siswa) {
-                        $set('nama_lengkap', $siswa->nama_lengkap);
-                        $set('tempat_lahir', $siswa->tempat_lahir);
-                        $set('tanggal_lahir', $siswa->tanggal_lahir ? Carbon::parse($siswa->tanggal_lahir)->format('Y-m-d') : null);
-                        $set('jenis_kelamin', $siswa->jenis_kelamin === 'Laki-laki' ? 'L' : 'P');
-                        $set('sabuk', $siswa->current_belt_level);
-                        $set('kategori_atlit', $this->hitungKategoriUmur($siswa->tanggal_lahir));
-                    }
-                }),
-
-            TextInput::make('nama_lengkap')->readOnly(),
-            TextInput::make('tempat_lahir')->readOnly(),
-
-            DatePicker::make('tanggal_lahir')
-                ->label('Tanggal Lahir')
-                ->reactive()
-                ->afterStateUpdated(fn($state, callable $set) =>
-                    $set('kategori_atlit', $this->hitungKategoriUmur($state))
-                ),
-
-            TextInput::make('jenis_kelamin')->readOnly(),
-            TextInput::make('sabuk')->readOnly(),
-
-            Select::make('kategori_pertandingan')
-                ->label('Kategori Pertandingan')
-                ->options([
-                    'kyorugi' => 'Kyorugi',
-                    'poomsae' => 'Poomsae',
-                ])
-                ->required()
-                ->reactive(),
-
-            // Untuk Kyorugi
-            TextInput::make('berat_badan')
-                ->numeric()
-                ->suffix('kg')
-                ->required()
-                ->visible(fn($get) => $get('kategori_pertandingan') === 'kyorugi'),
-
-            TextInput::make('tinggi_badan')
-                ->numeric()
-                ->suffix('cm')
-                ->required()
-                ->visible(fn($get) => $get('kategori_pertandingan') === 'kyorugi'),
-
-            // Untuk Poomsae
-            Grid::make(2)->schema([
-                Select::make('tageuk')
-                    ->label('Taegeuk')
-                    ->options([
-                        '1' => 'Taegeuk 1',
-                        '2' => 'Taegeuk 2',
-                        '3' => 'Taegeuk 3',
-                        '4' => 'Taegeuk 4',
-                        '5' => 'Taegeuk 5',
-                        '6' => 'Taegeuk 6',
-                        '7' => 'Taegeuk 7',
-                        '8' => 'Taegeuk 8',
-                    ])
-                    ->required()
-                    ->visible(fn($get) => strtolower((string)$get('kategori_pertandingan')) === 'poomsae'),
-
-                Select::make('tingkat_kategori')
-                    ->label('Kategori (Beginer / Advance)')
-                    ->options([
-                        'Beginer' => 'Beginer',
-                        'Advance' => 'Advance',
-                    ])
-                    ->required()
-                    ->visible(fn($get) => strtolower((string)$get('kategori_pertandingan')) === 'poomsae'),
-            ]),
-
-            Select::make('kategori_atlit')
-                ->label('Kelompok Usia')
-                ->options([
-                    'pracadet' => 'Pra-Cadet',
-                    'cadet'    => 'Cadet',
-                    'junior'   => 'Junior',
-                    'senior'   => 'Senior',
-                ])
-                ->required()
-                ->default(fn(callable $get) => $this->hitungKategoriUmur($get('tanggal_lahir')))
-                ->reactive(),
-
-            Select::make('medali')
-                ->label('Medali')
-                ->options([
-                    'tidak_ada' => 'Tidak Ada',
-                    'emas'      => 'Emas',
-                    'perak'     => 'Perak',
-                    'perunggu'  => 'Perunggu',
-                ])
-                ->default('tidak_ada'),
+                ->storeFiles(false)
+                ->acceptedFileTypes([
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                ]),
         ])
         ->action(function (array $data) {
-            $event = $this->getOwnerRecord();
+            $kejuaraan = $this->getOwnerRecord();
 
-            // 🔹 Cegah duplikasi pendaftaran
-            $sudahAda = $event->siswa()
-                ->where('kejuaraan_siswa.siswa_id', $data['siswa_id'])
-                ->where('kejuaraan_siswa.kategori_pertandingan', $data['kategori_pertandingan'])
-                ->exists();
-
-            if ($sudahAda) {
+            if (!$kejuaraan) {
                 Notification::make()
-                    ->title('⚠️ Siswa sudah terdaftar di kategori ini.')
+                    ->title('Gagal')
+                    ->body('Event Kejuaraan tidak ditemukan.')
                     ->danger()
                     ->send();
                 return;
             }
 
-            // 🔹 Simpan data
-            $event->siswa()->attach($data['siswa_id'], $data);
+            \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\KejuaraanSiswaImport($kejuaraan), $data['file']);
 
             Notification::make()
-                ->title('✅ Peserta berhasil ditambahkan.')
+                ->title('Import Berhasil')
+                ->body('Data peserta berhasil diimpor ke kejuaraan.')
                 ->success()
                 ->send();
         }),
-])
+
+    // 📤 Export Data
+  Action::make('export_data')
+    ->label('Export Data Peserta')
+    ->icon('heroicon-o-arrow-up-tray')
+    ->color('primary')
+    ->action(function () {
+        $kejuaraan = $this->getOwnerRecord();
+
+        return Excel::download(
+            new KejuaraanSiswaExport($kejuaraan),
+            'data_peserta_' . now()->format('Ymd_His') . '.xlsx'
+        );
+    }),
+
+                // 🔹 Tambah Peserta
+                Action::make('tambah_peserta')
+                    ->label('Tambah Peserta')
+                    ->icon('heroicon-o-plus-circle')
+                    ->form([
+                        Select::make('siswa_id')
+                            ->label('Nama Lengkap')
+                            ->options(fn() => Siswa::all()->pluck('nama_lengkap', 'id'))
+                            ->searchable()
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $siswa = Siswa::find($state);
+                                if ($siswa) {
+                                    $set('nama_lengkap', $siswa->nama_lengkap);
+                                    $set('tempat_lahir', $siswa->tempat_lahir);
+                                    $set('tanggal_lahir', $siswa->tanggal_lahir ? Carbon::parse($siswa->tanggal_lahir)->format('Y-m-d') : null);
+                                    $set('jenis_kelamin', $siswa->jenis_kelamin === 'Laki-laki' ? 'L' : 'P');
+                                    $set('sabuk', $siswa->current_belt_level);
+                                    $set('kategori_atlit', $this->hitungKategoriUmur($siswa->tanggal_lahir));
+                                }
+                            }),
+
+                        TextInput::make('nama_lengkap')->readOnly(),
+                        TextInput::make('tempat_lahir')->readOnly(),
+
+                        DatePicker::make('tanggal_lahir')
+                            ->label('Tanggal Lahir')
+                            ->reactive()
+                            ->afterStateUpdated(fn($state, callable $set) =>
+                                $set('kategori_atlit', $this->hitungKategoriUmur($state))
+                            ),
+
+                        TextInput::make('jenis_kelamin')->readOnly(),
+                        TextInput::make('sabuk')->readOnly(),
+
+                        Select::make('kategori_pertandingan')
+                            ->label('Kategori Pertandingan')
+                            ->options([
+                                'kyorugi' => 'Kyorugi',
+                                'poomsae' => 'Poomsae',
+                            ])
+                            ->required()
+                            ->reactive(),
+
+                        TextInput::make('berat_badan')
+                            ->numeric()
+                            ->suffix('kg')
+                            ->required()
+                            ->visible(fn($get) => $get('kategori_pertandingan') === 'kyorugi'),
+
+                        TextInput::make('tinggi_badan')
+                            ->numeric()
+                            ->suffix('cm')
+                            ->required()
+                            ->visible(fn($get) => $get('kategori_pertandingan') === 'kyorugi'),
+
+                        Grid::make(2)->schema([
+                            Select::make('tageuk')
+                                ->label('Taegeuk')
+                                ->options([
+                                    '1' => 'Taegeuk 1',
+                                    '2' => 'Taegeuk 2',
+                                    '3' => 'Taegeuk 3',
+                                    '4' => 'Taegeuk 4',
+                                    '5' => 'Taegeuk 5',
+                                    '6' => 'Taegeuk 6',
+                                    '7' => 'Taegeuk 7',
+                                    '8' => 'Taegeuk 8',
+                                ])
+                                ->required()
+                                ->visible(fn($get) => strtolower((string)$get('kategori_pertandingan')) === 'poomsae'),
+
+                            Select::make('tingkat_kategori')
+                                ->label('Kategori (Beginer / Advance)')
+                                ->options([
+                                    'Beginer' => 'Beginer',
+                                    'Advance' => 'Advance',
+                                ])
+                                ->required()
+                                ->visible(fn($get) => strtolower((string)$get('kategori_pertandingan')) === 'poomsae'),
+                        ]),
+
+                        Select::make('kategori_atlit')
+                            ->label('Kelompok Usia')
+                            ->options([
+                                'pracadet' => 'Pra-Cadet',
+                                'cadet'    => 'Cadet',
+                                'junior'   => 'Junior',
+                                'senior'   => 'Senior',
+                            ])
+                            ->required()
+                            ->default(fn(callable $get) => $this->hitungKategoriUmur($get('tanggal_lahir')))
+                            ->reactive(),
+
+                        Select::make('medali')
+                            ->label('Medali')
+                            ->options([
+                                'tidak_ada' => 'Tidak Ada',
+                                'emas'      => 'Emas',
+                                'perak'     => 'Perak',
+                                'perunggu'  => 'Perunggu',
+                            ])
+                            ->default('tidak_ada'),
+                    ])
+                    ->action(function (array $data) {
+                        $event = $this->getOwnerRecord();
+
+                        $sudahAda = $event->siswa()
+                            ->where('kejuaraan_siswa.siswa_id', $data['siswa_id'])
+                            ->where('kejuaraan_siswa.kategori_pertandingan', $data['kategori_pertandingan'])
+                            ->exists();
+
+                        if ($sudahAda) {
+                            Notification::make()
+                                ->title('⚠️ Siswa sudah terdaftar di kategori ini.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        $event->siswa()->attach($data['siswa_id'], $data);
+
+                        Notification::make()
+                            ->title('✅ Peserta berhasil ditambahkan.')
+                            ->success()
+                            ->send();
+                    }),
+            ])
 
             ->actions([
-                // 🔹 Edit Data Peserta
                 Tables\Actions\EditAction::make()
                     ->form([
                         TextInput::make('berat_badan')

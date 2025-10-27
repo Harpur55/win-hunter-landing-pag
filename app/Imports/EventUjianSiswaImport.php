@@ -105,6 +105,7 @@ Notification::make()
     ->title('✅ Import Berhasil')
     ->body('Data siswa ujian telah disimpan ke database termasuk sabuk berikutnya.')
     ->success()
-    ->send(); // hanya tampil
+    ->sendToDatabase(false) 
+    ->send(); 
     }
 }
