@@ -17,6 +17,7 @@ class DaftarKejuaraan extends Page
     protected static ?string $navigationGroup = 'KEJUARAAN';
     protected static ?string $navigationLabel = 'Daftar Kejuaraan';
     protected static string $view = 'filament.siswa.pages.daftar-kejuaraan';
+    protected static ?string $slug = 'daftar-kejuaraan';
 
     /** @var array<string, mixed> */
     public Collection $events;
@@ -30,6 +31,9 @@ class DaftarKejuaraan extends Page
         $this->events = Kejuaraan::orderBy('tanggal_mulai', 'asc')->get();
         $this->loadSiswaData();
         $this->loadTerdaftar();
+
+        // ✅ Saat halaman dibuka, tandai notifikasi sudah dilihat (hilangkan badge)
+        session(['kejuaraan_seen' => true]);
 
         // 🔔 Kirim notifikasi ke siswa jika semua pendaftaran ditutup
         if ($this->events->every(fn($event) => $event->is_registration_closed)) {
@@ -124,9 +128,7 @@ class DaftarKejuaraan extends Page
             return;
         }
 
-        /**
-         * 🔒 Validasi pendaftaran ditutup
-         */
+        // 🔒 Validasi pendaftaran ditutup
         if ($event->is_registration_closed) {
             Notification::make()
                 ->title('Pendaftaran Ditutup ⛔')
@@ -136,9 +138,7 @@ class DaftarKejuaraan extends Page
             return;
         }
 
-        /**
-         * 🕓 Validasi batas waktu
-         */
+        // 🕓 Validasi batas waktu
         if (Carbon::now()->greaterThan(Carbon::parse($event->tanggal_selesai))) {
             Notification::make()
                 ->title('Pendaftaran sudah ditutup ⛔')
@@ -148,9 +148,7 @@ class DaftarKejuaraan extends Page
             return;
         }
 
-        /**
-         * 🔒 Validasi sabuk putih tanpa nomor registrasi
-         */
+        // 🔒 Validasi sabuk putih tanpa nomor registrasi
         if (
             strtolower($siswa->current_belt_level ?? '') === 'putih' &&
             empty($siswa->no_register)
@@ -163,9 +161,7 @@ class DaftarKejuaraan extends Page
             return;
         }
 
-        /**
-         * ✅ Validasi kategori pertandingan wajib diisi
-         */
+        // ✅ Validasi kategori pertandingan wajib diisi
         if (empty($this->data['kategori_pertandingan'])) {
             Notification::make()
                 ->title('Silakan pilih kategori pertandingan terlebih dahulu.')
@@ -174,9 +170,7 @@ class DaftarKejuaraan extends Page
             return;
         }
 
-        /**
-         * ✅ Validasi spesifik berdasarkan kategori
-         */
+        // ✅ Validasi spesifik berdasarkan kategori
         if ($this->data['kategori_pertandingan'] === 'kyorugi') {
             if (empty($this->data['berat_badan']) || empty($this->data['tinggi_badan'])) {
                 Notification::make()
@@ -197,9 +191,7 @@ class DaftarKejuaraan extends Page
             }
         }
 
-        /**
-         * ✅ Cek apakah siswa sudah terdaftar
-         */
+        // ✅ Cek apakah siswa sudah terdaftar
         $sudah = KejuaraanSiswa::where('kejuaraan_id', $this->selectedEventId)
             ->where('siswa_id', $siswa->id)
             ->exists();
@@ -218,9 +210,7 @@ class DaftarKejuaraan extends Page
             default => null,
         };
 
-        /**
-         * ✅ Simpan data ke tabel kejuaraan_siswa
-         */
+        // ✅ Simpan data ke tabel kejuaraan_siswa
         KejuaraanSiswa::create([
             'kejuaraan_id' => $this->selectedEventId,
             'siswa_id' => $siswa->id,
@@ -265,6 +255,11 @@ class DaftarKejuaraan extends Page
         if (!$user || !$user->siswa) return null;
 
         $siswa = $user->siswa;
+
+        // ✅ Hilangkan badge jika sudah dilihat
+        if (session('kejuaraan_seen')) {
+            return null;
+        }
 
         $jumlahBaru = Kejuaraan::whereNotIn('id', function ($query) use ($siswa) {
             $query->select('kejuaraan_id')

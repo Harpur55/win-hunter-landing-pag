@@ -25,7 +25,7 @@ class GoogleController extends Controller
             $googleUser = Socialite::driver('google')->stateless()->user();
         }
 
-        // Buat atau update user berdasarkan email, set nama sesuai google
+        // Buat atau update user berdasarkan email (bukan siswa)
         $user = User::updateOrCreate(
             ['email' => $googleUser->getEmail()],
             [
@@ -42,24 +42,26 @@ class GoogleController extends Controller
             $user->assignRole($role);
         }
 
-        // Jika user belum punya siswa, coba cari siswa dengan nama sama (case-insensitive).
-        // Jika ditemukan, hubungkan user ke data siswa lama (JANGAN timpa biodata).
+        // Cek apakah user sudah punya siswa
         if (!$user->siswa) {
-            $matched = Siswa::whereRaw('LOWER(nama_lengkap) = ?', [strtolower($user->name)])->first();
-            if ($matched) {
-                $matched->update([
+            // Cari siswa berdasarkan nama lengkap (case-insensitive)
+            $matchedSiswa = Siswa::whereRaw('LOWER(nama_lengkap) = ?', [strtolower($googleUser->getName())])->first();
+
+            if ($matchedSiswa) {
+                // Hubungkan user dengan siswa yang sudah ada
+                $matchedSiswa->update([
                     'user_id' => $user->id,
-                    'email' => $user->email,
+                    'email' => $user->email, // hanya sinkronisasi email
                 ]);
-                // set relation supaya $user->siswa langsung tersedia
-                $user->setRelation('siswa', $matched);
+
+                $user->setRelation('siswa', $matchedSiswa);
             }
-            // jika tidak ada yang cocok, jangan buat data siswa otomatis di sini
-            // (biarkan dibuat saat user menyimpan profil)
+            // Jika tidak ditemukan, jangan buat data siswa baru.
+            // Biarkan user mengisi profil manual nanti.
         }
 
         Auth::guard('siswa')->login($user);
 
-        return redirect('/siswa');
+        return redirect('/siswa.wh');
     }
 }

@@ -30,7 +30,7 @@ class SiswaPanelProvider extends PanelProvider
     {
         return $panel
             ->id('siswa')
-            ->path('siswa')
+            ->path('siswa.wh')
             ->brandName('Sacti Win Hunter')
             ->colors([
                 'primary' => Color::Green,

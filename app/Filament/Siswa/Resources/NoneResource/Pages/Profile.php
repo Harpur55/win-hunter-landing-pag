@@ -26,44 +26,41 @@ class Profile extends Page implements Forms\Contracts\HasForms
     {
         $user = Auth::user();
 
-        // Pastikan user punya nama
+        // Pastikan user punya nama minimal
         if (empty($user->name)) {
             $user->update(['name' => 'User ' . $user->id]);
         }
 
-        // Ambil data siswa berdasarkan user_id
-        $siswa = Siswa::firstOrCreate(
-            ['user_id' => $user->id],
-            [
-                'nama_lengkap' => $user->name ?? 'Siswa Baru',
-                'email' => $user->email,
-                'jenis_kelamin' => null,
-                'tempat_lahir' => null,
-                'tanggal_lahir' => null,
-                'current_belt_level' => null,
-                'no_register' => null,
-                'units_id' => null,
-                'kelas_id' => null,
-                'golongan_darah' => null,
-                'nama_ayah' => null,
-                'nama_ibu' => null,
-                'pekerjaan_ayah' => null,
-                'pekerjaan_ibu' => null,
-                'no_telepon' => null,
-                'alamat_lengkap' => null,
-                'status' => 'aktif',
-                'joint_date' => now(),
-            ]
-        );
+        // Ambil data siswa berdasarkan user_id (jika ada)
+        $siswa = Siswa::where('user_id', $user->id)->first();
 
-        // Isi default bila masih kosong
-        $siswa->fill([
-            'jenis_kelamin' => $siswa->jenis_kelamin ?? 'Laki-laki',
-            'tempat_lahir' => $siswa->tempat_lahir ?? 'Bogor',
-            'current_belt_level' => $siswa->current_belt_level ?? 'putih',
-        ])->save();
+        if (!$siswa) {
+            // Coba cari siswa berdasarkan nama (case-insensitive)
+            $matched = Siswa::whereRaw('LOWER(nama_lengkap) = ?', [strtolower($user->name)])->first();
 
-        // Simpan ke state form
+            if ($matched) {
+                // Hubungkan user ke siswa yang sudah ada
+                $matched->update([
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                ]);
+
+                $siswa = $matched;
+
+                Notification::make()
+                    ->title('Akun berhasil dikaitkan')
+                    ->body("Data siswa '{$matched->nama_lengkap}' berhasil dikaitkan dengan akun Google Anda.")
+                    ->success()
+                    ->send();
+            } else {
+                // Jika tidak ada, jangan buat langsung — biarkan nanti saat simpan
+                $siswa = new Siswa([
+                    'nama_lengkap' => $user->name,
+                    'email' => $user->email,
+                ]);
+            }
+        }
+
         $this->data = $siswa->toArray();
         $this->form->fill($this->data);
     }
@@ -91,12 +88,11 @@ class Profile extends Page implements Forms\Contracts\HasForms
                         ->required()
                         ->disabled(fn() => !$this->isEditing)
                         ->reactive()
-                        ->rules(['string', 'min:3', 'max:191'])
                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                             $user = Auth::user();
                             if (!$user) return;
 
-                            // Nama tidak boleh berupa email
+                            // Abaikan jika nama berupa email
                             if (filter_var($state, FILTER_VALIDATE_EMAIL)) {
                                 Notification::make()
                                     ->title('Nama tidak valid')
@@ -106,53 +102,53 @@ class Profile extends Page implements Forms\Contracts\HasForms
                                 return;
                             }
 
-                            // Cari siswa di database
-                            $matched = Siswa::whereRaw('LOWER(nama_lengkap) = ?', [strtolower($state)])->first();
+                            // Cek data siswa dengan nama yang sama (case-insensitive)
+                            $matched = Siswa::whereRaw('LOWER(nama_lengkap) = ?', [strtolower($state)])
+                                ->where(function ($q) use ($user) {
+                                    $q->whereNull('user_id')->orWhere('user_id', $user->id);
+                                })
+                                ->first();
 
                             if ($matched) {
-                                if ($matched->user_id !== $user->id) {
-                                    $matched->update([
-                                        'user_id' => $user->id,
-                                        'email' => $user->email,
-                                    ]);
-                                }
+                                // Hubungkan user ke siswa
+                                $matched->update([
+                                    'user_id' => $user->id,
+                                    'email' => $user->email,
+                                ]);
 
                                 $user->setRelation('siswa', $matched);
 
                                 $current = $get();
 
-                                // Field yang akan diisi otomatis
-                                $fieldsToPopulate = [
-                                    'jenis_kelamin',
-                                    'tempat_lahir',
-                                    'tanggal_lahir',
-                                    'current_belt_level',
-                                    'no_register',
+                                // Isi otomatis beberapa field kosong dari data siswa lama
+                                $fields = [
+                                    'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir',
+                                    'current_belt_level', 'no_register',
                                 ];
 
-                                foreach ($fieldsToPopulate as $field) {
-                                    $valueInState = data_get($current, $field);
-                                    $valueFromMatched = data_get($matched, $field);
+                                foreach ($fields as $field) {
+                                    $currentValue = data_get($current, $field);
+                                    $matchedValue = data_get($matched, $field);
 
-                                    if ((is_null($valueInState) || $valueInState === '') && !is_null($valueFromMatched)) {
-                                        $set($field, $valueFromMatched);
+                                    if ((is_null($currentValue) || $currentValue === '') && !is_null($matchedValue)) {
+                                        $set($field, $matchedValue);
                                     }
                                 }
 
                                 Notification::make()
-                                    ->title('Data ditemukan')
-                                    ->body("Data siswa '{$matched->nama_lengkap}' ditemukan dan biodata terisi otomatis.")
+                                    ->title('Data siswa ditemukan')
+                                    ->body("Data '{$matched->nama_lengkap}' berhasil dikaitkan dan biodata diisi otomatis.")
                                     ->success()
                                     ->send();
                             } else {
                                 Notification::make()
                                     ->title('Tidak ditemukan')
-                                    ->body('Tidak ada data siswa dengan nama tersebut. Data baru akan dibuat saat Anda menyimpan.')
+                                    ->body('Nama tidak cocok dengan data siswa manapun. Data baru akan dibuat saat disimpan.')
                                     ->info()
                                     ->send();
                             }
 
-                            // Sinkron nama di tabel users
+                            // Sinkron nama user
                             if ($user->name !== $state) {
                                 $user->update(['name' => $state]);
                             }
@@ -170,12 +166,10 @@ class Profile extends Page implements Forms\Contracts\HasForms
                     Forms\Components\Select::make('jenis_kelamin')
                         ->label('Jenis Kelamin')
                         ->options(['Laki-laki' => 'Laki-laki', 'Perempuan' => 'Perempuan'])
-                        ->default('Laki-laki')
                         ->disabled(fn() => !$this->isEditing),
 
                     Forms\Components\TextInput::make('tempat_lahir')
                         ->label('Tempat Lahir')
-                        ->default('Bogor')
                         ->disabled(fn() => !$this->isEditing),
 
                     Forms\Components\DatePicker::make('tanggal_lahir')
@@ -218,14 +212,12 @@ class Profile extends Page implements Forms\Contracts\HasForms
                     Forms\Components\TextInput::make('no_register')
                         ->label('Nomor Register')
                         ->helperText('Nomor register akan tertera pada sertifikat ujian.')
-                        ->placeholder('Contoh: REG-2025-001')
                         ->maxLength(50)
                         ->disabled(fn() => !$this->isEditing),
 
                     Forms\Components\Select::make('current_belt_level')
                         ->label('Tingkatan Sabuk')
                         ->options(self::beltOptions())
-                        ->default('putih')
                         ->disabled(),
 
                     Forms\Components\Select::make('units_id')
@@ -240,18 +232,12 @@ class Profile extends Page implements Forms\Contracts\HasForms
                         ->options(Kelas::pluck('name', 'id'))
                         ->searchable()
                         ->preload()
-                        ->disabled(fn() => !auth()->user()->hasRole('admin'))
-                        ->dehydrated(true)
-                        ->helperText('Kelas hanya dapat diatur oleh admin.'),
-
+                        ->disabled(fn() => !auth()->user()->hasRole('admin')),
 
                     Forms\Components\TextInput::make('status')
                         ->label('Status Siswa')
-                        ->default('Tidak Aktif')
-                        ->disabled(fn() => !auth()->user()->hasRole('admin'))
-                        ->dehydrated(true)
-                        ->helperText('Status hanya dapat diatur oleh admin.'),
-
+                        ->default('Aktif')
+                        ->disabled(fn() => !auth()->user()->hasRole('admin')),
                 ]),
 
             Forms\Components\Section::make('Lain-lain')
@@ -266,12 +252,14 @@ class Profile extends Page implements Forms\Contracts\HasForms
     public function save(): void
     {
         $user = Auth::user();
-        $data = $this->form->getState();
+        $data = collect($this->form->getState())
+            ->mapWithKeys(fn($v, $k) => [$k => is_string($v) ? strip_tags($v) : $v])
+            ->toArray();
 
-        $data = collect($data)->mapWithKeys(fn($v, $k) => [$k => is_string($v) ? strip_tags($v) : $v])->toArray();
+        // Jika user belum punya siswa, baru buat
+        $siswa = Siswa::firstOrCreate(['user_id' => $user->id], $data);
 
-        $siswa = Siswa::updateOrCreate(['user_id' => $user->id], $data);
-
+        // Sinkron nama user
         if (!empty($siswa->nama_lengkap)) {
             $user->update(['name' => $siswa->nama_lengkap]);
         }
