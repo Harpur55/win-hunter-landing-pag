@@ -14,12 +14,20 @@ Route::get('/force-404', fn() => abort(404));
 Route::get('/force-500', fn() => abort(500));
 
 //setup siswa auth reset password
-Route::prefix('siswa')->name('siswa.')->group(function () {
-Route::get('/siswa/forgot-password', [SiswaForgotPasswordController::class, 'showLinkRequestForm'])->name('siswa.password.request');
-Route::post('/siswa/forgot-password', [SiswaForgotPasswordController::class, 'sendResetLinkEmail'])->name('siswa.password.email');
-Route::get('/siswa/reset-password/{token}', [SiswaForgotPasswordController::class, 'showResetForm'])->name('siswa.password.reset');
-Route::post('/siswa/reset-password', [SiswaForgotPasswordController::class, 'reset'])->name('siswa.password.update');
+Route::prefix('siswa.wh')->name('siswa.')->group(function () {
+    Route::get('/forgot-password', [SiswaForgotPasswordController::class, 'showLinkRequestForm'])
+        ->name('password.request');
 
+    Route::post('/forgot-password', [SiswaForgotPasswordController::class, 'sendResetLinkEmail'])
+        ->name('password.email');
+
+    Route::get('/reset-password/{token}', [SiswaForgotPasswordController::class, 'showResetForm'])
+        ->name('password.reset');
+
+    Route::post('/reset-password', [SiswaForgotPasswordController::class, 'reset'])
+        ->name('password.update');
 });
+
+
 Route::get('auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');

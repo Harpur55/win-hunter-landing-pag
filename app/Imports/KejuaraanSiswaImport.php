@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Maatwebsite\Excel\Concerns\ToCollection;
 
 class KejuaraanSiswaImport implements ToCollection
@@ -26,28 +27,26 @@ class KejuaraanSiswaImport implements ToCollection
         foreach ($rows as $row) {
             $rowNumber++;
 
-            // Lewati 5 baris pertama (judul & header)
-            if ($rowNumber <= 5) {
-                continue;
-            }
+            // Lewati baris judul (6 baris pertama)
+            if ($rowNumber <= 6) continue;
 
-            // Kolom ke-2 (index 1) adalah nama siswa
             $nama = trim($row[1] ?? '');
-
             if (empty($nama)) {
                 Log::warning("⚠️ Baris {$rowNumber} dilewati karena nama kosong.");
                 continue;
             }
 
             try {
-                $siswa = Siswa::whereRaw('LOWER(nama_lengkap) = ?', [Str::lower($nama)])->first();
+                $siswa = Siswa::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [strtolower(trim($nama))])
+                    ->orWhere('nama_lengkap', 'LIKE', '%' . trim($nama) . '%')
+                    ->first();
 
                 if (!$siswa) {
                     Log::warning("⚠️ Siswa tidak ditemukan di baris {$rowNumber}: {$nama}");
                     continue;
                 }
 
-                // Normalisasi jenis kelamin (L/P)
+                // Jenis kelamin
                 $jk = strtolower(trim($row[4] ?? ''));
                 $jenis_kelamin = match (true) {
                     str_contains($jk, 'l') => 'L',
@@ -55,29 +54,37 @@ class KejuaraanSiswaImport implements ToCollection
                     default => null,
                 };
 
-                // Konversi tanggal lahir
+                // Tanggal lahir
                 $tanggal = null;
                 if (!empty($row[3])) {
-                    try {
-                        $tanggal = Carbon::createFromFormat('d/m/Y', trim($row[3]))->format('Y-m-d');
-                    } catch (\Throwable $e) {
-                        Log::warning("⚠️ Format tanggal tidak valid di baris {$rowNumber}: {$row[3]}");
+                    if (is_numeric($row[3])) {
+                        $tanggal = Date::excelToDateTimeObject($row[3])->format('Y-m-d');
+                    } else {
+                        try {
+                            $tanggal = Carbon::createFromFormat('d/m/Y', trim($row[3]))->format('Y-m-d');
+                        } catch (\Throwable $e) {
+                            Log::warning("⚠️ Format tanggal tidak valid di baris {$rowNumber}: {$row[3]}");
+                        }
                     }
                 }
 
-                // Data pivot untuk tabel kejuaraan_siswa
+                // Nilai numerik & teks
+                $berat_badan = is_numeric($row[10]) ? $row[10] : null;
+                $tinggi_badan = is_numeric($row[11]) ? $row[11] : null;
+                $medali = ($row[12] == '-' || empty($row[12])) ? null : strtolower(trim($row[12]));
+
                 $pivotData = [
                     'nama_lengkap'          => $siswa->nama_lengkap,
-                    'tempat_lahir'          => $row[2] ?? $siswa->tempat_lahir,
+                    'tempat_lahir'          => trim($row[2] ?? $siswa->tempat_lahir),
                     'tanggal_lahir'         => $tanggal ?? $siswa->tanggal_lahir,
                     'jenis_kelamin'         => $jenis_kelamin,
-                    'sabuk'                 => $row[5] ?? $siswa->current_belt_level,
-                    'kategori_pertandingan' => $row[6] ?? null,
-                    'berat_badan'           => $row[7] ?? null,
-                    'tinggi_badan'          => $row[8] ?? null,
-                    'kategori_atlit'        => $row[9] ?? null,
-                    'tingkat_kategori'      => $row[10] ?? null,
-                    'medali'                => strtolower($row[11] ?? 'tidak_ada'),
+                    'sabuk'                 => trim($row[5] ?? $siswa->current_belt_level),
+                    'kategori_pertandingan' => trim($row[6] ?? null),
+                    'tingkat_kategori'      => trim($row[8] ?? null),
+                    'kategori_atlit'        => trim($row[9] ?? null),
+                    'berat_badan'           => $berat_badan,
+                    'tinggi_badan'          => $tinggi_badan,
+                    'medali'                => $medali,
                     'created_at'            => now(),
                     'updated_at'            => now(),
                 ];

@@ -6,7 +6,6 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "anhskohbo/no-captcha": "^3.7",
         "asmit/resized-column": "*",
         "filament/filament": "^3.3",
         "filament/forms": "^3.3",
@@ -15,7 +14,6 @@
         "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.9",
         "maatwebsite/excel": "^3.1",
-        "mews/captcha": "^3.4",
         "spatie/laravel-permission": "^6.21"
     },
     "require-dev": {
@@ -76,5 +74,11 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": {
+        "biscolab/laravel-turnstile": {
+            "type": "git",
+            "url": "https://github.com/biscolab/laravel-turnstile"
+        }
+    }
 }
