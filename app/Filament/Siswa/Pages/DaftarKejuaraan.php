@@ -98,7 +98,7 @@ class DaftarKejuaraan extends Page
     private function loadSiswaData(): void
     {
         $siswa = Auth::user()->siswa;
-        \Log::info('Tanggal lahir siswa:', [$siswa->tanggal_lahir]);
+       
 
         if ($siswa) {
             $this->data = [

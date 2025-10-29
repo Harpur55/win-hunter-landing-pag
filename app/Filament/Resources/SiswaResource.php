@@ -490,6 +490,23 @@ class SiswaResource extends Resource
             ])
             ->headerActions([
 
+                  Tables\Actions\Action::make('Drop Data User')
+                    ->label('Drop Data Siswa')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Konfirmasi Hapus Semua Data Siswa')
+                    ->modalDescription('Anda akan menghapus SEMUA data siswa secara permanen. Tindakan ini tidak dapat dibatalkan. Apakah Anda yakin?')
+                    ->action(function (): void {
+                        Siswa::query()->delete();
+                        DB::statement('ALTER TABLE siswas AUTO_INCREMENT = 1');
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Semua data siswa telah dihapus.')
+                            ->success()
+                            ->send();
+                    }),
+                
 
                 Tables\Actions\Action::make('export')
                     ->label('Export Siswa')
