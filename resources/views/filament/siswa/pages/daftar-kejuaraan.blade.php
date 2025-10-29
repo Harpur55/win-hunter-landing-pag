@@ -134,8 +134,8 @@
         class="w-full rounded-lg border-gray-300 dark:border-gray-700 
                bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]">
         <option value="">-- Pilih Jenis Kelamin --</option>
-        <option value="Laki-laki">Laki-laki</option>
-        <option value="Perempuan">Perempuan</option>
+        <option value="L" @selected($data['jenis_kelamin'] === 'L' || $data['jenis_kelamin'] === 'Laki-laki')>Laki-laki</option>
+        <option value="P" @selected($data['jenis_kelamin'] === 'P' || $data['jenis_kelamin'] === 'Perempuan')>Perempuan</option>
     </select>
 </div>
 
@@ -151,7 +151,7 @@
     @if (!empty($data['sabuk']) && strtolower($data['sabuk']) !== 'putih')
       <div class="mt-3">
     <label class="block text-sm font-medium mb-1">Nomor Registrasi</label>
-    <input type="text" wire:model="data.no_register"
+    <input type="text" wire:model="data.no_register"   maxlength="15"
         placeholder="Masukkan nomor registrasi ujian..."
         class="w-full rounded-lg border-gray-300 dark:border-gray-700 
                bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
@@ -189,62 +189,61 @@
                         <div class="space-y-4">
 
                             {{-- Kategori Pertandingan --}}
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Kategori Pertandingan</label>
-                                <select wire:model="data.kategori_pertandingan"
-                                    class="w-full rounded-md border border-gray-300 dark:border-gray-700
-                                           bg-gray-50 dark:bg-gray-800 px-3 py-1.5 text-sm text-gray-800 dark:text-gray-100
-                                           focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e]
-                                           appearance-none cursor-pointer transition duration-200 ease-in-out 
-                                           hover:border-[#22c55e] hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <option value="">-- Pilih Kategori --</option>
-                                    <option value="kyorugi">🥋 Kyorugi</option>
-                                    <option value="poomsae">💫 Poomsae</option>
-                                </select>
-                            </div>
+                          <div>
+    <label class="block text-sm font-medium mb-1">Kategori Pertandingan</label>
+    <select wire:model.live="data.kategori_pertandingan"
+        class="w-full rounded-md border border-gray-300 dark:border-gray-700
+               bg-gray-50 dark:bg-gray-800 px-3 py-1.5 text-sm text-gray-800 dark:text-gray-100
+               focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e]
+               appearance-none cursor-pointer transition duration-200 ease-in-out 
+               hover:border-[#22c55e] hover:bg-gray-100 dark:hover:bg-gray-700">
+        <option value="">-- Pilih Kategori --</option>
+        <option value="kyorugi">🥋 Kyorugi</option>
+        <option value="poomsae">💫 Poomsae</option>
+    </select>
+</div>
 
-                            {{-- Jika Kyorugi --}}
-                            @if ($data['kategori_pertandingan'] === 'kyorugi')
-                                <div class="transition-all duration-300">
-                                    <label class="block text-sm font-medium mb-1">Berat Badan (kg)</label>
-                                    <input type="number" wire:model="data.berat_badan"
-                                        class="w-full rounded-lg border-gray-300 dark:border-gray-700 
-                                               bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
-                                </div>
-                                <div class="transition-all duration-300">
-                                    <label class="block text-sm font-medium mb-1">Tinggi Badan (cm)</label>
-                                    <input type="number" wire:model="data.tinggi_badan"
-                                        class="w-full rounded-lg border-gray-300 dark:border-gray-700 
-                                               bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
-                                </div>
-                            @endif
+{{-- Jika Kyorugi --}}
+@if ($data['kategori_pertandingan'] === 'kyorugi')
+    <div class="transition-all duration-300">
+        <label class="block text-sm font-medium mb-1">Berat Badan (kg)</label>
+        <input type="number" wire:model="data.berat_badan"
+            class="w-full rounded-lg border-gray-300 dark:border-gray-700 
+                   bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
+    </div>
+    <div class="transition-all duration-300">
+        <label class="block text-sm font-medium mb-1">Tinggi Badan (cm)</label>
+        <input type="number" wire:model="data.tinggi_badan"
+            class="w-full rounded-lg border-gray-300 dark:border-gray-700 
+                   bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
+    </div>
+@endif
 
-                            {{-- Jika Poomsae --}}
-                            @if ($data['kategori_pertandingan'] === 'poomsae')
-                                <div class="transition-all duration-300">
-                                    <label class="block text-sm font-medium mb-1">Tageuk (boleh kosong)</label>
-                                    <input type="text" wire:model="data.tageuk"
-                                        class="w-full rounded-lg border-gray-300 dark:border-gray-700 
-                                               bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
-                                </div>
-                                <div class="transition-all duration-300">
-                                    <label class="block text-sm font-medium mb-1">Tingkat Kategori</label>
-                                    <select wire:model="data.tingkat_kategori"
-                                        class="w-full rounded-lg border-gray-300 dark:border-gray-700 
-                                               bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]">
-                                        <option value="">-- Pilih Tingkat --</option>
-                                        <option value="Beginer">Beginer</option>
-                                        <option value="Advance">Advance</option>
-                                    </select>
-                                </div>
-                            @endif
+{{-- Jika Poomsae --}}
+@if ($data['kategori_pertandingan'] === 'poomsae')
+    <div class="transition-all duration-300">
+        <label class="block text-sm font-medium mb-1">Tageuk (boleh kosong)</label>
+        <input type="text" wire:model="data.tageuk"
+            class="w-full rounded-lg border-gray-300 dark:border-gray-700 
+                   bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
+    </div>
+    <div class="transition-all duration-300">
+        <label class="block text-sm font-medium mb-1">Tingkat Kategori</label>
+        <select wire:model="data.tingkat_kategori"
+            class="w-full rounded-lg border-gray-300 dark:border-gray-700 
+                   bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]">
+            <option value="">-- Pilih Tingkat --</option>
+            <option value="Beginer">Beginer</option>
+            <option value="Advance">Advance</option>
+        </select>
+    </div>
+@endif
 
-                        </div>
                     </div>
 
                     {{-- FOOTER --}}
                     <div
-                        class="flex flex-col sm:flex-row justify-end gap-3 px-6 py-4 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                        class="flex flex-col sm:flex-row justify-end gap-3 px-6 py-4 ">
                         <button wire:click="batal"
                             class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition w-full sm:w-auto">
                             ❌ Batal

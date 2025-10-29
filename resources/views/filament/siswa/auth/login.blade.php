@@ -73,7 +73,7 @@
         const loginBtn = document.getElementById('login-btn');
         const errorMsg = document.getElementById('captcha-error');
 
-        // ✅ Ketika captcha berhasil
+        // ✅ Ketika captcha berhasilelcome
         function onCaptchaSuccess(token) {
             isCaptchaVerified = true;
             loginBtn.disabled = false;

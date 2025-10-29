@@ -103,7 +103,7 @@ class SiswaResource extends Resource
                                     ->rules(function (callable $get) {
                                         $sabuk = strtolower($get('current_belt_level') ?? '');
                                         if ($sabuk === 'putih') {
-                                            return ['nullable', 'string', 'max:255'];
+                                            return ['nullable', 'string', 'max:15'];
                                         }
                                         return ['required', 'string', 'max:255'];
                                     })
@@ -193,9 +193,9 @@ class SiswaResource extends Resource
                                 'Cuti' => 'Cuti',
                             ])
                             ->required()
-                            ->default('Aktif') // Default nilai 'Aktif'
+                            ->default('Aktif') 
                             ->native(false)
-                            ->columnSpan(2), // Memakan 2 kolom untuk status
+                            ->columnSpan(2), 
                     ]),
 
                 Section::make('Informasi Kontak & Alamat')
@@ -204,8 +204,8 @@ class SiswaResource extends Resource
                     ->schema([
                         TextInput::make('no_telepon')
                             ->label('Nomor Telepon')
-                            ->tel() // Tipe input telepon
-                            ->nullable() // Boleh kosong
+                            ->tel() 
+                            ->nullable() 
                             ->placeholder('Contoh: 081234567890'),
 
                         Textarea::make('alamat_lengkap') // Menggunakan Textarea untuk alamat
@@ -246,32 +246,64 @@ class SiswaResource extends Resource
         return $table
             ->columns([
 
-                TextColumn::make('new_badge')
-                    ->label('')
+               TextColumn::make('status_badge')
+                    ->label('Status Siswa')
                     ->getStateUsing(function ($record) {
-                        // Pastikan ada tanggal dibuat
                         $createdAt = $record->created_at ?? now();
-                        $beltLevel = strtolower($record->current_belt_level ?? '');
+                        $beltLevel = strtolower(trim($record->current_belt_level ?? ''));
                         $days = now()->diffInDays($createdAt);
 
-                        // Tampilkan badge hanya jika:
-                        // 1. Belum punya nomor register
-                        // 2. Sabuk masih putih
-                        // 3. Data dibuat kurang dari 30 hari
-                        $isNew = (
-                            empty($record->no_register) ||
-                            $beltLevel === 'putih' ||
-                            $days <= 30
-                        );
+                        $requiredFields = [
+                            'no_register',
+                            'nama_lengkap',
+                            'tanggal_lahir',
+                            'tempat_lahir',
+                            'no_telepon',
+                            'jenis_kelamin',
+                            'nama_ayah',
+                            'pekerjaan_ayah',
+                            'nama_ibu',
+                            'pekerjaan_ibu',
+                            'joint_date',
+                            'alamat_lengkap',
+                            'current_belt_level',
+                        ];
 
-                        // Jika lebih dari 30 hari, jangan tampilkan badge
-                        return $isNew && $days <= 30 ? 'NEW' : null;
+                        $emptyFields = collect($requiredFields)->filter(function ($field) use ($record) {
+                            $value = trim((string) ($record->$field ?? ''));
+                            return $value === '';
+                        });
+
+
+                        if ($emptyFields->isNotEmpty() && $beltLevel !== 'putih') {
+                            return 'Lengkapi Data';
+                        }
+
+                        // Status 2️⃣: Siswa baru (sabuk putih, no_register kosong, <30 hari)
+                        if ($beltLevel === 'putih' && (empty($record->no_register) && $days <= 30)) {
+                            return 'NEW';
+                        }
+
+                        // Status 3️⃣: Data lengkap
+                        if ($emptyFields->isEmpty() && !empty($record->no_register)) {
+                            return 'Lengkap';
+                        }
+
+                        return '-';
                     })
                     ->badge()
-                    ->color('success')
-                    ->tooltip(fn($record) => 'Siswa baru terdaftar kurang dari 30 hari atau belum memiliki no register')
-                    ->sortable(false)
-                    ->extraAttributes(['style' => 'text-align:center; width:70px;']),
+                    ->color(fn($state) => match ($state) {
+                        'Lengkapi Data' => 'danger',
+                        'NEW' => 'warning',
+                        'Data Lengkap' => 'success',
+                        default => 'success',
+                    })
+                    ->tooltip(fn($state) => match ($state) {
+                        'Lengkapi Data' => 'Lengkapi semua data sebelum melanjutkan.',
+                        'NEW' => 'Siswa baru terdaftar kurang dari 30 hari atau belum memiliki no register.',
+                        default => null,
+                    })
+                    ->extraAttributes(['style' => 'text-align:center; width:130px;']),
 
                 TextColumn::make('nis')
                     ->label('NIS')
