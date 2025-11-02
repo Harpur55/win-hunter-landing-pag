@@ -107,7 +107,8 @@ class SiswaResource extends Resource
                                         }
                                         return ['required', 'string', 'max:255'];
                                     })
-                                    ->helperText('Boleh kosong jika sabuk Putih, wajib diisi untuk sabuk di atas Putih'),
+                                    ->helperText('Boleh kosong jika sabuk Putih, wajib diisi untuk sabuk di atas Putih')
+                                    ->maxlength(13),
 
                                 // Pastikan unik, abaikan record saat mengedit yang sudah ada
 
@@ -490,22 +491,39 @@ class SiswaResource extends Resource
             ])
             ->headerActions([
 
-                  Tables\Actions\Action::make('Drop Data User')
-                    ->label('Drop Data Siswa')
-                    ->icon('heroicon-o-trash')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->modalHeading('Konfirmasi Hapus Semua Data Siswa')
-                    ->modalDescription('Anda akan menghapus SEMUA data siswa secara permanen. Tindakan ini tidak dapat dibatalkan. Apakah Anda yakin?')
-                    ->action(function (): void {
-                        Siswa::query()->delete();
-                        DB::statement('ALTER TABLE siswas AUTO_INCREMENT = 1');
+                                     Tables\Actions\Action::make('Drop Data User')
+        ->label('Drop Data Siswa')
+        ->icon('heroicon-o-trash')
+        ->color('danger')
+        ->requiresConfirmation()
+        ->modalHeading('Konfirmasi Hapus Semua Data Siswa')
+        ->modalDescription('Anda akan menghapus SEMUA data siswa secara permanen. Tindakan ini tidak dapat dibatalkan. Apakah Anda yakin?')
+        ->action(function (): void {
+            Siswa::query()->delete();
+            DB::statement('ALTER TABLE siswas AUTO_INCREMENT = 1');
 
-                        \Filament\Notifications\Notification::make()
-                            ->title('Semua data siswa telah dihapus.')
-                            ->success()
-                            ->send();
-                    }),
+            Notification::make()
+                ->title('Semua data siswa telah dihapus.')
+                ->success()
+                ->send();
+        }),
+
+    Tables\Actions\Action::make('resetKuota')
+        ->label('Reset Kuota Kejuaraan')
+        ->icon('heroicon-o-arrow-path')
+        ->color('danger')
+        ->requiresConfirmation()
+        ->modalHeading('Konfirmasi Reset Kuota')
+        ->modalDescription('Tindakan ini akan menghapus semua data pendaftaran kejuaraan siswa (tabel kejuaraan_siswa). Apakah Anda yakin ingin melanjutkan?')
+        ->action(function (): void {
+            DB::table('kejuaraan_siswa')->truncate();
+
+            Notification::make()
+                ->title('Kuota kejuaraan berhasil direset.')
+                ->body('Semua data kejuaraan siswa telah dihapus, kuota kembali ke awal.')
+                ->success()
+                ->send();
+        }),
                 
 
                 Tables\Actions\Action::make('export')

@@ -2,19 +2,16 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class KelasSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        //
-         DB::table('kelas')->insert([
+        DB::table('kelas')->delete(); // opsional, biar bersih sebelum seeding ulang
+
+        DB::table('kelas')->insert([
             [
                 'image' => 'assets/images/new-logo-win-hunter.png',
                 'name' => 'REGULER',
@@ -22,7 +19,8 @@ class KelasSeeder extends Seeder
                     "- Latihan rutin 2x Per Pekan\n" .
                     "- Kyorugi Iuran 275k/Bln\n" .
                     "- Pomsae Iuran 300k/Bln\n" .
-                    "- 15 - 30 Siswa/Kelas"
+                    "- 15 - 30 Siswa/Kelas",
+                'kuota' => 2,
             ],
             [
                 'image' => 'assets/images/new-logo-win-hunter.png',
@@ -33,7 +31,8 @@ class KelasSeeder extends Seeder
                     "- 10 - 20 Siswa/Kelas\n" .
                     "- Free 2x Kejuaraan/ Tahun\n" .
                     "- Free TryOut 1x\n" .
-                    "- Free TC (Latihan Persiapan Kejuaraan)"
+                    "- Free TC (Latihan Persiapan Kejuaraan)",
+                'kuota' => 3,
             ],
             [
                 'image' => 'assets/images/new-logo-win-hunter.png',
@@ -48,14 +47,15 @@ class KelasSeeder extends Seeder
                     "- Free 3x Kejuaraan/ Tahun\n" .
                     "- Free TryOut 2x\n" .
                     "- Free TC (Latihan Persiapan Kejuaraan)\n" .
-                    "- Discount Basic 10% Biaya Kejuaraan Luar Negeri"
+                    "- Discount Basic 10% Biaya Kejuaraan Luar Negeri",
+                'kuota' => 4,
             ],
             [
                 'image' => 'assets/images/new-logo-win-hunter.png',
                 'name' => 'PRIVATE',
-                'description' => "By Call"
+                'description' => "By Call",
+                'kuota' => 0,
             ],
         ]);
     }
-    }
-
+}

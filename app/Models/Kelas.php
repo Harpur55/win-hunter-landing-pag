@@ -14,5 +14,16 @@ class Kelas extends Model
         'description',
     ];
 
+    public function getSisaKuotaAttribute()
+{
+    $terpakai = $this->siswa()->count();
+    return max($this->kuota - $terpakai, 0);
+}
+
+    public function siswa()
+{
+    return $this->hasMany(Siswa::class);
+}
+
    
 }

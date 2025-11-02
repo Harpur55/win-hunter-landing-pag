@@ -19,6 +19,8 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Pages\Auth\Register;
 use App\Livewire\Auth\CustomLogin;
+use Filament\Navigation\NavigationGroup;;
+use Filament\Navigation\NavigationItem;
 
 
 
@@ -34,6 +36,8 @@ class AdminPanelProvider extends PanelProvider
            
             ->registration(\Filament\Pages\Auth\Register::class)
             ->sidebarCollapsibleOnDesktop()
+
+           
             
 
            

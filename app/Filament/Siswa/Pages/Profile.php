@@ -212,7 +212,7 @@ class Profile extends Page implements Forms\Contracts\HasForms
                     Forms\Components\TextInput::make('no_register')
                         ->label('Nomor Register')
                         ->helperText('Nomor register akan tertera pada sertifikat ujian.')
-                        ->maxLength(50)
+                        ->maxLength(15)
                         ->disabled(fn() => !$this->isEditing),
 
                     Forms\Components\Select::make('current_belt_level')
@@ -250,23 +250,38 @@ class Profile extends Page implements Forms\Contracts\HasForms
     }
 
     public function save(): void
-    {
-        $user = Auth::user();
-        $data = collect($this->form->getState())
-            ->mapWithKeys(fn($v, $k) => [$k => is_string($v) ? strip_tags($v) : $v])
-            ->toArray();
+{
+    $user = Auth::user();
+    $data = collect($this->form->getState())
+        ->mapWithKeys(fn($v, $k) => [$k => is_string($v) ? strip_tags($v) : $v])
+        ->toArray();
 
-        // Jika user belum punya siswa, baru buat
-        $siswa = Siswa::firstOrCreate(['user_id' => $user->id], $data);
+    // Cek apakah siswa sudah ada
+    $siswa = Siswa::where('user_id', $user->id)->first();
 
-        // Sinkron nama user
-        if (!empty($siswa->nama_lengkap)) {
-            $user->update(['name' => $siswa->nama_lengkap]);
-        }
-
-        Notification::make()->title('Profil tersimpan')->success()->send();
-        $this->isEditing = false;
+    if ($siswa) {
+        // Update semua data yang disubmit termasuk no_register
+        $siswa->update($data);
+    } else {
+        // Buat baru jika belum ada
+        $siswa = Siswa::create(array_merge($data, [
+            'user_id' => $user->id,
+            'email' => $user->email,
+        ]));
     }
+
+    // Sinkron nama user
+    if (!empty($siswa->nama_lengkap)) {
+        $user->update(['name' => $siswa->nama_lengkap]);
+    }
+
+    Notification::make()
+        ->title('Profil tersimpan')
+        ->success()
+        ->send();
+
+    $this->isEditing = false;
+}
 
     private static function beltOptions(): array
     {

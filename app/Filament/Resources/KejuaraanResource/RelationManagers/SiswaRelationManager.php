@@ -113,66 +113,66 @@ class SiswaRelationManager extends RelationManager
                     }),
 
                 // 🔹 Import Data Peserta
-             Action::make('import_data')
-        ->label('Import Data Peserta')
-        ->icon('heroicon-o-arrow-down-tray')
-        ->color('success')
-        ->form([
-            FileUpload::make('file')
-                ->label('Pilih File Excel')
-                ->required()
-                ->storeFiles(false)
-                ->acceptedFileTypes([
-                    'application/vnd.ms-excel',
-                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                ]),
-        ])
-        ->action(function (array $data) {
-            $kejuaraan = $this->getOwnerRecord();
+                Action::make('import_data')
+                    ->label('Import Data Peserta')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->form([
+                        FileUpload::make('file')
+                            ->label('Pilih File Excel')
+                            ->required()
+                            ->storeFiles(false)
+                            ->acceptedFileTypes([
+                                'application/vnd.ms-excel',
+                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                            ]),
+                    ])
+                    ->action(function (array $data) {
+                        $kejuaraan = $this->getOwnerRecord();
 
-            if (!$kejuaraan) {
-                Notification::make()
-                    ->title('Gagal')
-                    ->body('Event Kejuaraan tidak ditemukan.')
-                    ->danger()
-                    ->send();
-                return;
-            }
+                        if (!$kejuaraan) {
+                            Notification::make()
+                                ->title('Gagal')
+                                ->body('Event Kejuaraan tidak ditemukan.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
 
-            \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\KejuaraanSiswaImport($kejuaraan), $data['file']);
+                        \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\KejuaraanSiswaImport($kejuaraan), $data['file']);
 
-            Notification::make()
-                ->title('Import Berhasil')
-                ->body('Data peserta berhasil diimpor ke kejuaraan.')
-                ->success()
-                ->send();
-        }),
+                        Notification::make()
+                            ->title('Import Berhasil')
+                            ->body('Data peserta berhasil diimpor ke kejuaraan.')
+                            ->success()
+                            ->send();
+                    }),
 
-    // 📤 Export Data
-  Action::make('export_data')
-    ->label('Export Data Peserta')
-    ->icon('heroicon-o-arrow-up-tray')
-    ->color('primary')
-    ->action(function () {
-        $kejuaraan = $this->getOwnerRecord();
+                // 📤 Export Data
+                Action::make('export_data')
+                    ->label('Export Data Peserta')
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->color('primary')
+                    ->action(function () {
+                        $kejuaraan = $this->getOwnerRecord();
 
-        if (! $kejuaraan) {
-            \Filament\Notifications\Notification::make()
-                ->title('Gagal Export')
-                ->body('Data kejuaraan tidak ditemukan.')
-                ->danger()
-                ->send();
-            return;
-        }
+                        if (! $kejuaraan) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Gagal Export')
+                                ->body('Data kejuaraan tidak ditemukan.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
 
-        // 🔹 Gunakan nama kejuaraan sebagai nama file (bersih dari karakter ilegal)
-        $namaFile = 'data_peserta_' . \Str::slug($kejuaraan->nama_kejuaraan ?? 'kejuaraan') . '_' . now()->format('Y-m-d') . '.xlsx';
+                        // 🔹 Gunakan nama kejuaraan sebagai nama file (bersih dari karakter ilegal)
+                        $namaFile = 'data_peserta_' . \Str::slug($kejuaraan->nama_kejuaraan ?? 'kejuaraan') . '_' . now()->format('Y-m-d') . '.xlsx';
 
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\KejuaraanSiswaExport($kejuaraan),
-            $namaFile
-        );
-    }),
+                        return \Maatwebsite\Excel\Facades\Excel::download(
+                            new \App\Exports\KejuaraanSiswaExport($kejuaraan),
+                            $namaFile
+                        );
+                    }),
 
                 // 🔹 Tambah Peserta
                 Action::make('tambah_peserta')
@@ -203,7 +203,8 @@ class SiswaRelationManager extends RelationManager
                         DatePicker::make('tanggal_lahir')
                             ->label('Tanggal Lahir')
                             ->reactive()
-                            ->afterStateUpdated(fn($state, callable $set) =>
+                            ->afterStateUpdated(
+                                fn($state, callable $set) =>
                                 $set('kategori_atlit', $this->hitungKategoriUmur($state))
                             ),
 
@@ -305,6 +306,25 @@ class SiswaRelationManager extends RelationManager
             ])
 
             ->actions([
+
+                Tables\Actions\Action::make('hapus_peserta')
+                    ->label('Hapus')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->action(function ($record) {
+                        $kejuaraan = $this->getOwnerRecord();
+
+                        // Hapus relasi di tabel pivot kejuaraan_siswa
+                        $kejuaraan->siswa()->detach($record->id);
+
+                        Notification::make()
+                            ->title('Peserta Dihapus 🗑️')
+                            ->body('Siswa telah dihapus dari daftar peserta kejuaraan.')
+                            ->success()
+                            ->send();
+                    }),
+
                 Tables\Actions\EditAction::make()
                     ->form([
                         TextInput::make('berat_badan')
