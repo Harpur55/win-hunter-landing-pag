@@ -174,7 +174,7 @@
         class="w-full rounded-lg border-gray-300 dark:border-gray-700 
                bg-gray-100 dark:bg-gray-800 px-4 py-2.5 cursor-not-allowed" />
 
-    {{-- Jika sabuk bukan putih, tampilkan input No Register --}}
+  
     @if (!empty($data['sabuk']) && strtolower($data['sabuk']) !== 'putih')
       <div class="mt-3">
     <label class="block text-sm font-medium mb-1">Nomor Registrasi</label>
@@ -183,7 +183,6 @@
         class="w-full rounded-lg border-gray-300 dark:border-gray-700 
                bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
 
-    {{-- Peringatan & Petunjuk --}}
     @if (empty($data['no_register']))
         <div class="mt-2 space-y-1">
             <p class="text-yellow-600 dark:text-yellow-400 text-sm font-medium flex items-center gap-1">
