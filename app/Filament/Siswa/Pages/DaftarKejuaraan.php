@@ -293,6 +293,21 @@ class DaftarKejuaraan extends Page
             ->success()
             ->send();
     }
+        /** ===============================
+     *  Ambil Medali Berdasarkan Event
+     *  =============================== */
+    public function getMedaliByEventId($eventId): ?string
+    {
+        $siswa = Auth::user()->siswa;
+        if (!$siswa) return null;
+
+        $riwayat = KejuaraanSiswa::where('kejuaraan_id', $eventId)
+            ->where('siswa_id', $siswa->id)
+            ->first();
+
+        return $riwayat?->medali;
+    }
+
 
     /** ===============================
      *  Badge Navigation

@@ -33,75 +33,66 @@
                         <p>📍 {{ $event->lokasi }}</p>
                     </div>
                 </div>
+  <div class="flex-shrink-0 w-full sm:w-auto">
+                            @if (in_array($event->id, $this->sudahTerdaftar ?? []))
+                                {{-- 🟢 Jika siswa sudah terdaftar --}}
+                                <div class="flex flex-col sm:flex-row gap-2">
+                                    <button 
+                                        class="w-full sm:w-auto px-6 py-2.5 bg-gray-400 text-white font-semibold 
+                                               rounded-lg cursor-not-allowed select-none">
+                                        🟢 Sudah Terdaftar
+                                    </button>
 
-                {{-- Tombol --}}
-              
-{{-- Tombol --}}
-{{-- Tombol --}}
-<div class="flex-shrink-0 w-full sm:w-auto">
-    @if (in_array($event->id, $this->sudahTerdaftar ?? []))
-        {{-- 🟢 Jika siswa sudah terdaftar --}}
-        <div class="flex flex-col sm:flex-row gap-2">
-            <button 
-                class="w-full sm:w-auto px-6 py-2.5 bg-gray-400 text-white font-semibold 
-                       rounded-lg cursor-not-allowed select-none">
-                🟢 Sudah Terdaftar
-            </button>
+                                    {{-- 🔴 Tombol Batalkan (hanya muncul jika belum dapat medali / medali == tidak_ada) --}}
+                                    @php
+                                        $medali = strtolower($this->getMedaliByEventId($event->id) ?? '');
+                                    @endphp
 
-            {{-- 🔴 Tombol Batalkan (hilang jika sudah dapat medali) --}}
-            @if (!in_array($event->id, $this->sudahDapatMedali ?? []))
-                <button wire:click="batalDaftar({{ $event->id }})"
-                    class="w-full sm:w-auto px-6 py-2.5 bg-red-600 hover:bg-red-700 
-                           text-white font-semibold rounded-lg transition">
-                    ❌ Batalkan
-                </button>
-            @else
-                <span
-                    class="px-4 py-2.5 bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-200 
-                           font-semibold rounded-lg text-center select-none">
-                    🏅 Sudah Dapat Medali
-                </span>
-            @endif
+                                    @if ($medali === 'tidak_ada' || $medali === '' || $medali === null)
+                                        <button wire:click="batalDaftar({{ $event->id }})"
+                                            class="w-full sm:w-auto px-6 py-2.5 bg-red-600 hover:bg-red-700 
+                                                   text-white font-semibold rounded-lg transition">
+                                            ❌ Batalkan
+                                        </button>
+                                    @elseif ($medali === 'emas' || $medali === 'perak' || $medali === 'perunggu')
+                                        <span
+                                            class="px-4 py-2.5 bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-200 
+                                                   font-semibold rounded-lg text-center select-none">
+                                            🏅 Sudah Dapat Medali
+                                        </span>
+                                    @endif
+                                </div>
+
+                            @elseif ($event->is_registration_closed)
+                                {{-- 🔒 Jika pendaftaran ditutup --}}
+                                <button 
+                                    class="w-full sm:w-auto px-6 py-2.5 bg-gray-500 text-white font-semibold 
+                                           rounded-lg cursor-not-allowed select-none">
+                                    ⛔ Pendaftaran Ditutup oleh Admin
+                                </button>
+
+                            @else
+                                {{-- ✅ Jika masih terbuka & belum punya medali --}}
+                                <button wire:click="openForm({{ $event->id }})"
+                                    class="w-full sm:w-auto px-6 py-2.5 bg-[#22c55e] hover:bg-[#16a34a] 
+                                           text-white font-semibold rounded-lg transition focus:ring-2 
+                                           focus:ring-offset-2 focus:ring-[#22c55e]">
+                                    ✅ Daftar Sekarang
+                                </button>
+                            @endif
+                        </div>
+
+                    </div>
+                </div>
+            @empty
+                <div
+                    class="w-full py-12 text-center text-gray-500 dark:text-gray-400 
+                           border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
+                    ⚠️ Belum ada kejuaraan tersedia.
+                </div>
+            @endforelse
         </div>
 
-    @elseif ($event->is_registration_closed)
-        {{-- 🔒 Jika pendaftaran ditutup --}}
-        <button 
-            class="w-full sm:w-auto px-6 py-2.5 bg-gray-500 text-white font-semibold 
-                   rounded-lg cursor-not-allowed select-none">
-            ⛔ Pendaftaran Ditutup oleh Admin
-        </button>
-
-    @elseif (!in_array($event->id, $this->sudahDapatMedali ?? []))
-        {{-- ✅ Jika masih terbuka & belum punya medali --}}
-        <button wire:click="openForm({{ $event->id }})"
-            class="w-full sm:w-auto px-6 py-2.5 bg-[#22c55e] hover:bg-[#16a34a] 
-                   text-white font-semibold rounded-lg transition focus:ring-2 
-                   focus:ring-offset-2 focus:ring-[#22c55e]">
-            ✅ Daftar Sekarang
-        </button>
-
-    @else
-        {{-- 🏅 Sudah Dapat Medali (tidak bisa daftar ulang) --}}
-        <span
-            class="w-full sm:w-auto px-6 py-2.5 bg-yellow-100 dark:bg-yellow-800 
-                   text-yellow-700 dark:text-yellow-200 font-semibold rounded-lg 
-                   text-center select-none">
-            🏅 Sudah Dapat Medali
-        </span>
-    @endif
-</div>
-
-            </div>
-        </div>
-    @empty
-        <div
-            class="w-full py-12 text-center text-gray-500 dark:text-gray-400 
-                   border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
-            ⚠️ Belum ada kejuaraan tersedia.
-        </div>
-    @endforelse
-</div>
 
 
         {{-- MODAL PENDAFTARAN --}}
