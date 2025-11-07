@@ -28,22 +28,19 @@ class DaftarKejuaraan extends Page
     public int $kuotaTerpakai = 0;
     public bool $kuotaHabis = false;
     public array $sudahDapatMedali = [];
-    
 
     public function mount(): void
     {
-
         $this->events = Kejuaraan::orderBy('tanggal_mulai', 'asc')->get();
         $this->loadSiswaData();
         $this->loadTerdaftar();
+        $this->loadMedali();
         $this->hitungKuota();
-         $this->loadMedali();
 
-
-        // ✅ Hilangkan badge saat dibuka
+        // Hilangkan badge
         session(['kejuaraan_seen' => true]);
 
-        // 🔔 Notifikasi jika semua kejuaraan ditutup
+        // Notifikasi jika semua kejuaraan ditutup
         if ($this->events->every(fn($event) => $event->is_registration_closed)) {
             Notification::make()
                 ->title('Pendaftaran Ditutup ⛔')
@@ -52,7 +49,7 @@ class DaftarKejuaraan extends Page
                 ->send();
         }
 
-        // 🔔 Jika kuota habis, beri info
+        // Notifikasi jika kuota habis
         if ($this->kuotaHabis) {
             Notification::make()
                 ->title('Kuota Kamu Sudah Habis 🎯')
@@ -62,29 +59,32 @@ class DaftarKejuaraan extends Page
         }
     }
 
+    /** ===============================
+     *  Hitung Kuota Berdasarkan Kelas
+     *  =============================== */
     private function hitungKuota(): void
-{
-    $siswa = Auth::user()->siswa;
+    {
+        $siswa = Auth::user()->siswa;
 
-    // 🔸 Pastikan siswa dan kelas valid
-    if (!$siswa || !$siswa->kelas) {
-        $this->kuotaMaks = 0;
-        $this->kuotaTerpakai = 0;
-        $this->kuotaHabis = true;
-        return;
+        if (!$siswa || !$siswa->kelas) {
+            $this->kuotaMaks = 0;
+            $this->kuotaTerpakai = 0;
+            $this->kuotaHabis = true;
+            return;
+        }
+
+        // Ambil dari kolom kuota di tabel kelas
+        $this->kuotaMaks = (int) ($siswa->kelas->kuota ?? $siswa->kelas->kuota_awal ?? 0);
+
+        // Hitung jumlah kejuaraan yang diikuti
+        $this->kuotaTerpakai = KejuaraanSiswa::where('siswa_id', $siswa->id)->count();
+
+        $this->kuotaHabis = $this->kuotaTerpakai >= $this->kuotaMaks;
     }
 
-    // 🔹 Ambil kuota langsung dari tabel kelas
-    $this->kuotaMaks = (int) ($siswa->kelas->kuota ?? 0);
-
-    // 🔹 Hitung jumlah kejuaraan yang sudah diikuti oleh siswa
-    $this->kuotaTerpakai = KejuaraanSiswa::where('siswa_id', $siswa->id)->count();
-
-    // 🔹 Tentukan apakah kuota sudah habis
-    $this->kuotaHabis = $this->kuotaTerpakai >= $this->kuotaMaks;
-}
-
-
+    /** ===============================
+     *  Load Data Kejuaraan yang Diikuti
+     *  =============================== */
     private function loadTerdaftar(): void
     {
         $siswa = Auth::user()->siswa;
@@ -95,17 +95,19 @@ class DaftarKejuaraan extends Page
             ->toArray();
     }
 
+    /** ===============================
+     *  Load Data Siswa
+     *  =============================== */
     private function loadSiswaData(): void
     {
         $siswa = Auth::user()->siswa;
-       
 
         if ($siswa) {
             $this->data = [
                 'nama_lengkap' => $siswa->nama_lengkap,
                 'tempat_lahir' => $siswa->tempat_lahir,
                 'tanggal_lahir' => $siswa->tanggal_lahir
-                    ? \Carbon\Carbon::parse($siswa->tanggal_lahir)->format('Y-m-d')
+                    ? Carbon::parse($siswa->tanggal_lahir)->format('Y-m-d')
                     : null,
                 'jenis_kelamin' => $siswa->jenis_kelamin,
                 'sabuk' => $siswa->current_belt_level,
@@ -120,6 +122,9 @@ class DaftarKejuaraan extends Page
         }
     }
 
+    /** ===============================
+     *  Buka Form Pendaftaran
+     *  =============================== */
     public function openForm(int $id): void
     {
         if ($this->kuotaHabis) {
@@ -152,12 +157,18 @@ class DaftarKejuaraan extends Page
         $this->loadSiswaData();
     }
 
+    /** ===============================
+     *  Batal Isi Form
+     *  =============================== */
     public function batal(): void
     {
         $this->isOpen = false;
         $this->loadSiswaData();
     }
 
+    /** ===============================
+     *  Simpan Pendaftaran
+     *  =============================== */
     public function daftar(): void
     {
         $siswa = Auth::user()->siswa;
@@ -191,7 +202,6 @@ class DaftarKejuaraan extends Page
             return;
         }
 
-        // ✅ Cek apakah sudah daftar kejuaraan ini dengan kategori sama
         $sudah = KejuaraanSiswa::where('kejuaraan_id', $this->selectedEventId)
             ->where('siswa_id', $siswa->id)
             ->where('kategori_pertandingan', $this->data['kategori_pertandingan'])
@@ -206,7 +216,6 @@ class DaftarKejuaraan extends Page
             return;
         }
 
-        // ✅ Simpan data pendaftaran
         KejuaraanSiswa::create([
             'kejuaraan_id' => $this->selectedEventId,
             'siswa_id' => $siswa->id,
@@ -234,6 +243,9 @@ class DaftarKejuaraan extends Page
             ->send();
     }
 
+    /** ===============================
+     *  Hitung Kategori Umur
+     *  =============================== */
     private function hitungKategoriUmur(?string $tanggalLahir): string
     {
         if (!$tanggalLahir) return 'senior';
@@ -247,6 +259,44 @@ class DaftarKejuaraan extends Page
         };
     }
 
+    /** ===============================
+     *  Medali
+     *  =============================== */
+    private function loadMedali(): void
+    {
+        $siswa = Auth::user()->siswa;
+        if (!$siswa) return;
+
+        $this->sudahDapatMedali = KejuaraanSiswa::where('siswa_id', $siswa->id)
+            ->whereNotNull('medali')
+            ->pluck('kejuaraan_id')
+            ->toArray();
+    }
+
+    /** ===============================
+     *  Batalkan Pendaftaran
+     *  =============================== */
+    public function batalDaftar($eventId): void
+    {
+        $siswa = Auth::user()->siswa;
+        if (!$siswa) return;
+
+        KejuaraanSiswa::where('kejuaraan_id', $eventId)
+            ->where('siswa_id', $siswa->id)
+            ->delete();
+
+        $this->loadTerdaftar();
+        $this->hitungKuota();
+
+        Notification::make()
+            ->title('Pendaftaran dibatalkan')
+            ->success()
+            ->send();
+    }
+
+    /** ===============================
+     *  Badge Navigation
+     *  =============================== */
     public static function getNavigationBadge(): ?string
     {
         $user = Auth::user();
@@ -268,36 +318,4 @@ class DaftarKejuaraan extends Page
     {
         return 'danger';
     }
-
-    private function loadMedali(): void
-{
-    $siswa = Auth::user()->siswa;
-    if (!$siswa) return;
-
-    // Ambil semua kejuaraan di mana siswa sudah punya medali (tidak null)
-    $this->sudahDapatMedali = KejuaraanSiswa::where('siswa_id', $siswa->id)
-        ->whereNotNull('medali') 
-        ->pluck('kejuaraan_id')
-        ->toArray();
 }
-
-   public function batalDaftar($eventId)
-{
-    $siswa = Auth::user()->siswa;
-    if (!$siswa) return;
-
-    KejuaraanSiswa::where('kejuaraan_id', $eventId)
-        ->where('siswa_id', $siswa->id)
-        ->delete();
-
-    $this->loadTerdaftar();
-
-    Notification::make()
-        ->title('Pendaftaran dibatalkan')
-        ->success()
-        ->send();
-}
-
-}
-
-

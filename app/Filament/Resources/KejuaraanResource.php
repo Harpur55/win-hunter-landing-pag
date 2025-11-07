@@ -12,8 +12,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class KejuaraanResource extends Resource
 {
@@ -27,13 +25,20 @@ class KejuaraanResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('nama_kejuaraan')
+                    ->label('Nama Kejuaraan')
                     ->required()
                     ->maxLength(255),
+
                 Forms\Components\DatePicker::make('tanggal_mulai')
+                    ->label('Tanggal Mulai')
                     ->required(),
+
                 Forms\Components\DatePicker::make('tanggal_selesai')
+                    ->label('Tanggal Selesai')
                     ->required(),
+
                 Forms\Components\TextInput::make('lokasi')
+                    ->label('Lokasi')
                     ->required()
                     ->maxLength(255),
             ]);
@@ -43,57 +48,68 @@ class KejuaraanResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nama_kejuaraan')->label('Nama Kejuaraan')->searchable(),
-            Tables\Columns\IconColumn::make('is_registration_closed')
-                ->label('Status Pendaftaran')
-                ->boolean()
-                ->trueIcon('heroicon-o-lock-closed')
-                ->falseIcon('heroicon-o-lock-open')
-                ->trueColor('danger')
-                ->falseColor('success'),
-                Tables\Columns\TextColumn::make('tanggal_mulai')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('tanggal_selesai')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('lokasi')
+                Tables\Columns\TextColumn::make('nama_kejuaraan')
+                    ->label('Nama Kejuaraan')
                     ->searchable(),
+
+                Tables\Columns\IconColumn::make('is_registration_closed')
+                    ->label('Status Pendaftaran')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-lock-closed')
+                    ->falseIcon('heroicon-o-lock-open')
+                    ->trueColor('danger')
+                    ->falseColor('success'),
+
+                Tables\Columns\TextColumn::make('tanggal_mulai')
+                    ->label('Tanggal Mulai')
+                    ->date()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('tanggal_selesai')
+                    ->label('Tanggal Selesai')
+                    ->date()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('lokasi')
+                    ->label('Lokasi')
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Dibuat')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Diperbarui')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                //
             ])
             ->actions([
-                  Action::make('toggle_registration')
-                ->label(fn ($record) => $record->is_registration_closed ? 'Buka Pendaftaran' : 'Tutup Pendaftaran')
-                ->color(fn ($record) => $record->is_registration_closed ? 'success' : 'danger')
-                ->icon(fn ($record) => $record->is_registration_closed ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
-                ->requiresConfirmation()
-                ->action(function ($record) {
-                    $record->is_registration_closed = ! $record->is_registration_closed;
-                    $record->save();
+                // ✅ Tombol Tutup/Buka Pendaftaran
+                Action::make('toggle_registration')
+                    ->label(fn ($record) => $record->is_registration_closed ? 'Buka Pendaftaran' : 'Tutup Pendaftaran')
+                    ->color(fn ($record) => $record->is_registration_closed ? 'success' : 'danger')
+                    ->icon(fn ($record) => $record->is_registration_closed ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
+                    ->requiresConfirmation()
+                    ->action(function ($record) {
+                        $record->is_registration_closed = ! $record->is_registration_closed;
+                        $record->save();
 
-                    Notification::make()
-                        ->title($record->is_registration_closed 
-                            ? '⛔ Pendaftaran telah ditutup.' 
-                            : '✅ Pendaftaran telah dibuka kembali.')
-                        ->success()
-                        ->send();
-                }),
-                Tables\Actions\EditAction::make(),
-            ])
+                        Notification::make()
+                            ->title($record->is_registration_closed 
+                                ? '⛔ Pendaftaran telah ditutup.' 
+                                : '✅ Pendaftaran telah dibuka kembali.')
+                            ->success()
+                            ->send();
+                    }),
+
+                // ✅ Tombol Ubah ke Selesai
+                          ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    
                 ]),
             ]);
     }
@@ -101,7 +117,6 @@ class KejuaraanResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
             RelationManagers\SiswaRelationManager::class,
         ];
     }

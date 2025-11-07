@@ -12,6 +12,8 @@ class Kelas extends Model
         'image',
         'name',
         'description',
+        'kuota',
+        'kuota_awal',
     ];
 
     public function getSisaKuotaAttribute()
@@ -24,6 +26,19 @@ class Kelas extends Model
 {
     return $this->hasMany(Siswa::class);
 }
+
+public function kejuaraanSiswa()
+{
+    return $this->hasMany(\App\Models\KejuaraanSiswa::class, 'kelas_id');
+}
+public function resetSemuaKuotaSiswa()
+{
+    foreach ($this->siswas as $siswa) {
+        $siswa->resetKuota();
+    }
+}
+
+
 
    
 }

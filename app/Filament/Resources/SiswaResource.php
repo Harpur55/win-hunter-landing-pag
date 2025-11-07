@@ -508,22 +508,6 @@ class SiswaResource extends Resource
                 ->send();
         }),
 
-    Tables\Actions\Action::make('resetKuota')
-        ->label('Reset Kuota Kejuaraan')
-        ->icon('heroicon-o-arrow-path')
-        ->color('danger')
-        ->requiresConfirmation()
-        ->modalHeading('Konfirmasi Reset Kuota')
-        ->modalDescription('Tindakan ini akan menghapus semua data pendaftaran kejuaraan siswa (tabel kejuaraan_siswa). Apakah Anda yakin ingin melanjutkan?')
-        ->action(function (): void {
-            DB::table('kejuaraan_siswa')->truncate();
-
-            Notification::make()
-                ->title('Kuota kejuaraan berhasil direset.')
-                ->body('Semua data kejuaraan siswa telah dihapus, kuota kembali ke awal.')
-                ->success()
-                ->send();
-        }),
                 
 
                 Tables\Actions\Action::make('export')

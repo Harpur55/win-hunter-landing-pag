@@ -20,16 +20,52 @@ class KejuaraanSiswa extends Model
         'sabuk',
         'kategori_pertandingan', // kyorugi / poomsae
         'tageuk',
-        'tingkat_kategori', // Beginer / Advance (kalau poomsae)
+        'tingkat_kategori', // Beginner / Advance (kalau poomsae)
         'kategori_atlit',   // pracadet, cadet, junior, senior
         'berat_badan',
         'tinggi_badan',
         'medali',
+        'status',
     ];
 
     /*
     |--------------------------------------------------------------------------
-    | Relationships
+    | 🔁 Event Boot - Otomatis Update Kuota Siswa
+    |--------------------------------------------------------------------------
+    */
+   protected static function booted()
+{
+    // ✅ Saat siswa mendaftar kejuaraan
+    static::creating(function ($record) {
+        $siswa = $record->siswa;
+
+        if (!$siswa) {
+            throw new \Exception('Data siswa tidak ditemukan.');
+        }
+
+        // Cegah jika kuota sudah habis
+        if ($siswa->sisa_kuota <= 0) {
+            throw new \Exception('Kuota siswa sudah habis. Tidak dapat mendaftar kejuaraan lagi.');
+        }
+
+        // Kurangi kuota
+        $siswa->decrement('sisa_kuota');
+    });
+
+    // ✅ Saat data kejuaraan siswa dihapus (batal ikut)
+    static::deleted(function ($record) {
+        $siswa = $record->siswa;
+
+        if ($siswa) {
+            // Tambah lagi kuota siswa
+            $siswa->increment('sisa_kuota');
+        }
+    });
+}
+
+    /*
+    |--------------------------------------------------------------------------
+    | 🔗 Relationships
     |--------------------------------------------------------------------------
     */
     public function kejuaraan(): BelongsTo
@@ -42,31 +78,31 @@ class KejuaraanSiswa extends Model
         return $this->belongsTo(Siswa::class, 'siswa_id');
     }
 
+    public function Kuotakejuaraan()
+    {
+        return $this->belongsTo(\App\Models\Kejuaraan::class, 'kejuaraan_id');
+    }
+
     /*
     |--------------------------------------------------------------------------
-    | Helpers & Accessors
+    | 🧩 Helper Functions & Accessors
     |--------------------------------------------------------------------------
     */
-
-    // Apakah kategori pertandingan Kyorugi
     public function isKyorugi(): bool
     {
         return strtolower($this->kategori_pertandingan ?? '') === 'kyorugi';
     }
 
-    // Apakah kategori pertandingan Poomsae
     public function isPoomsae(): bool
     {
         return strtolower($this->kategori_pertandingan ?? '') === 'poomsae';
     }
 
-    // Label kategori pertandingan
     public function getKategoriLabelAttribute(): string
     {
         return ucfirst($this->kategori_pertandingan ?? '-');
     }
 
-    // Warna kategori (untuk badge)
     public function getKategoriColorAttribute(): string
     {
         return match (strtolower($this->kategori_pertandingan ?? '')) {
@@ -76,7 +112,6 @@ class KejuaraanSiswa extends Model
         };
     }
 
-    // Label medali
     public function getMedaliLabelAttribute(): string
     {
         return match ($this->medali) {
@@ -87,7 +122,6 @@ class KejuaraanSiswa extends Model
         };
     }
 
-    // Warna medali (untuk badge)
     public function getMedaliColorAttribute(): string
     {
         return match ($this->medali) {
@@ -98,28 +132,31 @@ class KejuaraanSiswa extends Model
         };
     }
 
-    
     public function getBiodataAttribute(): string
     {
         return "{$this->nama_lengkap} ({$this->sabuk})";
     }
 
-    
     public function getUmurAttribute(): ?int
     {
         return $this->tanggal_lahir ? Carbon::parse($this->tanggal_lahir)->age : null;
     }
 
-    
     public function getKategoriFullLabelAttribute(): string
     {
         return ucfirst($this->kategori_pertandingan) . ' - ' . ucfirst($this->kategori_atlit);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 🧠 Helper: Cek Apakah Siswa Sudah Terdaftar
+    |--------------------------------------------------------------------------
+    */
     public static function sudahTerdaftar($kejuaraanId, $siswaId, $kategori)
-{
-    return self::where('kejuaraan_id', $kejuaraanId)
-        ->where('siswa_id', $siswaId)
-        ->where('kategori_pertandingan', $kategori)
-        ->exists();
-}
+    {
+        return self::where('kejuaraan_id', $kejuaraanId)
+            ->where('siswa_id', $siswaId)
+            ->where('kategori_pertandingan', $kategori)
+            ->exists();
+    }
 }

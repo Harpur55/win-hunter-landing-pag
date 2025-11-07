@@ -5,12 +5,13 @@ namespace App\Filament\Siswa\Widgets;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Siswa;
-use App\Models\KejuaraanSiswa;
+use App\Models\Kelas;
 
 class WelcomeWidgetSiswa extends Widget
 {
     protected static string $view = 'filament.siswa.widgets.welcome-widget-siswa';
     protected int|string|array $columnSpan = 'full';
+    protected static bool $isLazy = false;
 
     public function getViewData(): array
     {
@@ -18,29 +19,25 @@ class WelcomeWidgetSiswa extends Widget
         $siswa = Siswa::with('kelas')->where('user_id', $user->id)->first();
 
         $nama  = $siswa->nama_lengkap ?? $user->name ?? 'User';
-        $kelas = strtolower($siswa->kelas->name ?? '-');
-
-        /**
-         * 🎯 Kuota maksimal berdasarkan kelas siswa
-         */
-        $kuotaMaks = [
-            'prestasi' => 4,
-            'khusus'   => 3,
-            'reguler'  => 2,
-        ];
-
+        $kelas = $siswa?->kelas?->name ?? '-';
         $kuota = [];
 
-        if (isset($kuotaMaks[$kelas])) {
-            $maks = $kuotaMaks[$kelas];
+        if ($siswa && $siswa->kelas) {
+            $kelasModel = $siswa->kelas;
 
-            // Hitung jumlah kejuaraan yang sudah diikuti
-            $jumlahTerdaftar = KejuaraanSiswa::where('siswa_id', $siswa->id)->count();
+            // Jika siswa belum punya sisa_kuota, set otomatis dari kuota_awal
+            if (is_null($siswa->sisa_kuota)) {
+                $siswa->update([
+                    'sisa_kuota' => $kelasModel->kuota_awal ?? 0,
+                ]);
+            }
 
-            // Hitung kuota tersisa
-            $tersisa = max($maks - $jumlahTerdaftar, 0);
+            // Ambil langsung dari tabel siswa (real-time)
+            $sisaKuota = $siswa->sisa_kuota ?? 0;
 
-            $kuota[$kelas] = $tersisa;
+            $kuota = [
+                strtolower($kelasModel->name) => $sisaKuota,
+            ];
         }
 
         return compact('nama', 'kelas', 'kuota');
