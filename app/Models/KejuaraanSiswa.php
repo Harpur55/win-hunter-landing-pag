@@ -33,9 +33,9 @@ class KejuaraanSiswa extends Model
     | 🔁 Event Boot - Otomatis Update Kuota Siswa
     |--------------------------------------------------------------------------
     */
-   protected static function booted()
+  protected static function booted()
 {
-    // ✅ Saat siswa mendaftar kejuaraan
+    // 🔹 Saat siswa mendaftar kejuaraan
     static::creating(function ($record) {
         $siswa = $record->siswa;
 
@@ -43,25 +43,40 @@ class KejuaraanSiswa extends Model
             throw new \Exception('Data siswa tidak ditemukan.');
         }
 
-        // Cegah jika kuota sudah habis
+        // ✅ Set periode otomatis ke tahun berjalan
+        $record->periode = now()->year;
+
+        // ✅ Cegah pendaftaran jika kuota habis
         if ($siswa->sisa_kuota <= 0) {
             throw new \Exception('Kuota siswa sudah habis. Tidak dapat mendaftar kejuaraan lagi.');
         }
 
-        // Kurangi kuota
-        $siswa->decrement('sisa_kuota');
+        // ✅ Pastikan tidak melebihi batas kuota di tahun yang sama
+        $jumlahTahunIni = self::where('siswa_id', $siswa->id)
+            ->where('periode', now()->year)
+            ->count();
+
+        if ($jumlahTahunIni >= $siswa->kelas->kuota_awal) {
+            throw new \Exception('Kuota siswa sudah habis untuk tahun ini.');
+        }
+
+        // ✅ Kurangi kuota hanya jika berhasil
+        $siswa->decrement('sisa_kuota', 1);
     });
 
-    // ✅ Saat data kejuaraan siswa dihapus (batal ikut)
+    // 🔹 Saat siswa batal ikut kejuaraan
     static::deleted(function ($record) {
         $siswa = $record->siswa;
 
         if ($siswa) {
-            // Tambah lagi kuota siswa
-            $siswa->increment('sisa_kuota');
+            // ✅ Tambah kuota kembali
+            $siswa->increment('sisa_kuota', 1);
         }
     });
 }
+
+
+
 
     /*
     |--------------------------------------------------------------------------

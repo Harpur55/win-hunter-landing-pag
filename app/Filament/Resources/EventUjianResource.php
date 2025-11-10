@@ -76,7 +76,21 @@ class EventUjianResource extends Resource
 
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('tahun')
+                    ->label('Tahun Ujian')
+                    ->options(function () {
+                        return \App\Models\EventUjian::selectRaw('YEAR(tanggal_ujian) as tahun')
+                            ->distinct()
+                            ->orderByDesc('tahun')
+                            ->pluck('tahun', 'tahun')
+                            ->toArray();
+                    })
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->whereYear('tanggal_ujian', $data['value']);
+                        }
+                    }),
+                
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

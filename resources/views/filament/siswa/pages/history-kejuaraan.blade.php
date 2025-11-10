@@ -1,15 +1,41 @@
 <x-filament::page>
     <div class="space-y-8">
 
-        {{-- HEADER --}}
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                🏅 Riwayat Kejuaraan
-            </h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400">
-                Berikut daftar kejuaraan yang pernah kamu ikuti beserta hasilnya.
-            </p>
-        </div>
+      
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-5">
+    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+        🏅 Riwayat Kejuaraan
+        <p class="text-sm font-normal text-gray-600 dark:text-gray-400 mt-1">
+            Berikut daftar kejuaraan yang pernah kamu ikuti beserta hasilnya.
+        </p>
+    </h2>
+</div>
+
+        {{-- Filter Tahun --}}
+<div class="flex items-center gap-3 mb-4">
+    <form method="GET" class="flex items-center gap-2">
+        <label for="tahun" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Filter Tahun:
+        </label>
+        <select 
+            name="tahun" 
+            id="tahun"
+            onchange="this.form.submit()" 
+            class="border-gray-300 dark:border-gray-700 rounded-lg text-sm 
+                   dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Semua Tahun</option>
+            @php
+                $tahunSekarang = now()->year;
+            @endphp
+            @for ($tahun = $tahunSekarang; $tahun >= 2020; $tahun--)
+                <option value="{{ $tahun }}" {{ request('tahun') == $tahun ? 'selected' : '' }}>
+                    {{ $tahun }}
+                </option>
+            @endfor
+        </select>
+    </form>
+</div>
+
 
         {{-- DAFTAR RIWAYAT --}}
         <div class="flex flex-col gap-4 mt-4">

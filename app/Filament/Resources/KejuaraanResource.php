@@ -86,6 +86,26 @@ class KejuaraanResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+               ->filters([
+            Tables\Filters\SelectFilter::make('tahun')
+                ->label('Tahun Kejuaraan')
+                ->options(function () {
+                    // Ambil daftar tahun unik dari kolom tanggal_mulai
+                    return \App\Models\Kejuaraan::selectRaw('YEAR(tanggal_mulai) as tahun')
+                        ->distinct()
+                        ->orderByDesc('tahun')
+                        ->pluck('tahun', 'tahun')
+                        ->toArray();
+                })
+                ->query(function ($query, $data) {
+                    // Terapkan filter berdasarkan tahun yang dipilih
+                    if (!empty($data['value'])) {
+                        $query->whereYear('tanggal_mulai', $data['value']);
+                    }
+                }),
+        ])
+
+
             ->actions([
                 // ✅ Tombol Tutup/Buka Pendaftaran
                 Action::make('toggle_registration')

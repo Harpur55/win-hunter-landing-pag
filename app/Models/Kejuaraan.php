@@ -6,13 +6,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class Kejuaraan extends Model
 {
-    //
     protected $table = 'kejuaraans';
+
     protected $fillable = [
-       'nama_kejuaraan','tanggal_mulai','tanggal_selesai','lokasi','is_registration_closed'
+        'nama_kejuaraan',
+        'tanggal_mulai',
+        'tanggal_selesai',
+        'lokasi',
+        'is_registration_closed',
+        'kuota_reguler',
+        'kuota_prestasi',
+        'kuota_khusus',
+        'kuota_kelas_poomsae',
     ];
 
-     public function siswa()
+    /**
+     * Relasi ke siswa yang mengikuti kejuaraan.
+     */
+    public function siswa()
     {
         return $this->belongsToMany(Siswa::class, 'kejuaraan_siswa', 'kejuaraan_id', 'siswa_id')
             ->withPivot([
@@ -24,43 +35,92 @@ class Kejuaraan extends Model
                 'kategori_pertandingan',
                 'tageuk',
                 'tingkat_kategori',
-                'kategori_atlit',
+                'kategori_atlit', // kolom kategori sebenarnya
                 'berat_badan',
                 'tinggi_badan',
+                'status',
                 'medali',
             ])
             ->withTimestamps();
     }
 
-public function sisaKuota(): int
-{
-    $terdaftar = $this->siswa()->count();
-    return max(0, $this->kuota - $terdaftar);
-}
+    /**
+     * Hitung total kuota kejuaraan (semua kategori digabung).
+     */
+    public function totalKuota(): int
+    {
+        return ($this->kuota_reguler ?? 0)
+            + ($this->kuota_prestasi ?? 0)
+            + ($this->kuota_khusus ?? 0)
+            + ($this->kuota_kelas_poomsae ?? 0);
+    }
 
+    /**
+     * Hitung sisa kuota total (semua kategori).
+     */
+    public function sisaKuota(): int
+    {
+        $terdaftar = $this->siswa()->count();
+        return max(0, $this->totalKuota() - $terdaftar);
+    }
+
+    /**
+     * Kuota kategori Reguler.
+     */
     public function sisaKuotaReguler(): int
-{
-    $terdaftar = $this->siswa()->wherePivot('kategori', 'reguler')->count();
-    return max(0, $this->kuota_reguler - $terdaftar);
-}
+    {
+        $terdaftar = $this->siswa()->wherePivot('kategori_atlit', 'reguler')->count();
+        return max(0, ($this->kuota_reguler ?? 0) - $terdaftar);
+    }
 
-public function sisaKuotaPrestasi(): int
-{
-    $terdaftar = $this->siswa()->wherePivot('kategori', 'prestasi')->count();
-    return max(0, $this->kuota_prestasi - $terdaftar);
-}
+    /**
+     * Kuota kategori Prestasi.
+     */
+    public function sisaKuotaPrestasi(): int
+    {
+        $terdaftar = $this->siswa()->wherePivot('kategori_atlit', 'prestasi')->count();
+        return max(0, ($this->kuota_prestasi ?? 0) - $terdaftar);
+    }
 
-public function sisaKuotaKhusus(): int
-{
-    $terdaftar = $this->siswa()->wherePivot('kategori', 'khusus')->count();
-    return max(0, $this->kuota_khusus - $terdaftar);
-    
+    /**
+     * Kuota kategori Khusus.
+     */
+    public function sisaKuotaKhusus(): int
+    {
+        $terdaftar = $this->siswa()->wherePivot('kategori_atlit', 'khusus')->count();
+        return max(0, ($this->kuota_khusus ?? 0) - $terdaftar);
+    }
 
-}
-public function sisaKuotaKelasPoomsae(): int
-{
-    $terdaftar = $this->siswa()->wherePivot('kategori', 'kelas_poomsae')->count();
-    return max(0, $this->kuota_kelas_poomsae - $terdaftar);
+    /**
+     * Kuota kategori Kelas Poomsae.
+     */
+    public function sisaKuotaKelasPoomsae(): int
+    {
+        $terdaftar = $this->siswa()->wherePivot('kategori_atlit', 'kelas_poomsae')->count();
+        return max(0, ($this->kuota_kelas_poomsae ?? 0) - $terdaftar);
+    }
 
-}
+    /**
+     * Hitung total terpakai semua kategori.
+     */
+    public function kuotaTerpakai(): int
+    {
+        return $this->siswa()->count();
+    }
+
+    /**
+     * Format data ringkas untuk monitoring / dashboard.
+     */
+    public function getSummaryAttribute()
+    {
+        return [
+            'total_kuota'   => $this->totalKuota(),
+            'terpakai'      => $this->kuotaTerpakai(),
+            'sisa'          => $this->sisaKuota(),
+            'reguler'       => $this->sisaKuotaReguler(),
+            'prestasi'      => $this->sisaKuotaPrestasi(),
+            'khusus'        => $this->sisaKuotaKhusus(),
+            'kelas_poomsae' => $this->sisaKuotaKelasPoomsae(),
+        ];
+    }
 }

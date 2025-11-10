@@ -6,7 +6,6 @@ use App\Models\Kejuaraan;
 use App\Models\Siswa;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -24,10 +23,17 @@ class KejuaraanSiswaImport implements ToCollection
     {
         $rowNumber = 0;
 
+        // 🎯 Tentukan tahun event dan tahun sekarang
+        $eventYear = Carbon::parse($this->event->tanggal_mulai)->year ?? null;
+        $currentYear = now()->year;
+
+        // Jika tahun event < tahun sekarang → dianggap event lampau
+        $isEventLampau = $eventYear && $eventYear < $currentYear;
+
         foreach ($rows as $row) {
             $rowNumber++;
 
-            // Lewati baris judul (6 baris pertama)
+            // Lewati header baris pertama
             if ($rowNumber <= 6) continue;
 
             $nama = trim($row[1] ?? '');
@@ -37,8 +43,8 @@ class KejuaraanSiswaImport implements ToCollection
             }
 
             try {
-                $siswa = Siswa::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [strtolower(trim($nama))])
-                    ->orWhere('nama_lengkap', 'LIKE', '%' . trim($nama) . '%')
+                $siswa = Siswa::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [strtolower($nama)])
+                    ->orWhere('nama_lengkap', 'LIKE', '%' . $nama . '%')
                     ->first();
 
                 if (!$siswa) {
@@ -68,7 +74,6 @@ class KejuaraanSiswaImport implements ToCollection
                     }
                 }
 
-                // Nilai numerik & teks
                 $berat_badan = is_numeric($row[10]) ? $row[10] : null;
                 $tinggi_badan = is_numeric($row[11]) ? $row[11] : null;
                 $medali = ($row[12] == '-' || empty($row[12])) ? null : strtolower(trim($row[12]));
@@ -89,11 +94,19 @@ class KejuaraanSiswaImport implements ToCollection
                     'updated_at'            => now(),
                 ];
 
+                // Simpan ke pivot table
                 $this->event->siswa()->syncWithoutDetaching([
                     $siswa->id => $pivotData,
                 ]);
 
-                Log::info("✅ [Row {$rowNumber}] {$nama} berhasil disimpan ke kejuaraan_siswa.");
+                // 🎯 Kurangi kuota hanya jika event tahun ini / mendatang
+                if (!$isEventLampau && $siswa->sisa_kuota > 0) {
+                    $siswa->decrement('sisa_kuota');
+                    Log::info("✅ Kuota siswa {$siswa->nama_lengkap} dikurangi (tahun {$eventYear}, sisa: {$siswa->sisa_kuota}).");
+                } else {
+                    Log::info("ℹ️ Event lampau (tahun {$eventYear}), kuota siswa {$siswa->nama_lengkap} tidak dikurangi.");
+                }
+
             } catch (\Throwable $e) {
                 Log::error("❌ Gagal import baris {$rowNumber}: {$e->getMessage()}");
             }

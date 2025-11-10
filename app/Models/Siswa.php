@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class Siswa extends Model
 {
@@ -55,10 +56,25 @@ class Siswa extends Model
             }
 
             // ✅ Set sisa_kuota awal sesuai kelas
-            if ($siswa->kelas && isset($siswa->kelas->kuota_awal)) {
+           if ($siswa->kelas && isset($siswa->kelas->kuota_awal)) {
                 $siswa->sisa_kuota = $siswa->kelas->kuota_awal;
             }
         });
+
+        // Saat siswa berpindah kelas
+        static::updating(function ($siswa) {
+            if ($siswa->isDirty('kelas_id')) {
+                if ($siswa->kelas && isset($siswa->kelas->kuota_awal)) {
+                    $siswa->sisa_kuota = $siswa->kelas->kuota_awal;
+                }
+            }
+        });
+
+        // Saat kejuaraan siswa berubah, sinkron ulang kuota
+        static::saved(function ($siswa) {
+            $siswa->syncSisaKuota();
+        });
+
     }
 
     // =======================
@@ -125,8 +141,15 @@ class Siswa extends Model
 
     public function kejuaraan()
     {
-        return $this->belongsToMany(\App\Models\Kejuaraan::class, 'kejuaraan_siswa', 'siswa_id', 'kejuaraan_id')
-            ->withPivot(['medali'])
+         return $this->belongsToMany(Kejuaraan::class, 'kejuaraan_siswa', 'siswa_id', 'kejuaraan_id')
+            ->withPivot([
+                'nama_lengkap',
+                'kategori_pertandingan',
+                'kategori_atlit',
+                'medali',
+                'sabuk',
+                'status',
+            ])
             ->withTimestamps();
     }
 
@@ -134,18 +157,28 @@ class Siswa extends Model
     // 🔧 Helper Function
     // =======================
 
-    public function resetKuota(): void
+      public function kuotaTerpakai(): int
     {
-        if ($this->kelas && $this->kelas->kuota_awal !== null) {
-            $this->update(['sisa_kuota' => $this->kelas->kuota_awal]);
-        }
+        return $this->kejuaraan()->count();
     }
+
+ public function resetKuota(): void
+{
+     $kuotaAwal = $this->kelas?->kuota_awal ?? 0;
+    $this->update([
+        'sisa_kuota' => max(0, $kuotaAwal),
+    ]);
+}
+
 
     public function kurangiKuota(): void
     {
-        if ($this->sisa_kuota > 0) {
-            $this->decrement('sisa_kuota');
-        }
+       if ($this->sisa_kuota > 0) {
+        $this->decrement('sisa_kuota');
+    } else {
+        // pastikan tetap 0 (tidak minus)
+        $this->update(['sisa_kuota' => 0]);
+    }
     }
 
     public function tambahKuota(): void
@@ -155,6 +188,18 @@ class Siswa extends Model
         }
     }
 
+      public function sisaKuota(): int
+    {
+            return max(0, (int) $this->sisa_kuota); // selalu minimal 0
+
+    }
+
+     public function syncSisaKuota(): void
+    {
+        $this->updateQuietly([
+            'sisa_kuota' => $this->sisaKuota(),
+        ]);
+    }
     public function user()
     {
         return $this->belongsTo(\App\Models\User::class);
@@ -208,5 +253,28 @@ class Siswa extends Model
         }
 
         return $geupMap[$belt] ?? null;
+    }
+
+
+      public static function monitorKuota(): array
+    {
+        return static::select('kelas_id',
+            DB::raw('COUNT(*) as total_siswa'),
+            DB::raw('SUM(sisa_kuota) as total_sisa'),
+            DB::raw('AVG(sisa_kuota) as rata_rata')
+        )
+        ->groupBy('kelas_id')
+        ->with('kelas:id,nama,kuota_awal')
+        ->get()
+        ->map(function ($item) {
+            return [
+                'kelas' => $item->kelas->nama ?? '-',
+                'kuota_awal' => $item->kelas->kuota_awal ?? 0,
+                'total_siswa' => $item->total_siswa,
+                'total_sisa' => $item->total_sisa,
+                'rata_rata_sisa' => round($item->rata_rata, 1),
+            ];
+        })
+        ->toArray();
     }
 }

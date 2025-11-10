@@ -2,14 +2,13 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Kelas;
+use App\Models\Siswa;
 use Filament\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms;
 use Filament\Forms\Form;
-use App\Models\Kelas;
-use App\Models\KejuaraanSiswa;
-use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 
@@ -25,17 +24,34 @@ class KuotaKejuaraanPage extends Page implements Tables\Contracts\HasTable, Form
 
     public string $activeTab = 'kelas';
 
-    /**
-     * Saat tab diganti, langsung refresh tabel.
-     */
     public function updatedActiveTab(string $value): void
     {
+        // Saat tab berpindah, sinkronkan kuota siswa dulu
+        if ($value === 'siswa') {
+            $this->sinkronKuotaSiswa();
+        }
         $this->dispatch('$refresh');
+    }
+
+    /**
+     * 🔁 Sinkronkan semua sisa kuota siswa
+     */
+    protected function sinkronKuotaSiswa(): void
+    {
+        Siswa::with(['kelas', 'kejuaraan'])->chunk(100, function ($siswas) {
+            foreach ($siswas as $siswa) {
+                $siswa->updateQuietly([
+                    'sisa_kuota' => $siswa->sisaKuota(),
+                ]);
+            }
+        });
     }
 
     public function table(Table $table): Table
     {
-        // TAB: KELAS
+        // =============================
+        // TAB 1: KUOTA PER KELAS
+        // =============================
         if ($this->activeTab === 'kelas') {
             return $table
                 ->query(Kelas::query())
@@ -58,31 +74,26 @@ class KuotaKejuaraanPage extends Page implements Tables\Contracts\HasTable, Form
                         ->sortable(),
                 ])
                 ->headerActions([
-                    // 🔁 Reset Kuota
-                  Tables\Actions\Action::make('resetKuotaSiswa')
-    ->label('🔁 Reset Kuota Siswa')
+                    // 🔁 RESET KUOTA SEMUA SISWA
+              Tables\Actions\Action::make('resetKuotaSiswa')
+    ->label('🔁 Reset Kuota Semua Siswa')
     ->icon('heroicon-o-arrow-path')
     ->color('danger')
     ->requiresConfirmation()
     ->modalHeading('Konfirmasi Reset Kuota')
-    ->modalDescription('Semua siswa akan dikembalikan ke kuota awal sesuai kelas masing-masing. Data kejuaraan tetap aman.')
+    ->modalDescription('Semua siswa akan dikembalikan ke kuota awal sesuai kelas masing-masing.')
     ->action(function () {
-        \App\Models\Siswa::with('kelas')->chunk(100, function ($siswas) {
-            foreach ($siswas as $siswa) {
-                if ($siswa->kelas && $siswa->kelas->kuota_awal !== null) {
-                    $siswa->update(['sisa_kuota' => $siswa->kelas->kuota_awal]);
-                }
-            }
-        });
+        \App\Models\Siswa::with('kelas')->chunk(100, fn($siswas) =>
+            $siswas->each->resetKuota()
+        );
 
         \Filament\Notifications\Notification::make()
-            ->title('✅ Kuota semua siswa berhasil direset ke nilai awal.')
+            ->title('✅ Kuota semua siswa berhasil direset.')
             ->success()
             ->send();
     }),
 
-
-                    // ➕ Tambah Kelas
+                    // ➕ TAMBAH KELAS
                     Tables\Actions\Action::make('addKelas')
                         ->label('Tambah Kelas')
                         ->icon('heroicon-o-plus')
@@ -103,9 +114,7 @@ class KuotaKejuaraanPage extends Page implements Tables\Contracts\HasTable, Form
                                 ->required(),
                         ])
                         ->action(function ($data) {
-                            // Kuota awal juga jadi kuota aktif saat kelas baru dibuat
                             $data['kuota'] = $data['kuota_awal'];
-
                             Kelas::create($data);
 
                             Notification::make()
@@ -117,7 +126,7 @@ class KuotaKejuaraanPage extends Page implements Tables\Contracts\HasTable, Form
                         }),
                 ])
                 ->actions([
-                    // ✏️ Edit Kelas
+                    // ✏️ EDIT KELAS
                     Tables\Actions\EditAction::make()
                         ->form([
                             Forms\Components\TextInput::make('name')
@@ -138,55 +147,85 @@ class KuotaKejuaraanPage extends Page implements Tables\Contracts\HasTable, Form
                                 ->numeric()
                                 ->required(),
                         ])
-                        ->after(function () {
+                        ->after(function ($record) {
+                            // 🔄 Setelah edit kuota_awal, update semua siswa di kelas ini
+                            Siswa::where('kelas_id', $record->id)
+                                ->with('kejuaraan')
+                                ->get()
+                                ->each(function ($siswa) {
+                                    $siswa->syncSisaKuota();
+                                });
+
+                            Notification::make()
+                                ->title('✅ Kuota siswa di kelas ini berhasil disinkronkan.')
+                                ->success()
+                                ->send();
+
                             $this->dispatch('$refresh');
                         }),
                 ]);
         }
 
-        // TAB: KUOTA SISWA
+        // =============================
+        // TAB 2: MONITORING SISWA
+        // =============================
         return $table
             ->query(
-                KejuaraanSiswa::query()
-                    ->with(['siswa.kelas', 'kejuaraan'])
+                Siswa::query()
+                    ->with(['kelas'])
+                    ->withCount('kejuaraan')
             )
             ->columns([
-                Tables\Columns\TextColumn::make('siswa.nama_lengkap')
+                Tables\Columns\TextColumn::make('nama_lengkap')
                     ->label('Nama Siswa')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('siswa.kelas.name')
-                    ->label('Kelas'),
+                Tables\Columns\TextColumn::make('kelas.name')
+                    ->label('Kelas')
+                    ->getStateUsing(fn($record) => $record->kelas?->name ?? '-'),
 
-                Tables\Columns\TextColumn::make('kejuaraan.nama_kejuaraan')
-                    ->label('Kejuaraan'),
-
-                Tables\Columns\TextColumn::make('kuota_awal')
+                Tables\Columns\TextColumn::make('kelas.kuota_awal')
                     ->label('Kuota Awal')
-                    ->getStateUsing(fn($record) => $record->siswa?->kelas?->kuota_awal ?? 0),
+                    ->sortable(),
 
-                Tables\Columns\TextColumn::make('terpakai')
-                    ->label('Terpakai')
-                    ->getStateUsing(
-                        fn($record) =>
-                        KejuaraanSiswa::whereHas(
-                            'siswa',
-                            fn($q) =>
-                            $q->where('kelas_id', $record->siswa?->kelas_id)
-                        )->count()
-                    ),
+                Tables\Columns\TextColumn::make('kejuaraan_count')
+                    ->label('Kejuaraan Diikuti')
+                    ->sortable(),
 
-                Tables\Columns\TextColumn::make('sisa')
+                Tables\Columns\TextColumn::make('sisa_kuota')
                     ->label('Sisa Kuota')
-                    ->getStateUsing(
-                        fn($record) =>
-                        max(0, ($record->siswa?->kelas?->kuota_awal ?? 0)
-                            - KejuaraanSiswa::whereHas(
-                                'siswa',
-                                fn($q) =>
-                                $q->where('kelas_id', $record->siswa?->kelas_id)
-                            )->count())
-                    ),
+                    ->getStateUsing(fn ($record) => $record->sisaKuota())
+                    ->badge()
+                    ->color(fn ($state) => (int)$state === 0 ? 'danger' : 'success')
+                    ->sortable(),
+            ])
+            ->actions([
+             
+                Tables\Actions\Action::make('viewKejuaraan')
+    ->label('Lihat Kejuaraan')
+    ->icon('heroicon-o-eye')
+    ->color('info')
+    ->modalHeading(fn ($record) => "Riwayat Kejuaraan: {$record->nama_lengkap}")
+    ->modalDescription('Berikut daftar kejuaraan yang pernah diikuti siswa ini.')
+    ->modalContent(function ($record) {
+        // Ambil data dari relasi belongsToMany
+        $kejuaraans = $record->kejuaraan()
+            ->withPivot([
+                'nama_lengkap',
+                'kategori_pertandingan',
+                'kategori_atlit',
+                'medali',
+                'sabuk',
+                'status',
+            ])
+            ->get();
+
+        return view('filament.siswa.pages.detail-kejuaraan', compact('kejuaraans'));
+    })
+    ->modalSubmitAction(false)
+    ->modalCancelActionLabel('Tutup')
+    ->modalWidth('4xl'),
             ]);
+            
     }
 }

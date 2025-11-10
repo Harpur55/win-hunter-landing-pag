@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\Kejuaraan;
+use App\Observers\KejuaraanObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,7 +21,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        
+            Kejuaraan::observe(KejuaraanObserver::class);
+
         //
     }
 }

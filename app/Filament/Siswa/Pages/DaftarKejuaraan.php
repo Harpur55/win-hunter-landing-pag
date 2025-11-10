@@ -60,27 +60,31 @@ class DaftarKejuaraan extends Page
     }
 
     /** ===============================
-     *  Hitung Kuota Berdasarkan Kelas
+     *  Hitung Kuota Berdasarkan siswa
      *  =============================== */
-    private function hitungKuota(): void
-    {
-        $siswa = Auth::user()->siswa;
+  private function hitungKuota(): void
+{
+    $siswa = Auth::user()->siswa;
+    if (!$siswa) return;
 
-        if (!$siswa || !$siswa->kelas) {
-            $this->kuotaMaks = 0;
-            $this->kuotaTerpakai = 0;
-            $this->kuotaHabis = true;
-            return;
-        }
+    $kuotaAwal = $siswa->kelas?->kuota_awal ?? 0;
 
-        // Ambil dari kolom kuota di tabel kelas
-        $this->kuotaMaks = (int) ($siswa->kelas->kuota ?? $siswa->kelas->kuota_awal ?? 0);
+    // Gunakan sisa_kuota jika sudah ada, atau kuotaAwal jika baru reset
+    $sisa = $siswa->sisa_kuota ?? $kuotaAwal;
 
-        // Hitung jumlah kejuaraan yang diikuti
-        $this->kuotaTerpakai = KejuaraanSiswa::where('siswa_id', $siswa->id)->count();
+    // Jangan sampai minus
+    $sisa = max(0, $sisa);
 
-        $this->kuotaHabis = $this->kuotaTerpakai >= $this->kuotaMaks;
-    }
+    // Update ke DB agar realtime
+    $siswa->update(['sisa_kuota' => $sisa]);
+
+    $this->kuotaMaks     = $kuotaAwal;
+    $this->kuotaTerpakai = $kuotaAwal - $sisa;
+    $this->kuotaHabis    = $sisa <= 0;
+}
+
+
+
 
     /** ===============================
      *  Load Data Kejuaraan yang Diikuti
@@ -119,6 +123,8 @@ class DaftarKejuaraan extends Page
                 'berat_badan' => '',
                 'tinggi_badan' => '',
             ];
+                
+
         }
     }
 

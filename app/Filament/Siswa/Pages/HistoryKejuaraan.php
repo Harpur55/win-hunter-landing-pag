@@ -16,10 +16,13 @@ class HistoryKejuaraan extends Page
     protected static string $view = 'filament.siswa.pages.history-kejuaraan';
 
     public $riwayat = [];
+    public $tahun = null;
 
     public function mount(): void
     {
         $siswa = Auth::user()->siswa;
+
+         $this->tahun = request()->get('tahun');
 
         if ($siswa) {
             $this->riwayat = KejuaraanSiswa::with('kejuaraan')
