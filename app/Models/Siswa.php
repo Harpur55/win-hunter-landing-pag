@@ -7,6 +7,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class Siswa extends Model
 {
@@ -33,6 +34,7 @@ class Siswa extends Model
         'status',
         'units_id',
         'user_id',
+        // 'lookup_token',
     ];
 
     protected $casts = [
@@ -45,6 +47,18 @@ class Siswa extends Model
     protected static function boot()
     {
         parent::boot();
+
+        //  static::creating(function ($siswa) {
+        //     if (empty($siswa->lookup_token)) {
+        //         $siswa->lookup_token = (string) Str::uuid();
+        //     }
+        //     if (empty($siswa->current_belt_level)) {
+        //         $siswa->current_belt_level = 'Putih';
+        //     }
+        //     if (empty($siswa->status)) {
+        //         $siswa->status = 'Aktif';
+        //     }
+        // });
 
         // Auto generate NIS
         static::creating(function ($siswa) {
@@ -76,6 +90,10 @@ class Siswa extends Model
         });
 
     }
+
+
+
+    
 
     // =======================
     // 🔐 Enkripsi Data Sensitif
@@ -112,6 +130,9 @@ class Siswa extends Model
             set: fn($value) => $value ? Crypt::encryptString($value) : null,
         );
     }
+
+    
+    
 
     // =======================
     // 🔗 Relasi & Custom Attribute

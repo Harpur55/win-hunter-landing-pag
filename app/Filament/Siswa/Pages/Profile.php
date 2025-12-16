@@ -7,6 +7,8 @@ use App\Models\Kelas;
 use App\Models\Unit;
 use Filament\Pages\Page;
 use Filament\Forms;
+use App\Helpers\NameHelper;
+
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
@@ -20,46 +22,35 @@ class Profile extends Page implements Forms\Contracts\HasForms
     protected static string $view = 'filament.siswa.pages.profile';
 
     public ?array $data = [];
-    public bool $isEditing = false;
+    public bool $isEditing = true;
+
+    // Jika data kunci sudah lengkap → lock no_register & unit
+    public bool $lockKeyFields = false;
 
     public function mount(): void
     {
         $user = Auth::user();
 
-        // Pastikan user punya nama minimal
-        if (empty($user->name)) {
-            $user->update(['name' => 'User ' . $user->id]);
-        }
+        // Buat atau ambil data siswa
+        $siswa = Siswa::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'nama_lengkap' => $user->name,
+                'jenis_kelamin' => 'Laki-laki',
+                'tempat_lahir' => 'Bogor',
+                'tanggal_lahir' => now()->toDateString(),
+                'units_id' => 1,
+                'kelas_id' => 1,
+                'current_belt_level' => 'Putih',
+                'status' => 'Aktif',
+            ]
+        );
 
-        // Ambil data siswa berdasarkan user_id (jika ada)
-        $siswa = Siswa::where('user_id', $user->id)->first();
-
-        if (!$siswa) {
-            // Coba cari siswa berdasarkan nama (case-insensitive)
-            $matched = Siswa::whereRaw('LOWER(nama_lengkap) = ?', [strtolower($user->name)])->first();
-
-            if ($matched) {
-                // Hubungkan user ke siswa yang sudah ada
-                $matched->update([
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                ]);
-
-                $siswa = $matched;
-
-                Notification::make()
-                    ->title('Akun berhasil dikaitkan')
-                    ->body("Data siswa '{$matched->nama_lengkap}' berhasil dikaitkan dengan akun Google Anda.")
-                    ->success()
-                    ->send();
-            } else {
-                // Jika tidak ada, jangan buat langsung — biarkan nanti saat simpan
-                $siswa = new Siswa([
-                    'nama_lengkap' => $user->name,
-                    'email' => $user->email,
-                ]);
-            }
-        }
+        // Lock jika 3 data kunci sudah ada
+        $this->lockKeyFields =
+            $siswa->no_register &&
+            $siswa->tanggal_lahir &&
+            $siswa->units_id;
 
         $this->data = $siswa->toArray();
         $this->form->fill($this->data);
@@ -67,223 +58,221 @@ class Profile extends Page implements Forms\Contracts\HasForms
 
     public function form(Form $form): Form
     {
-        return $form->schema([
-            Forms\Components\Section::make('Identitas Dasar')
-                ->columns(1)
-                ->schema([
-                    Forms\Components\FileUpload::make('image')
-                        ->label('Foto Profil')
-                        ->image()
-                        ->avatar()
-                        ->directory('profil_photos')
-                        ->disk('public')
-                        ->visibility('public')
-                        ->maxSize(1024)
-                        ->acceptedFileTypes(['image/jpeg', 'image/png'])
-                        ->imageEditor()
-                        ->previewable(true),
+        return $form
+            ->schema([
 
-                    Forms\Components\TextInput::make('nama_lengkap')
-                        ->label('Nama Lengkap')
-                        ->required()
-                        ->disabled(fn() => !$this->isEditing)
-                        ->reactive()
-                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                            $user = Auth::user();
-                            if (!$user) return;
+                Forms\Components\Section::make('Identitas Dasar & Akademik')
+                    ->columns(2)
+                    ->schema([
 
-                            // Abaikan jika nama berupa email
-                            if (filter_var($state, FILTER_VALIDATE_EMAIL)) {
-                                Notification::make()
-                                    ->title('Nama tidak valid')
-                                    ->body('Nama tidak boleh berupa alamat email.')
-                                    ->warning()
-                                    ->send();
-                                return;
-                            }
+                        Forms\Components\FileUpload::make('image')
+                            ->avatar()
+                            ->directory('profil_photos')
+                            ->disk('public')
+                            ->maxSize(1024)
+                            ->imageEditor()
+                            ->previewable(true)
+                            ->columnSpanFull(),
 
-                            // Cek data siswa dengan nama yang sama (case-insensitive)
-                            $matched = Siswa::whereRaw('LOWER(nama_lengkap) = ?', [strtolower($state)])
-                                ->where(function ($q) use ($user) {
-                                    $q->whereNull('user_id')->orWhere('user_id', $user->id);
-                                })
-                                ->first();
+                        Forms\Components\TextInput::make('nama_lengkap')
+                            ->required()
+                            ->disabled(fn () => !$this->isEditing),
 
-                            if ($matched) {
-                                // Hubungkan user ke siswa
-                                $matched->update([
-                                    'user_id' => $user->id,
-                                    'email' => $user->email,
-                                ]);
+                        Forms\Components\TextInput::make('no_register')
+                            ->label('No Register')
+                            ->required()
+                            ->disabled(fn () => !$this->isEditing || $this->lockKeyFields)
+                            ->afterStateUpdated(function ($state, callable $set, $get) {
 
-                                $user->setRelation('siswa', $matched);
+                                if (!$state) return;
 
-                                $current = $get();
+                                $inputNama = NameHelper::normalize($get('nama_lengkap'));
+                                $tanggal   = $get('tanggal_lahir');
+                                $unit      = $get('units_id');
 
-                                // Isi otomatis beberapa field kosong dari data siswa lama
-                                $fields = [
-                                    'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir',
-                                    'current_belt_level', 'no_register',
-                                ];
+                                $siswa = Siswa::where('no_register', $state)->first();
 
-                                foreach ($fields as $field) {
-                                    $currentValue = data_get($current, $field);
-                                    $matchedValue = data_get($matched, $field);
+                                if ($siswa) {
 
-                                    if ((is_null($currentValue) || $currentValue === '') && !is_null($matchedValue)) {
-                                        $set($field, $matchedValue);
+                                    $matchNama = strtolower($siswa->nama_lengkap) == strtolower($inputNama);
+                                    $matchTgl  = $tanggal && $siswa->tanggal_lahir == $tanggal;
+                                    $matchUnit = $unit && $siswa->units_id == $unit;
+
+                                    if ($matchNama && $matchTgl && $matchUnit) {
+
+                                        $set('nama_lengkap', $siswa->nama_lengkap);
+                                        $set('tempat_lahir', $siswa->tempat_lahir);
+                                        $set('jenis_kelamin', $siswa->jenis_kelamin);
+                                        $set('kelas_id', $siswa->kelas_id);
+                                        $set('current_belt_level', $siswa->current_belt_level);
+                                        $set('nis', $siswa->nis);
+                                        $set('golongan_darah', $siswa->golongan_darah);
+                                        $set('alamat_lengkap', $siswa->alamat_lengkap);
+                                        $set('no_telepon', $siswa->no_telepon);
+
+                                        Notification::make()
+                                            ->title('Data ditemukan')
+                                            ->body('Semua data otomatis terisi.')
+                                            ->success()
+                                            ->send();
+                                    } else {
+                                        Notification::make()
+                                            ->title('Data tidak cocok')
+                                            ->body('Nama, tanggal lahir atau unit salah.')
+                                            ->warning()
+                                            ->send();
                                     }
+                                } else {
+                                    Notification::make()
+                                        ->title('Nomor belum terdaftar')
+                                        ->body('Akan membuat data siswa baru.')
+                                        ->info()
+                                        ->send();
                                 }
+                            }),
 
-                                Notification::make()
-                                    ->title('Data siswa ditemukan')
-                                    ->body("Data '{$matched->nama_lengkap}' berhasil dikaitkan dan biodata diisi otomatis.")
-                                    ->success()
-                                    ->send();
-                            } else {
-                                Notification::make()
-                                    ->title('Tidak ditemukan')
-                                    ->body('Nama tidak cocok dengan data siswa manapun. Data baru akan dibuat saat disimpan.')
-                                    ->info()
-                                    ->send();
-                            }
+                        Forms\Components\Select::make('units_id')
+                            ->label('Unit')
+                            ->options(Unit::pluck('name', 'id'))
+                            ->required()
+                            ->disabled(fn () => !$this->isEditing || $this->lockKeyFields),
 
-                            // Sinkron nama user
-                            if ($user->name !== $state) {
-                                $user->update(['name' => $state]);
-                            }
-                        }),
+                        Forms\Components\TextInput::make('tempat_lahir')
+                            ->disabled(fn () => !$this->isEditing),
 
-                    Forms\Components\TextInput::make('nis')
-                        ->label('NIS')
-                        ->disabled()
-                        ->dehydrated(false),
-                ]),
+                        Forms\Components\DatePicker::make('tanggal_lahir')
+                            ->required()
+                            ->disabled(fn () => !$this->isEditing),
 
-            Forms\Components\Section::make('Biodata')
-                ->columns(2)
-                ->schema([
-                    Forms\Components\Select::make('jenis_kelamin')
-                        ->label('Jenis Kelamin')
-                        ->options(['Laki-laki' => 'Laki-laki', 'Perempuan' => 'Perempuan'])
-                        ->disabled(fn() => !$this->isEditing),
+                        Forms\Components\TextInput::make('nis')
+                            ->disabled()
+                            ->dehydrated(false),
 
-                    Forms\Components\TextInput::make('tempat_lahir')
-                        ->label('Tempat Lahir')
-                        ->disabled(fn() => !$this->isEditing),
+                        Forms\Components\Select::make('current_belt_level')
+                            ->options(self::beltOptions())
+                            ->disabled(), // LOCKED ALWAYS
 
-                    Forms\Components\DatePicker::make('tanggal_lahir')
-                        ->label('Tanggal Lahir')
-                        ->disabled(fn() => !$this->isEditing),
+                        Forms\Components\Select::make('kelas_id')
+                            ->options(Kelas::pluck('name', 'id'))
+                            ->disabled(),
+                    ]),
 
-                    Forms\Components\Select::make('golongan_darah')
-                        ->label('Golongan Darah')
-                        ->options(['A' => 'A', 'B' => 'B', 'AB' => 'AB', 'O' => 'O'])
-                        ->disabled(fn() => !$this->isEditing),
-                ]),
+                Forms\Components\Section::make('Biodata')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\Select::make('jenis_kelamin')
+                            ->options(['Laki-laki' => 'Laki-laki', 'Perempuan' => 'Perempuan'])
+                            ->disabled(fn () => !$this->isEditing),
 
-            Forms\Components\Section::make('Kontak')
-                ->columns(2)
-                ->schema([
-                    Forms\Components\TextInput::make('no_telepon')
-                        ->label('No. Telepon')
-                        ->tel()
-                        ->disabled(fn() => !$this->isEditing),
+                        Forms\Components\Select::make('golongan_darah')
+                            ->options(['A' => 'A', 'B' => 'B', 'AB' => 'AB', 'O' => 'O'])
+                            ->disabled(fn () => !$this->isEditing),
+                    ]),
 
-                    Forms\Components\Textarea::make('alamat_lengkap')
-                        ->label('Alamat Lengkap')
-                        ->rows(3)
-                        ->columnSpanFull()
-                        ->disabled(fn() => !$this->isEditing),
-                ]),
+                Forms\Components\Section::make('Kontak')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('no_telepon')
+                            ->tel()
+                            ->disabled(fn () => !$this->isEditing),
 
-            Forms\Components\Section::make('Informasi Orang Tua')
-                ->columns(2)
-                ->schema([
-                    Forms\Components\TextInput::make('nama_ayah')->label('Nama Ayah')->disabled(fn() => !$this->isEditing),
-                    Forms\Components\TextInput::make('pekerjaan_ayah')->label('Pekerjaan Ayah')->disabled(fn() => !$this->isEditing),
-                    Forms\Components\TextInput::make('nama_ibu')->label('Nama Ibu')->disabled(fn() => !$this->isEditing),
-                    Forms\Components\TextInput::make('pekerjaan_ibu')->label('Pekerjaan Ibu')->disabled(fn() => !$this->isEditing),
-                ]),
+                        Forms\Components\Textarea::make('alamat_lengkap')
+                            ->rows(3)
+                            ->disabled(fn () => !$this->isEditing)
+                            ->columnSpanFull(),
+                    ]),
 
-            Forms\Components\Section::make('Akademik & Unit Latihan')
-                ->columns(3)
-                ->schema([
-                    Forms\Components\TextInput::make('no_register')
-                        ->label('Nomor Register')
-                        ->helperText('Nomor register akan tertera pada sertifikat ujian.')
-                        ->maxLength(15)
-                        ->disabled(fn() => !$this->isEditing),
+                Forms\Components\Section::make('Informasi Orang Tua')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('nama_ayah')->disabled(fn () => !$this->isEditing),
+                        Forms\Components\TextInput::make('pekerjaan_ayah')->disabled(fn () => !$this->isEditing),
+                        Forms\Components\TextInput::make('nama_ibu')->disabled(fn () => !$this->isEditing),
+                        Forms\Components\TextInput::make('pekerjaan_ibu')->disabled(fn () => !$this->isEditing),
+                    ]),
 
-                    Forms\Components\Select::make('current_belt_level')
-                        ->label('Tingkatan Sabuk')
-                        ->options(self::beltOptions())
-                        ->disabled(),
-
-                    Forms\Components\Select::make('units_id')
-                        ->label('Unit Latihan')
-                        ->options(Unit::pluck('name', 'id'))
-                        ->searchable()
-                        ->preload()
-                        ->disabled(fn() => !$this->isEditing),
-
-                    Forms\Components\Select::make('kelas_id')
-                        ->label('Kelas')
-                        ->options(Kelas::pluck('name', 'id'))
-                        ->searchable()
-                        ->preload()
-                        ->disabled(fn() => !auth()->user()->hasRole('admin')),
-
-                    Forms\Components\TextInput::make('status')
-                        ->label('Status Siswa')
-                        ->default('Aktif')
-                        ->disabled(fn() => !auth()->user()->hasRole('admin')),
-                ]),
-
-            Forms\Components\Section::make('Lain-lain')
-                ->schema([
-                    Forms\Components\TextInput::make('beladiri_yang_pernah_diikuti')
-                        ->label('Beladiri yang Pernah Diikuti')
-                        ->disabled(fn() => !$this->isEditing),
-                ]),
-        ])->statePath('data');
+                Forms\Components\Section::make('Lain-lain')
+                    ->schema([
+                        Forms\Components\TextInput::make('beladiri_yang_pernah_diikuti')
+                            ->disabled(fn () => !$this->isEditing),
+                    ]),
+            ])
+            ->statePath('data');
     }
 
+    // ============================
+    // SAVE LOGIC
+    // ============================
     public function save(): void
-{
-    $user = Auth::user();
-    $data = collect($this->form->getState())
-        ->mapWithKeys(fn($v, $k) => [$k => is_string($v) ? strip_tags($v) : $v])
-        ->toArray();
+    {
+        $user = Auth::user();
+        $data = $this->form->getState();
 
-    // Cek apakah siswa sudah ada
-    $siswa = Siswa::where('user_id', $user->id)->first();
+        if (!empty($data['nama_lengkap'])) {
+            $data['nama_lengkap'] = NameHelper::normalize($data['nama_lengkap']);
+        }
 
-    if ($siswa) {
-        // Update semua data yang disubmit termasuk no_register
-        $siswa->update($data);
-    } else {
-        // Buat baru jika belum ada
-        $siswa = Siswa::create(array_merge($data, [
+        $data['jenis_kelamin'] = $data['jenis_kelamin'] ?? 'Laki-laki';
+        $data['tempat_lahir'] = $data['tempat_lahir'] ?? 'Bogor';
+        $data['tanggal_lahir'] = $data['tanggal_lahir'] ?? now()->toDateString();
+        $data['units_id'] = $data['units_id'] ?? 1;
+        $data['kelas_id'] = $data['kelas_id'] ?? 1;
+
+        if (
+            empty($data['no_register']) ||
+            empty($data['tanggal_lahir']) ||
+            empty($data['units_id'])
+        ) {
+            Notification::make()
+                ->title('Data kunci tidak lengkap')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $existing = Siswa::where('no_register', $data['no_register'])->first();
+
+        if ($existing) {
+
+            if ($existing->user_id !== null && $existing->user_id !== $user->id) {
+                Notification::make()
+                    ->title('Nomor dipakai orang lain')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            $existing->update($data);
+            $user->update(['name' => $existing->nama_lengkap]);
+
+            Notification::make()
+                ->title('Profil diperbarui')
+                ->success()
+                ->send();
+
+            $this->lockKeyFields = true;
+            $this->isEditing = false;
+            $this->form->fill($existing->toArray());
+            return;
+        }
+
+        $new = Siswa::create(array_merge($data, [
             'user_id' => $user->id,
-            'email' => $user->email,
         ]));
+
+        $user->update(['name' => $new->nama_lengkap]);
+
+        Notification::make()
+            ->title('Data siswa baru dibuat')
+            ->success()
+            ->send();
+
+        $this->lockKeyFields = true;
+        $this->isEditing = false;
+        $this->form->fill($new->toArray());
     }
 
-    // Sinkron nama user
-    if (!empty($siswa->nama_lengkap)) {
-        $user->update(['name' => $siswa->nama_lengkap]);
-    }
-
-    Notification::make()
-        ->title('Profil tersimpan')
-        ->success()
-        ->send();
-
-    $this->isEditing = false;
-}
-
-    private static function beltOptions(): array
+    public static function beltOptions(): array
     {
         return [
             'putih' => 'Putih',

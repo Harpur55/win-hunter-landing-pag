@@ -14,7 +14,7 @@ Route::get('/force-404', fn() => abort(404));
 Route::get('/force-500', fn() => abort(500));
 
 //setup siswa auth reset password
-Route::prefix('siswa.wh')->name('siswa.')->group(function () {
+Route::prefix('siswa')->name('siswa.')->group(function () {
     Route::get('/forgot-password', [SiswaForgotPasswordController::class, 'showLinkRequestForm'])
         ->name('password.request');
 
@@ -35,3 +35,34 @@ Route::get('auth/google/callback', [GoogleController::class, 'callback'])->name(
 Route::get('/sertifikat', function () {
     return view('sertifikat');
 });
+
+Route::get('/test-observer', function () {
+
+    // Simulasi request (karena observer butuh POST/PUT/PATCH method)
+    request()->setMethod('POST'); 
+    request()->merge([
+        'no_register'   => 'REG-999',
+        'tanggal_lahir' => '2005-02-10',
+    ]);
+
+    // 1) buat user baru
+    $user = \App\Models\User::create([
+        'name' => 'Hari purnomoo',
+        'email' => 'harpur@tesmail.com',
+        'password' => bcrypt('123456'),
+    ]);
+
+    // 2) update user (trigger observer)
+    $user->update([
+        'name' => 'hari purnomo aji'
+    ]);
+
+    return [
+        'user'   => $user->fresh(),
+        'siswa'  => $user->fresh()->siswa,
+        'status' => $user->fresh()->siswa ? 'Observer bekerja!' : 'Observer TIDAK jalan!',
+    ];
+});
+
+
+

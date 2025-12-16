@@ -15,7 +15,6 @@ class SiswaRegisterController extends Controller
      */
     public function showRegisterForm()
     {
-        // Sesuaikan dengan path yang benar
         return view('filament.siswa.auth.register');
     }
 
@@ -24,25 +23,25 @@ class SiswaRegisterController extends Controller
      */
     public function register(Request $request)
     {
-        // validasi input
-        $request->validate([
+        $validated = $request->validate([
             'nama_lengkap' => 'required|string|max:255',
             'email'        => 'required|email|unique:users,email',
             'password'     => 'required|min:6|confirmed',
         ]);
 
-        // simpan ke tabel users
+        // Buat user baru (default masuk wizard)
         $user = User::create([
-            'name'     => $request->nama_lengkap,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
+            'name'          => $validated['nama_lengkap'],
+            'email'         => $validated['email'],
+            'password'      => Hash::make($validated['password']),
+            'needs_wizard'  => true, // wajib wizard pertama kali
         ]);
 
-        // login otomatis setelah register
+        // login otomatis
         Auth::login($user);
 
-        // redirect ke dashboard siswa
-        return redirect()->route('filament.siswa.pages.dashboard')
-            ->with('success', 'Registrasi berhasil, selamat datang!');
+        // arahkan langsung ke wizard siswa, bukan dashboard
+        return redirect()->route('wizard.siswa.start')
+            ->with('success', 'Registrasi berhasil, silakan lengkapi data!');
     }
 }

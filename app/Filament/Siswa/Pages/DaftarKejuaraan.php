@@ -31,7 +31,7 @@ class DaftarKejuaraan extends Page
 
     public function mount(): void
     {
-        $this->events = Kejuaraan::orderBy('tanggal_mulai', 'asc')->get();
+        $this->loadEvents();      // ✅ hanya kejuaraan tahun ini & depan
         $this->loadSiswaData();
         $this->loadTerdaftar();
         $this->loadMedali();
@@ -40,7 +40,39 @@ class DaftarKejuaraan extends Page
         // Hilangkan badge
         session(['kejuaraan_seen' => true]);
 
-        // Notifikasi jika semua kejuaraan ditutup
+        // Notifikasi umum
+        $this->checkNotifications();
+    }
+
+    /** ===============================
+     *  Ambil Kejuaraan Tahun Ini & Tahun Depan
+     *  =============================== */
+    private function loadEvents(): void
+    {
+        $tahunSekarang = Carbon::now()->year;
+        $tahunDepan = $tahunSekarang + 1;
+
+        $this->events = Kejuaraan::query()
+            ->whereYear('tanggal_mulai', '>=', $tahunSekarang)
+            ->whereYear('tanggal_mulai', '<=', $tahunDepan)
+            ->orderBy('tanggal_mulai', 'asc')
+            ->get();
+    }
+
+    /** ===============================
+     *  Cek dan Kirim Notifikasi
+     *  =============================== */
+    private function checkNotifications(): void
+    {
+        if ($this->events->isEmpty()) {
+            Notification::make()
+                ->title('Belum Ada Kejuaraan 📭')
+                ->body('Belum ada kejuaraan untuk tahun ini atau tahun depan.')
+                ->warning()
+                ->send();
+            return;
+        }
+
         if ($this->events->every(fn($event) => $event->is_registration_closed)) {
             Notification::make()
                 ->title('Pendaftaran Ditutup ⛔')
@@ -49,7 +81,6 @@ class DaftarKejuaraan extends Page
                 ->send();
         }
 
-        // Notifikasi jika kuota habis
         if ($this->kuotaHabis) {
             Notification::make()
                 ->title('Kuota Kamu Sudah Habis 🎯')
@@ -60,31 +91,22 @@ class DaftarKejuaraan extends Page
     }
 
     /** ===============================
-     *  Hitung Kuota Berdasarkan siswa
+     *  Hitung Kuota Berdasarkan Siswa
      *  =============================== */
-  private function hitungKuota(): void
-{
-    $siswa = Auth::user()->siswa;
-    if (!$siswa) return;
+    private function hitungKuota(): void
+    {
+        $siswa = Auth::user()->siswa;
+        if (!$siswa) return;
 
-    $kuotaAwal = $siswa->kelas?->kuota_awal ?? 0;
+        $kuotaAwal = $siswa->kelas?->kuota_awal ?? 0;
+        $sisa = max(0, $siswa->sisa_kuota ?? $kuotaAwal);
 
-    // Gunakan sisa_kuota jika sudah ada, atau kuotaAwal jika baru reset
-    $sisa = $siswa->sisa_kuota ?? $kuotaAwal;
+        $siswa->update(['sisa_kuota' => $sisa]);
 
-    // Jangan sampai minus
-    $sisa = max(0, $sisa);
-
-    // Update ke DB agar realtime
-    $siswa->update(['sisa_kuota' => $sisa]);
-
-    $this->kuotaMaks     = $kuotaAwal;
-    $this->kuotaTerpakai = $kuotaAwal - $sisa;
-    $this->kuotaHabis    = $sisa <= 0;
-}
-
-
-
+        $this->kuotaMaks     = $kuotaAwal;
+        $this->kuotaTerpakai = $kuotaAwal - $sisa;
+        $this->kuotaHabis    = $sisa <= 0;
+    }
 
     /** ===============================
      *  Load Data Kejuaraan yang Diikuti
@@ -123,8 +145,6 @@ class DaftarKejuaraan extends Page
                 'berat_badan' => '',
                 'tinggi_badan' => '',
             ];
-                
-
         }
     }
 
@@ -299,7 +319,8 @@ class DaftarKejuaraan extends Page
             ->success()
             ->send();
     }
-        /** ===============================
+
+    /** ===============================
      *  Ambil Medali Berdasarkan Event
      *  =============================== */
     public function getMedaliByEventId($eventId): ?string
@@ -313,7 +334,6 @@ class DaftarKejuaraan extends Page
 
         return $riwayat?->medali;
     }
-
 
     /** ===============================
      *  Badge Navigation

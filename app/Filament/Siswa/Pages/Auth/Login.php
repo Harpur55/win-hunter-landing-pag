@@ -3,65 +3,54 @@
 namespace App\Filament\Siswa\Pages\Auth;
 
 use Filament\Pages\Auth\Login as BaseLogin;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Http;
-use Filament\Http\Responses\Auth\Contracts\LoginResponse;
+use Illuminate\Validation\ValidationException;
 
 class Login extends BaseLogin
 {
     protected static string $view = 'filament.siswa.auth.login';
 
     /**
-    //  * Override method authenticate() agar kompatibel dengan Filament v3
-    //  */
-    // public function authenticate(): ?LoginResponse
-    // {
-    //     $this->validateCaptcha();
+     * Redirect setelah login → cek wizard di sini.
+     */
+    protected function getRedirectUrl(): string
+    {
+        $user = auth()->user();
 
-    //     // Lanjutkan autentikasi bawaan Filament
-    //     return parent::authenticate();
-    // }
+        // Jika user baru & belum isi wizard → arahkan ke wizard
+        if ($user && $user->needs_wizard) {
+            return route('filament.siswa.pages.siswa-wizard');
+        }
 
-    // /**
-    //  * Validasi Cloudflare Turnstile Captcha
-    //  */
-    // protected function validateCaptcha(): void
-    // {
-    //     $token = request()->input('cf-turnstile-response');
+        // Jika wizard sudah selesai → ke dashboard default Filament
+        return parent::getRedirectUrl();
+    }
 
-    //     if (!$token) {
-    //         throw ValidationException::withMessages([
-    //             'captcha' => 'Silakan centang verifikasi "Saya bukan robot".',
-    //         ]);
-    //     }
+    /**
+     * Cloudflare Turnstile Captcha (opsional)
+     */
+    protected function validateCaptcha(): void
+    {
+        $token = request()->input('cf-turnstile-response');
 
-    //     $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
-    //         'secret' => config('services.turnstile.secret'),
-    //         'response' => $token,
-    //         'remoteip' => request()->ip(),
-    //     ]);
+        if (!$token) {
+            throw ValidationException::withMessages([
+                'captcha' => 'Silakan centang verifikasi "Saya bukan robot".',
+            ]);
+        }
 
-    //     $data = $response->json();
+        $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            'secret'   => config('services.turnstile.secret'),
+            'response' => $token,
+            'remoteip' => request()->ip(),
+        ]);
 
-    //     // Gagal koneksi atau verifikasi
-    //     if (!$response->successful() || empty($data['success'])) {
-    //         throw ValidationException::withMessages([
-    //             'captcha' => 'Verifikasi captcha gagal. Coba lagi.',
-    //         ]);
-    //     }
+        $data = $response->json();
 
-    //     // Pastikan hostname sesuai (keamanan tambahan)
-    //     if (($data['hostname'] ?? '') !== request()->getHost()) {
-    //         throw ValidationException::withMessages([
-    //             'captcha' => 'Domain tidak valid untuk captcha ini.',
-    //         ]);
-    //     }
-
-    //     // Opsi tambahan: jika Cloudflare mengembalikan "score" (untuk mode managed)
-    //     if (isset($data['score']) && $data['score'] < 0.5) {
-    //         throw ValidationException::withMessages([
-    //             'captcha' => 'Aktivitas mencurigakan terdeteksi. Silakan coba lagi nanti.',
-    //         ]);
-    //     }
-    // }
+        if (!$response->successful() || empty($data['success'])) {
+            throw ValidationException::withMessages([
+                'captcha' => 'Verifikasi captcha gagal. Coba lagi.',
+            ]);
+        }
+    }
 }

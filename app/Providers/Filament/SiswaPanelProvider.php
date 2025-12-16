@@ -30,8 +30,10 @@ class SiswaPanelProvider extends PanelProvider
     {
         return $panel
             ->id('siswa')
-            ->path('siswa.wh')
-            ->brandName('Sacti Win Hunter')
+            
+->path('siswa')   // ← FIX DI SINI
+->brandName('Sacti Win Hunter')
+           
             ->colors([
                 'primary' => Color::Green,
             ])
@@ -55,6 +57,8 @@ class SiswaPanelProvider extends PanelProvider
             ->pages([
                 // DashboardSiswa::class,
                 Profile::class,
+                    \App\Filament\Siswa\Pages\SiswaWizard::class,
+
             ])
             ->widgets([
                 // Daftarkan widget global di sini jika ada
