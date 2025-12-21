@@ -76,7 +76,7 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
         // Bold judul
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 
-        // Merge cell untuk judul
+        
         $sheet->mergeCells('A1:J1');
 
         // Border semua data

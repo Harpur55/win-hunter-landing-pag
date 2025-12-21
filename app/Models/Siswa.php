@@ -36,11 +36,21 @@ class Siswa extends Model
         'user_id',
         // 'lookup_token',
     ];
+    protected $guarded = ['id', 'no_register', 'created_at'];
+
 
     protected $casts = [
-        'tanggal_lahir' => 'date',
-        'joint_date'    => 'date',
+       'tanggal_lahir' => 'date:Y-m-d',
+        'joint_date'    => 'date:Y-m-d',
     ];
+    protected function tanggalLahirFormatted(): Attribute
+    {
+        return Attribute::get(
+            fn () => $this->tanggal_lahir
+                ? $this->tanggal_lahir->format('d/m/Y')
+                : null
+        );
+    }
 
     protected $table = 'siswas';
 
@@ -61,13 +71,26 @@ class Siswa extends Model
         // });
 
         // Auto generate NIS
-        static::creating(function ($siswa) {
-            if (empty($siswa->nis)) {
-                $lastSiswa   = static::orderByDesc('id')->first();
-                $lastNis     = $lastSiswa ? $lastSiswa->nis : null;
-                $lastNumber  = $lastNis ? (int) str_replace('WH-', '', $lastNis) : 0;
-                $siswa->nis  = 'WH-' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-            }
+         static::creating(function ($siswa) {
+
+        // ===== generate NIS otomatis =====
+        if (empty($siswa->nis)) {
+
+            // Tahun dibuat = tahun saat data masuk
+            $tahunBuat = now()->format('Y');
+
+            // Tanggal lahir format Ymd atau "00000000" jika null
+            $tgl = $siswa->tanggal_lahir
+                ? date('Ymd', strtotime($siswa->tanggal_lahir))
+                : '00000000';
+
+            // Ambil 3 digit terakhir dari no_register
+            $angka = $siswa->no_register
+                ? substr($siswa->no_register, -3)
+                : '000';
+
+            $siswa->nis = "WH-{$tahunBuat}{$tgl}{$angka}";
+        }
 
             // ✅ Set sisa_kuota awal sesuai kelas
            if ($siswa->kelas && isset($siswa->kelas->kuota_awal)) {

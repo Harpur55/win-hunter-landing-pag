@@ -6,21 +6,21 @@ use Illuminate\Console\Command;
 use App\Models\EventUjian;
 use App\Models\User;
 use App\Models\Siswa;
-use Filament\Notifications\Notification;
 use Carbon\Carbon;
+use Filament\Notifications\Notification;
 
 class UpdateBeltLevel extends Command
 {
     protected $signature = 'belt:update {--instant}';
-    protected $description = 'Update sabuk siswa otomatis setelah ujian (3 menit testing / H+1 production)';
+    protected $description = 'Update sabuk siswa otomatis setelah ujian';
 
     public function handle()
     {
         $updatedCount = 0;
 
-        // 🔹 Pilih mode (instan / produksi)
+        // Mode Instan atau Production
         if ($this->option('instant')) {
-            $this->info("⚡ Mode instan aktif: semua ujian akan diproses sekarang");
+            $this->info("⚡ Mode instan aktif: memproses semua event ujian");
             $events = EventUjian::with('siswa')->get();
         } else {
             $events = EventUjian::where('created_at', '<=', Carbon::now()->subMinutes(3))
@@ -29,58 +29,71 @@ class UpdateBeltLevel extends Command
         }
 
         foreach ($events as $event) {
+
             foreach ($event->siswa as $siswa) {
                 $pivot = $siswa->pivot;
                 $status = strtolower(trim($pivot->keterangan));
 
-                // 🔹 Jika masih "on progres" / "on_proses" / "on-progress" → otomatis jadi "lulus"
+                // ============================
+                // 1️⃣ AUTOFIX STATUS — ON PROGRES → LULUS
+                // ============================
                 if (in_array($status, ['on_proses', 'on progres', 'on-progress'])) {
+
                     $event->siswa()->updateExistingPivot($siswa->id, [
-                        'keterangan' => 'lulus',
+                        'keterangan' => 'lulus'
                     ]);
 
-                    $this->info("✅ {$siswa->nama_lengkap} status diubah ke LULUS.");
-                    $pivot->keterangan = 'lulus'; // update in-memory
+                    $this->info("🔄 Status {$siswa->nama_lengkap} diperbaiki ke 'lulus'.");
                     $status = 'lulus';
                 }
 
-                // 🔹 Jika sudah lulus → naikkan sabuk
+                // ============================
+                // 2️⃣ JIKA LULUS → NAIKKAN SABUK
+                // ============================
                 if ($status === 'lulus') {
+
+                    // Hanya update jika different
                     if ($siswa->current_belt_level !== $pivot->next_belt_level) {
+
                         $siswa->update([
                             'current_belt_level' => $pivot->next_belt_level,
-                            'status_lulus' => true, // Kolom opsional di tabel siswa
+                            'status_lulus'       => true,
                         ]);
 
                         $updatedCount++;
 
-                        // 🔔 Notifikasi untuk siswa
-                        $user = User::find($siswa->user_id);
-                        if ($user) {
+                        // Notifikasi ke user
+                        if ($user = User::find($siswa->user_id)) {
                             Notification::make()
                                 ->title('Selamat! 🎉')
-                                ->body("Kamu telah **lulus ujian** dan sekarang bersabuk **{$pivot->next_belt_level}**.")
+                                ->body("Kamu sekarang naik sabuk menjadi **{$pivot->next_belt_level}**.")
                                 ->success()
                                 ->sendToDatabase($user);
                         }
 
-                        // 🔔 Notifikasi ke semua admin
-                        $admins = User::where('role', 'admin')->get();
-                        foreach ($admins as $admin) {
-                            Notification::make()
-                                ->title('Kenaikan Sabuk 🥋')
-                                ->body("{$siswa->nama_lengkap} naik sabuk ke **{$pivot->next_belt_level}** setelah lulus ujian.")
-                                ->success()
-                                ->sendToDatabase($admin);
-                        }
+                        // Notifikasi admin
+                        User::where('role', 'admin')->get()
+                            ->each(function ($admin) use ($siswa, $pivot) {
+                                Notification::make()
+                                    ->title('Kenaikan Sabuk 🥋')
+                                    ->body("{$siswa->nama_lengkap} naik sabuk ke **{$pivot->next_belt_level}**.")
+                                    ->success()
+                                    ->sendToDatabase($admin);
+                            });
 
-                        $this->info("🥋 {$siswa->nama_lengkap} berhasil naik ke {$pivot->next_belt_level}");
+                        $this->info("🥋 {$siswa->nama_lengkap} naik sabuk ke {$pivot->next_belt_level}");
+
                     } else {
-                        $this->warn("⏭ {$siswa->nama_lengkap} dilewati — sabuk sudah sesuai ({$pivot->next_belt_level}).");
+                        $this->warn("⏭ {$siswa->nama_lengkap} dilewati — sabuknya sudah benar.");
                     }
-                } elseif ($status !== 'lulus') {
-                    $this->warn("⏭ {$siswa->nama_lengkap} dilewati karena status ujian = {$pivot->keterangan}");
+
+                    continue; // Selesai, lanjut siswa berikutnya
                 }
+
+                // ============================
+                // 3️⃣ JIKA TIDAK LULUS → ABAIKAN
+                // ============================
+                $this->warn("⏭ {$siswa->nama_lengkap} tidak lulus — sabuk **TIDAK diubah**");
             }
         }
 

@@ -11,7 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::table('event_ujian_siswa', function (Blueprint $table) {
+                    $table->string('hasil_ujian')->default('on proses'); // default status
+
+
+        });
     }
 
     /**
@@ -19,6 +23,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('event_ujian_siswa', function (Blueprint $table) {
+            //
+            
+        });
     }
 };

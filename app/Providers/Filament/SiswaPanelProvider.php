@@ -23,6 +23,7 @@ use App\Filament\Siswa\Pages\Profile;
 use App\Filament\Widgets\SiswaDashboardStats;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
+use App\Filament\Pages\DaftarUjianForm;
 
 class SiswaPanelProvider extends PanelProvider
 {
@@ -57,8 +58,7 @@ class SiswaPanelProvider extends PanelProvider
             ->pages([
                 // DashboardSiswa::class,
                 Profile::class,
-                    \App\Filament\Siswa\Pages\SiswaWizard::class,
-
+                 DaftarUjianForm::class,
             ])
             ->widgets([
                 // Daftarkan widget global di sini jika ada

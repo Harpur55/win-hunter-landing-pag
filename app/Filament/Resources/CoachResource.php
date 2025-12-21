@@ -11,9 +11,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -28,10 +25,13 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\HeaderAction; 
-use Illuminate\Support\Facades\Log; 
-use Illuminate\Support\Facades\Storage; 
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\CoachExport;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Forms\Components\FileUpload;
+use Illuminate\Support\Facades\Storage;
+
 
 use Filament\Forms\Components\Textarea;
 
@@ -58,14 +58,35 @@ class CoachResource extends Resource
                 ->columns(3) // Menggunakan 3 kolom untuk tata letak yang fleksibel
                 ->schema([
                     // Kolom untuk Foto (memakan 1 kolom)
-                    FileUpload::make('foto') // Nama field 'foto'
-                        ->label('Foto Profil')
-                        ->image()
-                        ->imagePreviewHeight('200')
-                        ->directory('profil_photos') 
-                        ->avatar() 
-                        ->nullable() 
-                        ->columnSpan(1), 
+                
+  FileUpload::make('foto')
+    ->label('Foto Coach')
+    ->image()
+    ->imageCropAspectRatio('1:1')
+    ->imageResizeTargetWidth(400)
+    ->imageResizeTargetHeight(400)
+    ->directory('coaches')
+    ->disk('public')
+    ->visibility('public')
+    ->preserveFilenames(false) // nama file unik
+    ->maxSize(2048)
+    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+
+    // 🔥 auto delete foto lama (hanya storage, assets aman)
+    ->deleteUploadedFileUsing(function ($record) {
+        if (! $record || ! $record->foto) {
+            return;
+        }
+
+        // jangan sentuh file legacy di assets/
+        if (str_starts_with($record->foto, 'assets/')) {
+            return;
+        }
+
+        if (Storage::disk('public')->exists($record->foto)) {
+            Storage::disk('public')->delete($record->foto);
+        }
+    }),
 
                     // Grid untuk detail teks (memakan 2 kolom sisa dari Section)
                     Grid::make(2) 
@@ -132,10 +153,29 @@ class CoachResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('foto')
-                    ->label('Foto Profil')
-                    ->formatStateUsing(fn ($state) => $state ? '<img src="' . asset($state) . '" alt="Foto Profil" class="w-16 h-16 rounded-full">' : 'Tidak ada foto')
-                    ->html(),
+             
+ImageColumn::make('foto')
+    ->label('Foto Profil')
+    ->circular()
+    ->size(64)
+
+    // 🔥 support assets & storage
+    ->getStateUsing(function ($record) {
+        if (! $record->foto) return null;
+
+        return str_starts_with($record->foto, 'assets/')
+            ? asset($record->foto)
+            : asset('storage/' . $record->foto);
+    })
+
+    // 🔥 anti cache (langsung update saat ganti foto)
+    ->extraImgAttributes(fn ($record) => [
+        'alt' => $record->nama,
+        'loading' => 'lazy',
+        'class' => 'object-cover',
+        'style' => 'background:#f3f4f6',
+        'srcset' => null,
+    ]),
                 TextColumn::make('nama')
                     ->label('Nama Lengkap')
                     ->searchable()

@@ -12,9 +12,10 @@ return new class extends Migration {
     $table->foreignId('event_ujian_id')
           ->constrained('event_ujian') // ini yang diperbaiki
           ->onDelete('cascade');
-    $table->foreignId('siswa_id')
-          ->constrained('siswas') // pastikan nama tabel siswa sesuai
-          ->onDelete('cascade');
+    $table->foreign('nis')
+         ->references('nis')
+         ->on('siswas')
+         ->onDelete('cascade');
     $table->string('current_belt_level')->nullable();
     $table->string('next_belt_level')->nullable();
     $table->string('keterangan')->nullable();

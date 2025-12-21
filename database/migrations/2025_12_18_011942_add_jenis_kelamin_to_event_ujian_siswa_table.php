@@ -13,15 +13,10 @@ return new class extends Migration
     {
         Schema::table('event_ujian_siswa', function (Blueprint $table) {
             //
-
-        // $table->string('nama_lengkap')->nullable();
-        $table->string('tempat_lahir')->nullable();
-        $table->date('tanggal_lahir')->nullable();
-        $table->string('no_register')->nullable();
-        $table->foreignId('units_id')->nullable()->constrained('units');
-        $table->foreignId('kelas_id')->nullable()->constrained('kelas');
-        $table->enum('jenis_kelamin', ['L', 'P'])->after('siswa_id')->nullable();
-        });
+// $table->enum('jenis_kelamin', ['L', 'P'])
+//       ->after('siswa_id')
+//       ->nullable();        
+    });
     }
 
     /**
@@ -31,6 +26,8 @@ return new class extends Migration
     {
         Schema::table('event_ujian_siswa', function (Blueprint $table) {
             //
+                // $table->dropColumn('jenis_kelamin');
+
         });
     }
 };

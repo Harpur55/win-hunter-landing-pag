@@ -18,7 +18,7 @@ class EventUjian extends Model
 {
     return $this->belongsToMany(Siswa::class, 'event_ujian_siswa', 'event_ujian_id', 'siswa_id')
         ->using(\App\Models\UjianSiswa::class) // ✅ penting supaya pivot pakai model kustom
-        ->withPivot(['current_belt_level', 'next_belt_level', 'geup', 'keterangan'])
+        ->withPivot(['current_belt_level', 'next_belt_level', 'geup', 'keterangan','jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'no_register', 'nama_lengkap'])
         ->withTimestamps();
 }
 

@@ -29,6 +29,17 @@ class KejuaraanResource extends Resource
                     ->required()
                     ->maxLength(255),
 
+                    Forms\Components\Select::make('grades')
+                    ->label('Grades')
+                    ->options([
+                        'nasional_A'          => 'Nasional A',
+                        'nasional_B'          => 'Nasional B',
+                        'daerah_A'            => 'Daerah A',
+                        'daerah_B'            => 'Daerah B',
+                        'tryout_antar_club'   => 'Tryout Antar Club',
+                    ])
+                    ->required(),
+
                 Forms\Components\DatePicker::make('tanggal_mulai')
                     ->label('Tanggal Mulai')
                     ->required(),
@@ -51,6 +62,17 @@ class KejuaraanResource extends Resource
                 Tables\Columns\TextColumn::make('nama_kejuaraan')
                     ->label('Nama Kejuaraan')
                     ->searchable(),
+
+                    Tables\Columns\TextColumn::make('grades')
+                    ->label('Grades')
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'nasional_A'        => 'Nasional A',
+                        'nasional_B'        => 'Nasional B',
+                        'daerah_A'          => 'Daerah A',
+                        'daerah_B'          => 'Daerah B',
+                        'tryout_antar_club' => 'Tryout Antar Club',
+                        default             => $state,
+                    }),
 
                 Tables\Columns\IconColumn::make('is_registration_closed')
                     ->label('Status Pendaftaran')

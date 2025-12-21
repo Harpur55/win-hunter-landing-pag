@@ -24,6 +24,7 @@ use Filament\Navigation\NavigationItem;
 
 
 
+
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -60,6 +61,8 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 \Filament\Pages\Dashboard::class, // Dashboard bawaan
+                \App\Filament\Pages\KuotaKejuaraanPage::class, // <-- WAJIB TAMBAH
+
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([

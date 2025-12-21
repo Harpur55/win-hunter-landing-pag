@@ -18,6 +18,8 @@ use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\EventUjianExport;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\TextEntry;
 
 class EventUjianResource extends Resource
 {
@@ -44,8 +46,41 @@ class EventUjianResource extends Resource
                     ->label('Lokasi Ujian')
                     ->maxLength(255)
                     ->nullable(),
-            ]);
+
+                  
+        ]);
+            
+            
     }
+    public static function infolist(Infolist $infolist): Infolist
+{
+    return $infolist
+        ->schema([
+            TextEntry::make('nama_ujian')
+                ->label('Nama Event'),
+
+            TextEntry::make('tanggal_ujian')
+                ->label('Tanggal Ujian')
+                ->date(),
+
+            TextEntry::make('lokasi_ujian')
+                ->label('Lokasi Ujian'),
+
+            // ✅ LINK DAFTAR (LOGIC TETAP)
+            TextEntry::make('link_daftar')
+                ->label('Link Pendaftaran')
+                ->state(fn ($record) =>
+                    route('ujian.daftar', $record->id)
+                )
+                ->copyable()
+                ->copyMessage('Link berhasil disalin')
+                ->url(fn ($record) =>
+                    route('ujian.daftar', $record->id)
+                )
+                ->openUrlInNewTab(),
+        ]);
+}
+
 
     public static function table(Table $table): Table
     {
@@ -73,6 +108,7 @@ class EventUjianResource extends Resource
                     })
                     ->badge()
                     ->color(fn(bool $state) => $state ? 'danger' : 'success'),
+                
 
             ])
             ->filters([

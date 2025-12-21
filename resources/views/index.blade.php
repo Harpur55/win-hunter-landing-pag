@@ -165,19 +165,34 @@
   <div class="container mx-auto flex flex-col items-center">
     <h2 class="text-3xl font-extrabold text-black sm:text-4xl mb-8">Pelatih</h2>
 
-    <div class="swiper mySwiper w-full">
-      <div class="swiper-wrapper">
-        @foreach($coaches as $coach)
-        <div class="swiper-slide bg-white p-4 rounded-lg shadow-lg flex flex-col items-center justify-center text-center">
-          <img class="object-cover w-40 h-40 rounded-full mb-4"
-               src="{{ asset($coach->foto) }}"
-               alt="{{ $coach->nama }}">
-          <h4 class="font-bold text-lg text-black">{{ $coach->nama }}</h4>
-          <p class="text-gray-700">{{ $coach->sabuk }}</p>
-          <p class="text-gray-700">{{ $coach->role }}</p>
-        </div>
-        @endforeach
+  <div class="swiper mySwiper w-full">
+  <div class="swiper-wrapper">
+    @foreach($coaches as $coach)
+
+      @php
+        // Deteksi path foto
+        if (str_starts_with($coach->foto, 'assets/')) {
+            $foto = asset($coach->foto);
+        } else {
+            $foto = asset('storage/' . $coach->foto);
+        }
+      @endphp
+
+      <div class="swiper-slide bg-white p-4 rounded-lg shadow-lg flex flex-col items-center justify-center text-center">
+        <img
+          class="object-cover w-40 h-40 rounded-full mb-4"
+          src="{{ $foto }}?v={{ $coach->updated_at->timestamp }}"
+          alt="{{ $coach->nama }}"
+        >
+        <h4 class="font-bold text-lg text-black">{{ $coach->nama }}</h4>
+        <p class="text-gray-700">{{ $coach->sabuk }}</p>
+        <p class="text-gray-700">{{ $coach->role }}</p>
       </div>
+
+    @endforeach
+  </div>
+</div>
+
 
       <!-- Pagination -->
       <div class="swiper-pagination mt-6"></div>
@@ -193,7 +208,7 @@
     <h1 class="text-4xl font-extrabold mb-10 text-center text-gray-900">Kelas Taekwondo</h1>
 
   <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 my-6 text-center">
-      <p class="text-xl font-bold text-gray-700 mb-2">Biaya Pendaftaran Start From</p>
+      <h2 class=" font-bold text-gray-700 mb-2">Biaya Pendaftaran Start From</h2>
       <h2 class="text-4xl font-extrabold text-green-600">Rp 550.000 <span class="text-gray-600 text-lg">(Sudah Include Seragam Taekwondo)</span></h2>
     </div>
     @php

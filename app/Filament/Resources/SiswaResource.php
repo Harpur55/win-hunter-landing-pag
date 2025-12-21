@@ -131,8 +131,8 @@ class SiswaResource extends Resource
 
                                 DatePicker::make('tanggal_lahir')
                                     ->label('Tanggal Lahir')
-                                    ->native(false) // Untuk tampilan yang lebih modern
-                                    ->displayFormat('d/m/Y'), // Format tampilan tanggal
+                                    ->displayFormat('d/m/Y')
+                                    ->native(false), // Format tampilan tanggal
 
                                 Select::make('golongan_darah')
                                     ->label('Golongan Darah')
@@ -194,9 +194,9 @@ class SiswaResource extends Resource
                                 'Cuti' => 'Cuti',
                             ])
                             ->required()
-                            ->default('Aktif') 
+                            ->default('Aktif')
                             ->native(false)
-                            ->columnSpan(2), 
+                            ->columnSpan(2),
                     ]),
 
                 Section::make('Informasi Kontak & Alamat')
@@ -205,8 +205,8 @@ class SiswaResource extends Resource
                     ->schema([
                         TextInput::make('no_telepon')
                             ->label('Nomor Telepon')
-                            ->tel() 
-                            ->nullable() 
+                            ->tel()
+                            ->nullable()
                             ->placeholder('Contoh: 081234567890'),
 
                         Textarea::make('alamat_lengkap') // Menggunakan Textarea untuk alamat
@@ -247,7 +247,7 @@ class SiswaResource extends Resource
         return $table
             ->columns([
 
-               TextColumn::make('status_badge')
+                TextColumn::make('status_badge')
                     ->label('Status Siswa')
                     ->getStateUsing(function ($record) {
                         $createdAt = $record->created_at ?? now();
@@ -491,24 +491,24 @@ class SiswaResource extends Resource
             ])
             ->headerActions([
 
-                                     Tables\Actions\Action::make('Drop Data User')
-        ->label('Drop Data Siswa')
-        ->icon('heroicon-o-trash')
-        ->color('danger')
-        ->requiresConfirmation()
-        ->modalHeading('Konfirmasi Hapus Semua Data Siswa')
-        ->modalDescription('Anda akan menghapus SEMUA data siswa secara permanen. Tindakan ini tidak dapat dibatalkan. Apakah Anda yakin?')
-        ->action(function (): void {
-            Siswa::query()->delete();
-            DB::statement('ALTER TABLE siswas AUTO_INCREMENT = 1');
+                Tables\Actions\Action::make('Drop Data User')
+                    ->label('Drop Data Siswa')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Konfirmasi Hapus Semua Data Siswa')
+                    ->modalDescription('Anda akan menghapus SEMUA data siswa secara permanen. Tindakan ini tidak dapat dibatalkan. Apakah Anda yakin?')
+                    ->action(function (): void {
+                        Siswa::query()->delete();
+                        DB::statement('ALTER TABLE siswas AUTO_INCREMENT = 1');
 
-            Notification::make()
-                ->title('Semua data siswa telah dihapus.')
-                ->success()
-                ->send();
-        }),
+                        Notification::make()
+                            ->title('Semua data siswa telah dihapus.')
+                            ->success()
+                            ->send();
+                    }),
 
-                
+
 
                 Tables\Actions\Action::make('export')
                     ->label('Export Siswa')
