@@ -1,27 +1,19 @@
 <x-filament-panels::page>
-    <div class="min-h-screen bg-gradient-to-br from-sky-100 via-white to-indigo-100 
+    <div
+        class="min-h-screen bg-gradient-to-br from-sky-100 via-white to-indigo-100 
                 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 py-10 px-4">
 
         <div class="max-w-5xl mx-auto space-y-10">
             @php
-                // Ambil user login
-                $user = Auth::user();
+                $user  = Auth::user();
+                $siswa = $this->siswaModel ?? $user->siswa ?? null;
 
-                // Ambil data siswa terkait user
-                $siswa = $user->siswa ?? null;
-
-                // Ambil path image dari kolom 'image'
                 $fotoProfil = $siswa?->image;
-
-                // Pastikan path-nya tidak mengandung 'public/'
                 $fotoProfil = $fotoProfil ? ltrim(str_replace('public/', '', $fotoProfil), '/') : null;
 
-                // Buat URL foto
-                if ($fotoProfil && file_exists(public_path('storage/' . $fotoProfil))) {
-                    $fotoProfilUrl = asset('storage/' . $fotoProfil);
-                } else {
-                    $fotoProfilUrl = asset('assets/images/default_image_profile.jpg');
-                }
+                $fotoProfilUrl = $fotoProfil && file_exists(public_path('storage/' . $fotoProfil))
+                    ? asset('storage/' . $fotoProfil)
+                    : asset('assets/images/default_image_profile.jpg');
             @endphp
 
             {{-- 🔹 Header Profil --}}
@@ -30,8 +22,8 @@
                        bg-gradient-to-r from-sky-400 via-sky-500 to-indigo-600
                        text-white rounded-3xl p-6 shadow-xl
                        ring-1 ring-inset ring-sky-300/50 dark:ring-white/10
-                       backdrop-blur-md transition-all duration-300 hover:shadow-2xl"
-            >
+                       backdrop-blur-md transition-all duration-300 hover:shadow-2xl">
+
                 {{-- 👤 Foto & Info User --}}
                 <div class="flex items-center gap-4">
                     <img
@@ -58,8 +50,7 @@
                             color="info"
                             icon="heroicon-o-pencil-square"
                             wire:click="edit"
-                            class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
-                        >
+                            class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                             Edit Profil
                         </x-filament::button>
                     @else
@@ -67,8 +58,7 @@
                             color="success"
                             icon="heroicon-o-check"
                             wire:click="save"
-                            class="bg-green-500 hover:bg-green-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
-                        >
+                            class="bg-green-500 hover:bg-green-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                             Simpan
                         </x-filament::button>
 
@@ -76,8 +66,7 @@
                             color="danger"
                             icon="heroicon-o-x-mark"
                             wire:click="$set('isEditing', false)"
-                            class="bg-red-500 hover:bg-red-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
-                        >
+                            class="bg-red-500 hover:bg-red-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                             Batal
                         </x-filament::button>
                     @endif
@@ -90,16 +79,14 @@
                        dark:from-gray-900 dark:via-gray-800 dark:to-gray-900
                        shadow-2xl ring-2 ring-inset ring-sky-100 dark:ring-primary-900/40
                        backdrop-blur-md border border-gray-200/70 dark:border-gray-700/50
-                       hover:ring-sky-300 dark:hover:ring-primary-700 transition-all duration-300"
-            >
+                       hover:ring-sky-300 dark:hover:ring-primary-700 transition-all duration-300">
                 {{ $this->form }}
             </div>
 
             {{-- 🔹 Footer Info --}}
             <div
                 class="text-center text-sm text-gray-600 dark:text-gray-400
-                       border-t border-gray-200 dark:border-gray-700 pt-4"
-            >
+                       border-t border-gray-200 dark:border-gray-700 pt-4">
                 Terakhir diperbarui:
                 <span class="font-medium text-gray-900 dark:text-gray-200">
                     {{ now()->translatedFormat('d F Y, H:i') }}

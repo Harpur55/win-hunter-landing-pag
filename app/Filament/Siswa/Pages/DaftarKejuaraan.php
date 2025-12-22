@@ -29,6 +29,9 @@ class DaftarKejuaraan extends Page
     public bool $kuotaHabis = false;
     public array $sudahDapatMedali = [];
 
+    // ✅ Tambahan: flag pakai kuota
+    public bool $pakaiKuota = true;
+
     public function mount(): void
     {
         $this->loadEvents();      // ✅ hanya kejuaraan tahun ini & depan
@@ -130,22 +133,25 @@ class DaftarKejuaraan extends Page
 
         if ($siswa) {
             $this->data = [
-                'nama_lengkap' => $siswa->nama_lengkap,
-                'tempat_lahir' => $siswa->tempat_lahir,
-                'tanggal_lahir' => $siswa->tanggal_lahir
+                'nama_lengkap'        => $siswa->nama_lengkap,
+                'tempat_lahir'        => $siswa->tempat_lahir,
+                'tanggal_lahir'       => $siswa->tanggal_lahir
                     ? Carbon::parse($siswa->tanggal_lahir)->format('Y-m-d')
                     : null,
-                'jenis_kelamin' => $siswa->jenis_kelamin,
-                'sabuk' => $siswa->current_belt_level,
-                'no_register' => $siswa->no_register ?? null,
-                'kategori_atlit' => $this->hitungKategoriUmur($siswa->tanggal_lahir),
+                'jenis_kelamin'       => $siswa->jenis_kelamin,
+                'sabuk'               => $siswa->current_belt_level,
+                'no_register'         => $siswa->no_register ?? null,
+                'kategori_atlit'      => $this->hitungKategoriUmur($siswa->tanggal_lahir),
                 'kategori_pertandingan' => '',
-                'tageuk' => '',
-                'tingkat_kategori' => '',
-                'berat_badan' => '',
-                'tinggi_badan' => '',
+                'tageuk'              => '',
+                'tingkat_kategori'    => '',
+                'berat_badan'         => '',
+                'tinggi_badan'        => '',
             ];
         }
+
+        // reset pilihan pakai kuota setiap buka / batal form
+        $this->pakaiKuota = true;
     }
 
     /** ===============================
@@ -153,7 +159,8 @@ class DaftarKejuaraan extends Page
      *  =============================== */
     public function openForm(int $id): void
     {
-        if ($this->kuotaHabis) {
+        // jika mau daftar dengan kuota dan kuota habis, blok
+        if ($this->pakaiKuota && $this->kuotaHabis) {
             Notification::make()
                 ->title('Kuota Kamu Sudah Habis 🎯')
                 ->body('Kamu tidak bisa mendaftar kejuaraan baru.')
@@ -199,7 +206,8 @@ class DaftarKejuaraan extends Page
     {
         $siswa = Auth::user()->siswa;
 
-        if ($this->kuotaHabis) {
+        // jika memilih pakai kuota dan kuota habis → blok
+        if ($this->pakaiKuota && $this->kuotaHabis) {
             Notification::make()
                 ->title('Kuota Kamu Sudah Habis 🎯')
                 ->body('Kamu tidak bisa mengikuti kejuaraan baru karena kuota kelasmu sudah penuh.')
@@ -242,21 +250,32 @@ class DaftarKejuaraan extends Page
             return;
         }
 
+        // simpan pendaftaran
         KejuaraanSiswa::create([
-            'kejuaraan_id' => $this->selectedEventId,
-            'siswa_id' => $siswa->id,
-            'nama_lengkap' => $this->data['nama_lengkap'],
-            'tempat_lahir' => $this->data['tempat_lahir'],
-            'tanggal_lahir' => $this->data['tanggal_lahir'],
-            'jenis_kelamin' => $this->data['jenis_kelamin'],
-            'sabuk' => $this->data['sabuk'],
+            'kejuaraan_id'        => $this->selectedEventId,
+            'siswa_id'            => $siswa->id,
+            'nama_lengkap'        => $this->data['nama_lengkap'],
+            'tempat_lahir'        => $this->data['tempat_lahir'],
+            'tanggal_lahir'       => $this->data['tanggal_lahir'],
+            'jenis_kelamin'       => $this->data['jenis_kelamin'],
+            'sabuk'               => $this->data['sabuk'],
             'kategori_pertandingan' => $this->data['kategori_pertandingan'],
-            'tageuk' => $this->data['tageuk'] ?: null,
-            'tingkat_kategori' => $this->data['tingkat_kategori'] ?: null,
-            'kategori_atlit' => $this->data['kategori_atlit'],
-            'berat_badan' => $this->data['berat_badan'] ?: null,
-            'tinggi_badan' => $this->data['tinggi_badan'] ?: null,
+            'tageuk'              => $this->data['tageuk'] ?: null,
+            'tingkat_kategori'    => $this->data['tingkat_kategori'] ?: null,
+            'kategori_atlit'      => $this->data['kategori_atlit'],
+            'berat_badan'         => $this->data['berat_badan'] ?: null,
+            'tinggi_badan'        => $this->data['tinggi_badan'] ?: null,
+            // flag pakai kuota (butuh kolom di DB)
+            'pakai_kuota'         => $this->pakaiKuota,
         ]);
+
+        // jika pakai kuota → kurangi sisa_kuota
+        if ($this->pakaiKuota) {
+            $kuotaAwal = $siswa->kelas?->kuota_awal ?? 0;
+            $sisaSekarang = $siswa->sisa_kuota ?? $kuotaAwal;
+            $sisaBaru = max(0, $sisaSekarang - 1);
+            $siswa->update(['sisa_kuota' => $sisaBaru]);
+        }
 
         $this->isOpen = false;
         $this->loadTerdaftar();
@@ -281,7 +300,7 @@ class DaftarKejuaraan extends Page
             $umur <= 11 => 'pracadet',
             $umur <= 14 => 'cadet',
             $umur <= 17 => 'junior',
-            default => 'senior',
+            default     => 'senior',
         };
     }
 
@@ -307,9 +326,22 @@ class DaftarKejuaraan extends Page
         $siswa = Auth::user()->siswa;
         if (!$siswa) return;
 
-        KejuaraanSiswa::where('kejuaraan_id', $eventId)
+        $record = KejuaraanSiswa::where('kejuaraan_id', $eventId)
             ->where('siswa_id', $siswa->id)
-            ->delete();
+            ->first();
+
+        if (!$record) {
+            return;
+        }
+
+        // jika pendaftarannya dulu pakai kuota → kembalikan kuota
+        if ($record->pakai_kuota) {
+            $kuotaAwal = $siswa->kelas?->kuota_awal ?? 0;
+            $sisaSekarang = $siswa->sisa_kuota ?? $kuotaAwal;
+            $siswa->update(['sisa_kuota' => $sisaSekarang + 1]);
+        }
+
+        $record->delete();
 
         $this->loadTerdaftar();
         $this->hitungKuota();
@@ -332,7 +364,7 @@ class DaftarKejuaraan extends Page
             ->where('siswa_id', $siswa->id)
             ->first();
 
-        return $riwayat?->medali;
+            return $riwayat?->medali;
     }
 
     /** ===============================
