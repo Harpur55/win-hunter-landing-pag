@@ -81,37 +81,7 @@ Route::get('/api/siswa/{id}', [SiswaController::class, 'getSiswa'])
         ->name('search');
 });
 
-Route::get('/test-observer', function () {
 
-    // Simulasi request (karena observer butuh POST/PUT/PATCH method)
-    request()->setMethod('POST'); 
-    request()->merge([
-        'no_register'   => 'REG-999',
-        'tanggal_lahir' => '2005-02-10',
-    ]);
-
-    // 1) buat user baru
-    $user = \App\Models\User::create([
-        'name' => 'Hari purnomoo',
-        'email' => 'harpur@tesmail.com',
-        'password' => bcrypt('123456'),
-    ]);
-
-    // 2) update user (trigger observer)
-    $user->update([
-        'name' => 'hari purnomo aji'
-    ]);
-
-    return [
-        'user'   => $user->fresh(),
-        'siswa'  => $user->fresh()->siswa,
-        'status' => $user->fresh()->siswa ? 'Observer bekerja!' : 'Observer TIDAK jalan!',
-    ];
-});
-//|--------------------------------------------------------------------------
-//| Daftar Ujian (Form & Store)
-//|--------------------------------------------------------------------------
-//*/
 Route::get('/ujian/daftar/{eventId}', [DaftarUjianController::class, 'create'])
     ->name('ujian.daftar');
 

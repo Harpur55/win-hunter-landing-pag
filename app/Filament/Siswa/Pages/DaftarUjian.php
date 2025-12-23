@@ -28,6 +28,7 @@ class DaftarUjian extends Page
     public $unit_nama;
     public $kelas_nama;
     public $current_belt_level;
+    public $jenis_kelamin;
 
     #[Validate('required', message: 'Sabuk berikutnya wajib dipilih.')]
     public $next_belt_level;
@@ -88,6 +89,7 @@ class DaftarUjian extends Page
         $this->unit_nama = $siswa->unit?->name;
         $this->kelas_nama = $siswa->kelas?->name;
         $this->current_belt_level = $siswa->current_belt_level;
+        $this->jenis_kelamin = $siswa->jenis_kelamin;
         $this->next_belt_level = '';
 
         $this->showVerification = true;
@@ -150,6 +152,7 @@ class DaftarUjian extends Page
 
         // ✅ Simpan data pendaftaran
         $event->siswa()->attach($siswa->id, [
+            'jenis_kelamin'     => $this->jenis_kelamin,
             'current_belt_level' => $this->current_belt_level,
             'next_belt_level'    => $this->next_belt_level,
             'keterangan'         => 'on progres',
@@ -202,7 +205,11 @@ class DaftarUjian extends Page
             'merah' => 'Merah',
             'merah strip hitam 1' => 'Merah Strip Hitam 1',
             'merah strip hitam 2' => 'Merah Strip Hitam 2',
-            'hitam' => 'Hitam',
+            'hitam dan 1' => 'Hitam DAN 1',
+            'hitam dan 2' => 'Hitam DAN 2',
+            'hitam dan 3' => 'Hitam DAN 3',
+            'hitam dan 4' => 'Hitam DAN 4',
+            'hitam dan 5' => 'Hitam DAN 5',
         ];
     }
 

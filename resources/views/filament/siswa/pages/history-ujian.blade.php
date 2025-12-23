@@ -36,7 +36,7 @@
                             @endphp
                             <tr>
                                 <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ $index + 1 }}</td>
-                                <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{{ $event->nama_ujian }}</td>
+                                <td class="px-6 py-4 text-xs font-medium text-gray-900 dark:text-white">{{ $event->nama_ujian }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                                     {{ \Carbon\Carbon::parse($event->tanggal_ujian)->translatedFormat('d F Y') }}
                                 </td>
@@ -46,15 +46,15 @@
                                 <td class="px-6 py-4">
                                     @if ($pivot && $pivot->keterangan === 'lulus')
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-                                            ✅ Lulus
+                                             Lulus
                                         </span>
                                     @elseif ($pivot && $pivot->keterangan === 'on_proses')
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
-                                            ⏳ On Proses
+                                             On Proses
                                         </span>
                                     @elseif ($pivot && $pivot->keterangan === 'tidak_lulus')
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
-                                            ❌ Tidak Lulus
+                                             Tidak Lulus
                                         </span>
                                     @else
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
@@ -67,9 +67,9 @@
                                         <button 
                                             type="button"
                                             disabled
-                                            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white 
+                                            class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 text-white 
                                                    text-sm font-semibold rounded-lg shadow opacity-80 cursor-not-allowed">
-                                            🎓 Unduh Sertifikat
+                                                Lihat Sertifikat
                                         </button>
                                     @else
                                         <span class="text-gray-400 text-sm">-</span>

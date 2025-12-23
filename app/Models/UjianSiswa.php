@@ -21,6 +21,7 @@ class UjianSiswa extends Pivot
         'geup',
         'jenis_kelamin',
         'keterangan',
+        'certificate_path',
     ];
 
     public $incrementing = true; // jika tabel pakai id auto increment

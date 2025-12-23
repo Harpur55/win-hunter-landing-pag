@@ -38,7 +38,7 @@ class DaftarKejuaraan extends Page
         $this->loadSiswaData();
         $this->loadTerdaftar();
         $this->loadMedali();
-        $this->hitungKuota();
+        $this->hitungKuota();     // ✅ Sekarang hitung akurat
 
         // Hilangkan badge
         session(['kejuaraan_seen' => true]);
@@ -84,6 +84,7 @@ class DaftarKejuaraan extends Page
                 ->send();
         }
 
+        // ✅ Notifikasi hanya jika kuota BENAR-BENAR habis
         if ($this->kuotaHabis) {
             Notification::make()
                 ->title('Kuota Kamu Sudah Habis 🎯')
@@ -94,21 +95,30 @@ class DaftarKejuaraan extends Page
     }
 
     /** ===============================
-     *  Hitung Kuota Berdasarkan Siswa
+     *  ✅ HITUNG KUOTA AKURAT - SELARAS DENGAN WIDGET
      *  =============================== */
     private function hitungKuota(): void
     {
         $siswa = Auth::user()->siswa;
         if (!$siswa) return;
 
+        // ✅ HITUNG ULANG dari kejuaraan_siswa (sama seperti widget)
+        $totalPendaftaranPakaiKuota = KejuaraanSiswa::where('siswa_id', $siswa->id)
+            ->where('use_kuota', true)
+            ->count();
+
         $kuotaAwal = $siswa->kelas?->kuota_awal ?? 0;
-        $sisa = max(0, $siswa->sisa_kuota ?? $kuotaAwal);
+        $sisaKuotaReal = max(0, $kuotaAwal - $totalPendaftaranPakaiKuota);
 
-        $siswa->update(['sisa_kuota' => $sisa]);
+        // ✅ SYNC database jika ada perbedaan
+        if (($siswa->sisa_kuota ?? 0) != $sisaKuotaReal) {
+            $siswa->update(['sisa_kuota' => $sisaKuotaReal]);
+        }
 
+        // ✅ Set properti tampilan
         $this->kuotaMaks     = $kuotaAwal;
-        $this->kuotaTerpakai = $kuotaAwal - $sisa;
-        $this->kuotaHabis    = $sisa <= 0;
+        $this->kuotaTerpakai = $totalPendaftaranPakaiKuota;
+        $this->kuotaHabis    = $sisaKuotaReal <= 0;
     }
 
     /** ===============================
@@ -159,11 +169,11 @@ class DaftarKejuaraan extends Page
      *  =============================== */
     public function openForm(int $id): void
     {
-        // jika mau daftar dengan kuota dan kuota habis, blok
+        // ✅ Hanya blok jika PILIH pakai kuota DAN kuota habis
         if ($this->pakaiKuota && $this->kuotaHabis) {
             Notification::make()
                 ->title('Kuota Kamu Sudah Habis 🎯')
-                ->body('Kamu tidak bisa mendaftar kejuaraan baru.')
+                ->body('Kamu tidak bisa mendaftar kejuaraan baru **menggunakan kuota kelas**. Pilih "Tidak gunakan kuota" jika ingin tetap daftar.')
                 ->warning()
                 ->send();
             return;
@@ -206,11 +216,20 @@ class DaftarKejuaraan extends Page
     {
         $siswa = Auth::user()->siswa;
 
+        // ✅ Validasi field wajib
+        if (empty($this->data['kategori_pertandingan'])) {
+            Notification::make()
+                ->title('⚠️ Kategori pertandingan harus dipilih!')
+                ->warning()
+                ->send();
+            return;
+        }
+
         // jika memilih pakai kuota dan kuota habis → blok
         if ($this->pakaiKuota && $this->kuotaHabis) {
             Notification::make()
                 ->title('Kuota Kamu Sudah Habis 🎯')
-                ->body('Kamu tidak bisa mengikuti kejuaraan baru karena kuota kelasmu sudah penuh.')
+                ->body('Pilih "Tidak gunakan kuota" untuk tetap bisa daftar.')
                 ->warning()
                 ->send();
             return;
@@ -250,7 +269,7 @@ class DaftarKejuaraan extends Page
             return;
         }
 
-        // simpan pendaftaran
+        // ✅ simpan pendaftaran TANPA ubah kuota di sini
         KejuaraanSiswa::create([
             'kejuaraan_id'        => $this->selectedEventId,
             'siswa_id'            => $siswa->id,
@@ -266,24 +285,18 @@ class DaftarKejuaraan extends Page
             'berat_badan'         => $this->data['berat_badan'] ?: null,
             'tinggi_badan'        => $this->data['tinggi_badan'] ?: null,
             // flag pakai kuota (butuh kolom di DB)
-            'pakai_kuota'         => $this->pakaiKuota,
+            'use_kuota'         => $this->useKuota,
         ]);
 
-        // jika pakai kuota → kurangi sisa_kuota
-        if ($this->pakaiKuota) {
-            $kuotaAwal = $siswa->kelas?->kuota_awal ?? 0;
-            $sisaSekarang = $siswa->sisa_kuota ?? $kuotaAwal;
-            $sisaBaru = max(0, $sisaSekarang - 1);
-            $siswa->update(['sisa_kuota' => $sisaBaru]);
-        }
-
+        // ✅ Kuota akan dihitung ulang otomatis oleh hitungKuota()
         $this->isOpen = false;
         $this->loadTerdaftar();
-        $this->hitungKuota();
+        $this->hitungKuota(); // ✅ Ini yang sync dengan widget
 
+        $statusKuota = $this->pakaiKuota ? '✅ Menggunakan kuota kelas' : '➡️ Tanpa kuota kelas';
         Notification::make()
             ->title('Kamu telah terdaftar di kejuaraan ini 🎉')
-            ->body('Kamu berhasil mendaftar ke kategori ' . strtoupper($this->data['kategori_pertandingan']) . '.')
+            ->body("Kategori: " . strtoupper($this->data['kategori_pertandingan']) . ". {$statusKuota}")
             ->success()
             ->send();
     }
@@ -334,20 +347,15 @@ class DaftarKejuaraan extends Page
             return;
         }
 
-        // jika pendaftarannya dulu pakai kuota → kembalikan kuota
-        if ($record->pakai_kuota) {
-            $kuotaAwal = $siswa->kelas?->kuota_awal ?? 0;
-            $sisaSekarang = $siswa->sisa_kuota ?? $kuotaAwal;
-            $siswa->update(['sisa_kuota' => $sisaSekarang + 1]);
-        }
-
+        // ✅ Kuota akan dihitung ulang otomatis oleh hitungKuota()
         $record->delete();
 
         $this->loadTerdaftar();
-        $this->hitungKuota();
+        $this->hitungKuota(); // ✅ Ini yang sync dengan widget
 
         Notification::make()
             ->title('Pendaftaran dibatalkan')
+            ->body('Kuota kelas akan otomatis disesuaikan.')
             ->success()
             ->send();
     }
@@ -364,7 +372,7 @@ class DaftarKejuaraan extends Page
             ->where('siswa_id', $siswa->id)
             ->first();
 
-            return $riwayat?->medali;
+        return $riwayat?->medali;
     }
 
     /** ===============================

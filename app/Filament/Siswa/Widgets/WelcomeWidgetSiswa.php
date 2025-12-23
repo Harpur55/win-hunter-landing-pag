@@ -6,6 +6,7 @@ use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Siswa;
 use App\Models\Kelas;
+use App\Models\KejuaraanSiswa;
 
 class WelcomeWidgetSiswa extends Widget
 {
@@ -32,11 +33,21 @@ class WelcomeWidgetSiswa extends Widget
                 ]);
             }
 
-            // Ambil langsung dari tabel siswa (real-time)
-            $sisaKuota = $siswa->sisa_kuota ?? 0;
+            // ✅ Hitung KUOTA TERPAKAI yang BENAR-BENAR MENGGUNAKAN KUOTA
+            $totalPendaftaranPakaiKuota = KejuaraanSiswa::where('siswa_id', $siswa->id)
+                ->where('use_kuota', true)
+                ->count();
+
+            $kuotaAwal = $kelasModel->kuota_awal ?? 0;
+            $sisaKuotaReal = max(0, $kuotaAwal - $totalPendaftaranPakaiKuota);
+
+            // Sinkronkan sisa_kuota di database dengan perhitungan real
+            if ($siswa->sisa_kuota != $sisaKuotaReal) {
+                $siswa->update(['sisa_kuota' => $sisaKuotaReal]);
+            }
 
             $kuota = [
-                strtolower($kelasModel->name) => $sisaKuota,
+                strtolower($kelasModel->name) => $sisaKuotaReal,
             ];
         }
 

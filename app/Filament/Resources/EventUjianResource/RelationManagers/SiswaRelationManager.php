@@ -20,6 +20,7 @@ use Filament\Tables\Enums\ActionsPosition;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 
+
 class SiswaRelationManager extends RelationManager
 {
     protected static string $relationship = 'siswa';
@@ -42,12 +43,13 @@ class SiswaRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('no_register')
                     ->label('No Register')
                     ->sortable(),
-              Tables\Columns\TextColumn::make('pivot.jenis_kelamin')
-    ->label('Jenis Kelamin')
-    ->formatStateUsing(fn ($state) => match ($state) {
-        'L' => 'Laki-laki',
-        'P' => 'Perempuan',
-        default => '-',
+
+                Tables\Columns\TextColumn::make('pivot.jenis_kelamin')
+                    ->label('Jenis Kelamin')
+                    ->formatStateUsing(fn($state) => match ($state) {
+                        'L' => 'Laki-laki',
+                        'P' => 'Perempuan',
+                        default => '-',
                     })
                     ->sortable(),
 
@@ -170,20 +172,58 @@ class SiswaRelationManager extends RelationManager
                             }),
 
                         Forms\Components\Hidden::make('no_register_disabled')->default(false),
+                        Forms\Components\Section::make('Data Siswa')
+                            ->description('Informasi dasar siswa diambil dari data master')
+                            ->columns(2)
+                            ->schema([
 
-                        Forms\Components\Grid::make(2)->schema([
-                            TextInput::make('no_register')
-                                ->label('No Register')
-                                ->disabled(fn($get) => $get('no_register_disabled'))
-                                ->required(fn($get) => !$get('no_register_disabled'))
-                                ->helperText('Jika kosong di master, isi manual di sini.'),
+                                TextInput::make('no_register')
+                                    ->label('No Register')
+                                    // ->disabled(fn($get) => $get('no_register_disabled'))
+                                    ->required(fn($get) => !$get('no_register_disabled'))
+                                    ->helperText('Jika belum ada di data master, isi manual.'),
 
-                            TextInput::make('unit')->label('Unit')->readOnly(),
-                            TextInput::make('kelas')->label('Kelas')->readOnly(),
-                            TextInput::make('tempat_lahir')->label('Tempat Lahir')->disabled(),
-                            TextInput::make('tanggal_lahir')->label('Tanggal Lahir')->disabled(),
-                            TextInput::make('current_belt_level')->label('Sabuk Saat Ini')->readOnly(),
-                        ]),
+                                Select::make('jenis_kelamin')
+                                    ->label('Jenis Kelamin')
+                                    ->options([
+                                        'L' => 'Laki-laki',
+                                        'P' => 'Perempuan',
+                                    ]),
+                                    
+
+                                TextInput::make('tempat_lahir')
+                                    ->label('Tempat Lahir')
+                                    ->disabled(),
+
+                                TextInput::make('tanggal_lahir')
+                                    ->label('Tanggal Lahir')
+                                    ->disabled(),
+
+                            ]),
+
+                        // =========================
+                        // DATA AKADEMIK
+                        // =========================
+                        Forms\Components\Section::make('Data Akademik')
+                            ->description('Informasi unit, kelas, dan sabuk')
+                            ->columns(2)
+                            ->schema([
+
+                                TextInput::make('unit')
+                                    ->label('Unit')
+                                    ->readOnly(),
+
+                                TextInput::make('kelas')
+                                    ->label('Kelas')
+                                    ->readOnly(),
+
+                                TextInput::make('current_belt_level')
+                                    ->label('Sabuk Saat Ini')
+                                    ->readOnly(),
+
+
+
+                            ]),
 
                         Forms\Components\Grid::make(2)->schema([
                             Select::make('next_belt_level')
@@ -405,6 +445,82 @@ class SiswaRelationManager extends RelationManager
                             ->success()
                             ->send();
                     }),
+                    Action::make('generate_sertifikat')
+    ->label('Generate Sertifikat')
+    ->icon('heroicon-o-document-text')
+    ->color('success')
+    ->requiresConfirmation()
+    ->modalHeading('Generate Sertifikat Ujian')
+    ->modalDescription('Sertifikat hanya akan dibuat untuk siswa yang statusnya Lulus.')
+    // Tampil hanya kalau keterangan di pivot = lulus
+    ->visible(function (Siswa $record): bool {
+        $event = $this->getOwnerRecord();
+
+        if (! $event) {
+            return false;
+        }
+
+        $pivot = $event->siswa()
+            ->where('siswa_id', $record->id)
+            ->first()?->pivot;
+
+        return $pivot && $pivot->keterangan === 'lulus';
+    })
+    ->action(function (Siswa $record) {
+
+        $event = $this->getOwnerRecord(); // Event ujian
+
+        if (! $event) {
+            throw new \Exception('Event ujian tidak ditemukan.');
+        }
+
+        $pivotModel = $event->siswa()
+            ->where('siswa_id', $record->id)
+            ->first();
+
+        if (! $pivotModel) {
+            throw new \Exception('Data ujian siswa tidak ditemukan di pivot.');
+        }
+
+        $pivot = $pivotModel->pivot;
+
+        if ($pivot->keterangan !== 'lulus') {
+            throw new \Exception('Sertifikat hanya bisa dibuat jika siswa sudah Lulus.');
+        }
+
+        // 1. Generate PDF dari view Blade
+        $pdf = Pdf::loadView('pdf.sertifikat-ujian', [
+            'siswa' => $record,
+            'event' => $event,
+            'pivot' => $pivot,
+        ]);
+
+        $fileName = 'sertifikat/' . now()->format('YmdHis')
+            . '_' . $event->id . '_' . $record->id . '.pdf';
+
+        Storage::disk('public')->put($fileName, $pdf->output());
+
+        // 2. Simpan ke kolom certificate_path di pivot event_ujian_siswa
+        $event->siswa()
+            ->updateExistingPivot($record->id, [
+                'certificate_path' => $fileName,
+            ]);
+
+        // 3. Opsional: simpan ke tabel history ujian
+        HistoryUjian::create([
+            'event_ujian_id'   => $event->id,
+            'siswa_id'         => $record->id,
+            'status'           => 'sertifikat_dibuat',
+            'certificate_path' => $fileName,
+            'generated_at'     => now(),
+        ]);
+
+        Notification::make()
+            ->title('Sertifikat berhasil digenerate.')
+            ->body('Sertifikat tersimpan dan dapat diakses dari menu History Ujian.')
+            ->success()
+            ->send();
+    }),
 
                 Tables\Actions\DetachAction::make()
                     ->label('Hapus')
@@ -437,7 +553,11 @@ class SiswaRelationManager extends RelationManager
             'merah'              => 'Merah',
             'merah strip hitam 1' => 'Merah Strip Hitam 1',
             'merah strip hitam 2' => 'Merah Strip Hitam 2',
-            'hitam'              => 'Hitam',
+            'hitam dan 1'              => 'Hitam DAN 1',
+            'hitam dan 2'              => 'Hitam DAN 2',
+            'hitam dan 3'              => 'Hitam DAN 3',
+            'hitam dan 4'              => 'Hitam DAN 4',
+            'hitam dan 5'              => 'Hitam DAN 5',
         ];
     }
 
@@ -454,7 +574,11 @@ class SiswaRelationManager extends RelationManager
             'merah'               => '3 Geup',
             'merah strip hitam 1' => '2 Geup',
             'merah strip hitam 2' => '1 Geup',
-            'hitam'               => '1 Dan',
+            'hitam dan 1'               => 'DAN 1',
+            'hitam dan 2'               => 'DAN 2',
+            'hitam dan 3'               => 'DAN 3',
+            'hitam dan 4'               => 'DAN 4',
+            'hitam dan 5'               => 'DAN 5',
         ];
 
         return $mapping[$belt] ?? '-';

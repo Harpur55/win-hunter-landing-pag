@@ -51,6 +51,10 @@
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                                 {{ $item['nama_kejuaraan'] }}
                             </h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Grade</p>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                {{ $item['grades'] }}
+                            </h3>
 
                             <div class="mt-3 text-sm text-gray-600 dark:text-gray-300 space-y-1">
                                 <div><span class="font-medium text-gray-700 dark:text-gray-200">📅</span>
@@ -64,10 +68,10 @@
 
                         {{-- Nama peserta & kategori pertandingan --}}
                         <div class="col-span-1 sm:col-span-1 lg:col-span-1">
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Nama Peserta</p>
+                            {{-- <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Nama Peserta</p>
                             <p class="text-base font-medium text-gray-900 dark:text-white">
                                 {{ $item['nama_peserta'] }}
-                            </p>
+                            </p> --}}
 
                             <p class="mt-4 text-sm text-gray-500 dark:text-gray-400 mb-1">Kategori Pertandingan</p>
                             <p class="inline-block px-3 py-1 rounded-lg text-sm font-semibold

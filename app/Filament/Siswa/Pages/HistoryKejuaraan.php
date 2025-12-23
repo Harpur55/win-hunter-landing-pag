@@ -22,7 +22,7 @@ class HistoryKejuaraan extends Page
     {
         $siswa = Auth::user()->siswa;
 
-         $this->tahun = request()->get('tahun');
+        $this->tahun = request()->get('tahun');
 
         if ($siswa) {
             $this->riwayat = KejuaraanSiswa::with('kejuaraan')
@@ -32,16 +32,30 @@ class HistoryKejuaraan extends Page
                 ->map(function ($item) {
                     return [
                         'nama_kejuaraan'       => $item->kejuaraan->nama_kejuaraan ?? '-',
+                        'grades'               => $item->kejuaraan->grades ?? '-',
                         'tanggal'              => $item->kejuaraan->tanggal_mulai
                             ? Carbon::parse($item->kejuaraan->tanggal_mulai)->translatedFormat('d F Y')
                             : '-',
                         'lokasi'               => $item->kejuaraan->lokasi ?? '-',
                         'medali'               => $item->medali ?? null,
-                        'nama_peserta'         => $item->nama_lengkap ?? '-', // dari kejuaraan_siswa
-                        'kategori_pertandingan'=> $item->kategori_pertandingan ?? '-',
+                        'grades'         => $this->formatGrade($item->kejuaraan->grades ?? ''),
+                        // 'nama_peserta'         => $item->nama_lengkap ?? '-', // dari kejuaraan_siswa
+                        'kategori_pertandingan' => $item->kategori_pertandingan ?? '-',
                     ];
                 })
                 ->toArray();
         }
+    }
+
+    private function formatGrade($grade): string
+    {
+        return match ($grade) {
+            'nasional_a', 'nasionalA', 'NasionalA' => 'Nasional A',
+            'nasional_b', 'nasionalB', 'NasionalB' => 'Nasional B',
+            'daerah_a', 'daerahA', 'DaerahA'      => 'Daerah A',
+            'daerah_B', 'daerah_b', 'daerahB', 'DaerahB', => 'Daerah B',
+            'tryout', 'tryout_antar_club'         => '⚡ Tryout Antar Club',
+            default                               => $grade ?: '-'
+        };
     }
 }

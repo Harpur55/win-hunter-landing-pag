@@ -78,14 +78,14 @@ class Profile extends Page implements Forms\Contracts\HasForms
                 Forms\Components\Section::make('Identitas Dasar & Akademik')
                     ->columns(2)
                     ->schema([
-                        Forms\Components\FileUpload::make('image')
-                            ->avatar()
-                            ->directory('profil_photos')
-                            ->disk('public')
-                            ->maxSize(1024)
-                            ->imageEditor()
-                            ->previewable(true)
-                            ->columnSpanFull(),
+                        // Forms\Components\FileUpload::make('image')
+                        //     ->avatar()
+                        //     ->directory('profil_photos')
+                        //     ->disk('public')
+                        //     ->maxSize(1024)
+                        //     ->imageEditor()
+                        //     ->previewable(true)
+                        //     ->columnSpanFull(),
 
                         Forms\Components\TextInput::make('nis')
                             ->label('NIS')
