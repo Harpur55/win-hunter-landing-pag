@@ -215,7 +215,7 @@ class KuotaKejuaraanPage extends Page implements Tables\Contracts\HasTable, Form
                 'kategori_pertandingan',
                 'kategori_atlit',
                 'medali',
-                'sabuk',
+                'kelas_berat',
                 'status',
             ])
             ->get();

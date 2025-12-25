@@ -26,6 +26,7 @@ class KejuaraanSiswa extends Model
         'tinggi_badan',
         'medali',
         'status',
+        'kelas_berat',
     ];
 
     /*
@@ -64,7 +65,7 @@ class KejuaraanSiswa extends Model
         $siswa->decrement('sisa_kuota', 1);
     });
 
-    // 🔹 Saat siswa batal ikut kejuaraan
+    
     static::deleted(function ($record) {
         $siswa = $record->siswa;
 

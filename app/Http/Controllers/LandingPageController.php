@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Gallery;
 use App\Models\Unit;
 use App\Models\Coach;
+use App\Models\Kelas;
 
 
 class LandingPageController extends Controller
@@ -15,7 +16,10 @@ class LandingPageController extends Controller
         $galleries = Gallery::all();
         $units = Unit::all();
         $coaches = Coach::all();
-        return view('index', compact('galleries','units','coaches'));
+        $kelas = Kelas::all();
+         
+
+        return view('index', compact('galleries','units','coaches','kelas' ));
 
     }
 }

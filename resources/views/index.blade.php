@@ -126,37 +126,32 @@
 
   <div class="relative overflow-hidden">
     <div id="unit-slider-wrapper" class="overflow-x-auto whitespace-nowrap scroll-smooth scrollbar-hide">
-      <div id="unit-slider" class="flex gap-4 w-max">
-          @for ($i = 0; $i < 2; $i++)
-        @foreach($units as $unit)
-          <div class="flex flex-col sm:flex-row sm:items-center bg-white border border-blue-800 
-              rounded-lg shadow-lg hover:shadow-2xl 
-              w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px] 
-              min-w-[280px] sm:min-w-[320px] md:min-w-[360px] lg:min-w-[400px] 
-              p-4 items-center text-center sm:text-left snap-start">
-            
-            {{-- Logo --}}
+    <div id="unit-slider" class="flex gap-4 w-max">
+    @foreach ($units as $unit)
+        <div class="flex flex-col sm:flex-row sm:items-center bg-white border border-blue-800 
+            rounded-lg shadow-lg hover:shadow-2xl 
+            w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px] 
+            min-w-[280px] sm:min-w-[320px] md:min-w-[360px] lg:min-w-[400px] 
+            p-4 items-center text-center sm:text-left snap-start">
+
             <div class="w-20 h-20 rounded-md border border-gray-300 mb-2 sm:mb-0 sm:ml-4 sm:order-2 overflow-hidden">
-              <img src="{{asset($unit->image)}}" 
-                   alt="{{ $unit->name }}" 
-                   class="w-full h-full object-cover rounded-md" />
+                <img src="{{ asset($unit->image) }}"
+                     alt="{{ $unit->name }}"
+                     class="w-full h-full object-cover rounded-md">
             </div>
 
-            {{-- Nama --}}
             <div class="w-full sm:flex-1 sm:order-1">
-              <h2 class="text-base sm:text-lg font-bold text-gray-800">
-                <a href="{{ $unit->link }}" 
-                   target="_blank" 
-                   class="text-blue-600 hover:underline block w-full text-center sm:text-left">
-                  {{ $unit->name }}
-                </a>
-              </h2>
+                <h2 class="text-base sm:text-lg font-bold text-gray-800">
+                    <a href="{{ $unit->link }}" target="_blank"
+                       class="text-blue-600 hover:underline block w-full text-center sm:text-left">
+                        {{ $unit->name }}
+                    </a>
+                </h2>
             </div>
+        </div>
+    @endforeach
+</div>
 
-          </div>
-        @endforeach
-      @endfor
-      </div>
     </div>
   </div>
 </section>
@@ -216,8 +211,8 @@
     @endphp
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        @foreach($class as $index => $cls)
-            <div class="flex flex-col bg-blue-50 border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-all transform hover:scale-105 duration-300 animate-fade-up h-full">
+      @foreach($kelas as $index => $cls)
+  <div class="flex flex-col bg-blue-50 border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-all transform hover:scale-105 duration-300 animate-fade-up h-full">
                 <!-- Gambar -->
                 <img src="{{ asset($cls->image) }}" alt="{{ $cls->name }}" class="w-full h-45 object-cover rounded-t-2xl mb-4">
 

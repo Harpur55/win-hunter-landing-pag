@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
         UnitSeeder::class,
         KelasSeeder::class,
         NormalizeSabukSeeder::class,
+        WeightClassSeeder::class,
     ]);
     }
 }

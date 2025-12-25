@@ -98,6 +98,10 @@ class SiswaPanelProvider extends PanelProvider
                             ->icon('heroicon-o-cog')
                             ->url(url('/siswa/password/reset'), shouldOpenInNewTab: false),
                     ]),
+                NavigationItem::make('Verifikasi Data')
+                    ->label('Verifikasi Data')
+                    ->icon('heroicon-o-check-badge')
+                    ->url('/siswa/verifikasi-data'),
             ])
 
 

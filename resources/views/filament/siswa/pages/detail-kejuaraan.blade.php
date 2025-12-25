@@ -8,7 +8,7 @@
                 <th class="border px-3 py-2">Lokasi</th>
                 <th class="border px-3 py-2">Kategori</th>
                 <th class="border px-3 py-2">Kategori Atlit</th>
-                <th class="border px-3 py-2">Sabuk</th>
+                <th class="border px-3 py-2">Under</th>
                 <th class="border px-3 py-2 text-center">Medali</th>
                 <th class="border px-3 py-2 text-center">Status</th>
             </tr>
@@ -35,7 +35,7 @@
                         {{ $k->pivot->kategori_atlit ?? '-' }}
                     </td>
                     <td class="border px-3 py-2 text-gray-700">
-                        {{ ucfirst($k->pivot->sabuk ?? '-') }}
+                        {{ ucfirst($k->pivot->kelas_berat ?? '-') }}
                     </td>
 
                     {{-- 🏅 Warna Medali --}}

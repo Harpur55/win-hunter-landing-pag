@@ -37,6 +37,8 @@ class HistoryKejuaraan extends Page
                             ? Carbon::parse($item->kejuaraan->tanggal_mulai)->translatedFormat('d F Y')
                             : '-',
                         'lokasi'               => $item->kejuaraan->lokasi ?? '-',
+                        'kelas_berat'          => $item->kelas_berat ?? '-',
+                        'tingkat_kategori'     => $item->tingkat_kategori ?? '-',
                         'medali'               => $item->medali ?? null,
                         'grades'         => $this->formatGrade($item->kejuaraan->grades ?? ''),
                         // 'nama_peserta'         => $item->nama_lengkap ?? '-', // dari kejuaraan_siswa
