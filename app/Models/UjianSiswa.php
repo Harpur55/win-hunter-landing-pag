@@ -48,4 +48,9 @@ class UjianSiswa extends Pivot
     {
         return $this->belongsTo(Kelas::class, 'kelas_id');
     }
+
+        public function sertifikat()
+    {
+        return $this->hasOne(Sertifikat::class, 'event_ujian_siswa_id');
+    }
 }

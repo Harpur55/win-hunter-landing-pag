@@ -370,6 +370,13 @@ class SiswaRelationManager extends RelationManager
                             ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'kyorugi')
                             ->placeholder('U-45, U-58, U+80'),
 
+                            Select::make('tingkat_kategori')
+                            ->label('Kategori (Beginer / Advance)')
+                            ->options([
+                                'Pro' => 'Pro',
+                                'Regular' => 'Regular',
+                            ]),
+
                         Select::make('tageuk')
                             ->label('Taegeuk')
                             ->options([

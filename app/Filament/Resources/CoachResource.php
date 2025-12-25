@@ -157,7 +157,7 @@ class CoachResource extends Resource
 ImageColumn::make('foto')
     ->label('Foto Profil')
     ->circular()
-    ->size(64)
+    ->size(100)
 
     // 🔥 support assets & storage
     ->getStateUsing(function ($record) {

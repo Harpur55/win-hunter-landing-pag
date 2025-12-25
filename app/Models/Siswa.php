@@ -40,13 +40,13 @@ class Siswa extends Model
 
 
     protected $casts = [
-       'tanggal_lahir' => 'date:Y-m-d',
+        'tanggal_lahir' => 'date:Y-m-d',
         'joint_date'    => 'date:Y-m-d',
     ];
     protected function tanggalLahirFormatted(): Attribute
     {
         return Attribute::get(
-            fn () => $this->tanggal_lahir
+            fn() => $this->tanggal_lahir
                 ? $this->tanggal_lahir->format('d/m/Y')
                 : null
         );
@@ -71,29 +71,29 @@ class Siswa extends Model
         // });
 
         // Auto generate NIS
-         static::creating(function ($siswa) {
+        static::creating(function ($siswa) {
 
-        // ===== generate NIS otomatis =====
-        if (empty($siswa->nis)) {
+            // ===== generate NIS otomatis =====
+            if (empty($siswa->nis)) {
 
-            // Tahun dibuat = tahun saat data masuk
-            $tahunBuat = now()->format('Y');
+                // Tahun dibuat = tahun saat data masuk
+                $tahunBuat = now()->format('Y');
 
-            // Tanggal lahir format Ymd atau "00000000" jika null
-            $tgl = $siswa->tanggal_lahir
-                ? date('Ymd', strtotime($siswa->tanggal_lahir))
-                : '00000000';
+                // Tanggal lahir format Ymd atau "00000000" jika null
+                $tgl = $siswa->tanggal_lahir
+                    ? date('Ymd', strtotime($siswa->tanggal_lahir))
+                    : '00000000';
 
-            // Ambil 3 digit terakhir dari no_register
-            $angka = $siswa->no_register
-                ? substr($siswa->no_register, -3)
-                : '000';
+                // Ambil 3 digit terakhir dari no_register
+                $angka = $siswa->no_register
+                    ? substr($siswa->no_register, -3)
+                    : '000';
 
-            $siswa->nis = "WH-{$tahunBuat}{$tgl}{$angka}";
-        }
+                $siswa->nis = "WH-{$tahunBuat}{$tgl}{$angka}";
+            }
 
             // ✅ Set sisa_kuota awal sesuai kelas
-           if ($siswa->kelas && isset($siswa->kelas->kuota_awal)) {
+            if ($siswa->kelas && isset($siswa->kelas->kuota_awal)) {
                 $siswa->sisa_kuota = $siswa->kelas->kuota_awal;
             }
         });
@@ -111,12 +111,11 @@ class Siswa extends Model
         static::saved(function ($siswa) {
             $siswa->syncSisaKuota();
         });
-
     }
 
 
 
-    
+
 
     // =======================
     // 🔐 Enkripsi Data Sensitif
@@ -154,8 +153,8 @@ class Siswa extends Model
         );
     }
 
-    
-    
+
+
 
     // =======================
     // 🔗 Relasi & Custom Attribute
@@ -185,7 +184,7 @@ class Siswa extends Model
 
     public function kejuaraan()
     {
-         return $this->belongsToMany(Kejuaraan::class, 'kejuaraan_siswa', 'siswa_id', 'kejuaraan_id')
+        return $this->belongsToMany(Kejuaraan::class, 'kejuaraan_siswa', 'siswa_id', 'kejuaraan_id')
             ->withPivot([
                 'nama_lengkap',
                 'kategori_pertandingan',
@@ -201,28 +200,28 @@ class Siswa extends Model
     // 🔧 Helper Function
     // =======================
 
-      public function kuotaTerpakai(): int
+    public function kuotaTerpakai(): int
     {
         return $this->kejuaraan()->count();
     }
 
- public function resetKuota(): void
-{
-     $kuotaAwal = $this->kelas?->kuota_awal ?? 0;
-    $this->update([
-        'sisa_kuota' => max(0, $kuotaAwal),
-    ]);
-}
+    public function resetKuota(): void
+    {
+        $kuotaAwal = $this->kelas?->kuota_awal ?? 0;
+        $this->update([
+            'sisa_kuota' => max(0, $kuotaAwal),
+        ]);
+    }
 
 
     public function kurangiKuota(): void
     {
-       if ($this->sisa_kuota > 0) {
-        $this->decrement('sisa_kuota');
-    } else {
-        // pastikan tetap 0 (tidak minus)
-        $this->update(['sisa_kuota' => 0]);
-    }
+        if ($this->sisa_kuota > 0) {
+            $this->decrement('sisa_kuota');
+        } else {
+            // pastikan tetap 0 (tidak minus)
+            $this->update(['sisa_kuota' => 0]);
+        }
     }
 
     public function tambahKuota(): void
@@ -232,13 +231,13 @@ class Siswa extends Model
         }
     }
 
-      public function sisaKuota(): int
+    public function sisaKuota(): int
     {
-            return max(0, (int) $this->sisa_kuota); // selalu minimal 0
+        return max(0, (int) $this->sisa_kuota); // selalu minimal 0
 
     }
 
-     public function syncSisaKuota(): void
+    public function syncSisaKuota(): void
     {
         $this->updateQuietly([
             'sisa_kuota' => $this->sisaKuota(),
@@ -300,25 +299,30 @@ class Siswa extends Model
     }
 
 
-      public static function monitorKuota(): array
+    public static function monitorKuota(): array
     {
-        return static::select('kelas_id',
+        return static::select(
+            'kelas_id',
             DB::raw('COUNT(*) as total_siswa'),
             DB::raw('SUM(sisa_kuota) as total_sisa'),
             DB::raw('AVG(sisa_kuota) as rata_rata')
         )
-        ->groupBy('kelas_id')
-        ->with('kelas:id,nama,kuota_awal')
-        ->get()
-        ->map(function ($item) {
-            return [
-                'kelas' => $item->kelas->nama ?? '-',
-                'kuota_awal' => $item->kelas->kuota_awal ?? 0,
-                'total_siswa' => $item->total_siswa,
-                'total_sisa' => $item->total_sisa,
-                'rata_rata_sisa' => round($item->rata_rata, 1),
-            ];
-        })
-        ->toArray();
+            ->groupBy('kelas_id')
+            ->with('kelas:id,nama,kuota_awal')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'kelas' => $item->kelas->nama ?? '-',
+                    'kuota_awal' => $item->kelas->kuota_awal ?? 0,
+                    'total_siswa' => $item->total_siswa,
+                    'total_sisa' => $item->total_sisa,
+                    'rata_rata_sisa' => round($item->rata_rata, 1),
+                ];
+            })
+            ->toArray();
+    }
+    public function sertifikat()
+    {
+        return $this->hasMany(Sertifikat::class);
     }
 }

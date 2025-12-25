@@ -256,7 +256,7 @@
                     <div class="mt-6 max-w-lg mx-auto">
                         <p class="text-sm text-gray-700 leading-relaxed">Telah dinyatakan <span
                                 class="font-semibold">LULUS UJIAN KENAIKAN TINGKAT</span> yang diselenggarakan oleh
-                            <span class="font-semibold">Pengurus Besar Taekwondo Indonesia (P.B.T.I.)</span></p>
+                            <span class="font-semibold">SACTI CLUB WIN HUNTER TAEKWONDO</span></p>
                         <p class="text-sm text-gray-700 mt-3">Pada tanggal <span class="font-semibold"
                                 id="tanggal-ujian">18 Mei 2025</span> di <span class="font-semibold"
                                 id="tempat-ujian">Jakarta Pusat</span></p>
@@ -277,7 +277,10 @@
                     <div
                         class="mt-6 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 py-3 px-4 rounded-b-lg -mx-8 md:-mx-12 -mb-8 md:-mb-12">
                         <p class="text-center text-xs font-medium text-gray-800">Dikeluarkan oleh: <span
-                                class="font-bold">Sacti Club Win Hunter</span></p>
+                                class="font-bold">Sacti Club Win Hunter</span>
+                                <p class="text-xs text-center text-black">*ini hanya sertifikat sementara</p>
+                                
+                                </p>
                     </div>
                 </div>
             </div>
