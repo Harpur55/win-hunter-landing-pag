@@ -61,6 +61,7 @@ class SertifikatController extends Controller
                 'current_belt_level'   => $pivot->current_belt_level,
                 'next_belt_level'      => $pivot->next_belt_level,
                 'file_pdf'             => $fileName,
+                'lokasi_ujian'        => $pivot->eventUjian->lokasi_ujian,  
                 'generated_at'         => now(),
                 'is_active'            => true,
             ]);

@@ -235,7 +235,7 @@
                     <p style="font-size:13px;">
                         Pada tanggal
                         {{ \Carbon\Carbon::parse($event->tanggal_ujian)->translatedFormat('d F Y') }}
-                        di Jakarta Pusat
+                        di {{ $event->lokasi_ujian }}
                     </p>
 
                     <div class="footer-signatures">
