@@ -152,6 +152,10 @@ class DaftarUjian extends Page
 
         // ✅ Simpan data pendaftaran
         $event->siswa()->attach($siswa->id, [
+            'nama_lengkap'      => $this->nama_lengkap,
+            'tempat_lahir'      => $this->tempat_lahir,
+            'tanggal_lahir'     => $this->tanggal_lahir,
+            'no_register'       => $this->no_register,
             'jenis_kelamin'     => $this->jenis_kelamin,
             'current_belt_level' => $this->current_belt_level,
             'next_belt_level'    => $this->next_belt_level,

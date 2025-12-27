@@ -1,6 +1,14 @@
 <?php
 
 namespace App\Models;
+use App\Models\EventUjian;
+use App\Models\Unit;
+use App\Models\Kelas;
+use App\Models\Siswa;
+use App\Models\Sertifikat;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
@@ -22,6 +30,7 @@ class UjianSiswa extends Pivot
         'jenis_kelamin',
         'keterangan',
         'certificate_path',
+        'no_sertifikat',
     ];
 
     public $incrementing = true; // jika tabel pakai id auto increment
@@ -31,15 +40,11 @@ class UjianSiswa extends Pivot
         return $this->belongsTo(EventUjian::class, 'event_ujian_id');
     }
 
-    public function siswa()
-{
-    return $this->belongsToMany(Siswa::class, 'event_ujian_siswa')
-                ->withPivot([
-                    'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'no_register',
-                    'units_id', 'kelas_id', 'current_belt_level', 
-                    'next_belt_level', 'keterangan'
-                ]);
-}
+     public function siswa()
+    {
+        return $this->belongsTo(Siswa::class, 'siswa_id');
+    }
+    
     public function unit()
     {
         return $this->belongsTo(Unit::class, 'units_id');
@@ -53,4 +58,9 @@ class UjianSiswa extends Pivot
     {
         return $this->hasOne(Sertifikat::class, 'event_ujian_siswa_id');
     }
+
+    public function history()
+{
+    return $this->hasMany(UjianSiswa::class, 'event_ujian_siswa_id');
+}
 }

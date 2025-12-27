@@ -52,7 +52,10 @@ Route::get('auth/google/callback', [GoogleController::class, 'callback'])->name(
 | Sertifikat Page
 |--------------------------------------------------------------------------
 */
-Route::get('/sertifikat', fn() => view('sertifikat'));
+Route::get('/test-sertifikat', function () {
+    return view('tes');
+})->name('test-sertifikat');
+
 
 /*
 |--------------------------------------------------------------------------

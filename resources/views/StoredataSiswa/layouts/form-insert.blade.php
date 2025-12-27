@@ -98,11 +98,18 @@
            name="tanggal_lahir"
            class="w-full mt-1 border rounded-xl p-3">
 </div>
-            <div>
-                <label>Sabuk Saat Ini</label>
-                <input type="text" name="current_belt_level"
-                       class="w-full mt-1 border rounded-xl p-3">
-            </div>
+          <select name="current_belt_level"
+        class="w-full mt-1 border rounded-xl p-3"
+        required>
+    <option value="">-- Pilih Sabuk --</option>
+
+    @foreach ($beltOptions as $value => $label)
+        <option value="{{ $value }}"
+            {{ old('current_belt_level', $siswa->current_belt_level ?? '') == $value ? 'selected' : '' }}>
+            {{ $label }}
+        </option>
+    @endforeach
+</select>
         </div>
 
         {{-- ================= ALAMAT & KONTAK ================= --}}
@@ -170,7 +177,7 @@
 
 
              <div>
-    {{-- <label class="block font-semibold mb-1 text-gray-700">
+    <label class="block font-semibold mb-1 text-gray-700">
         Tanggal Bergabung
         <span class="text-sm text-gray-500 font-normal">
             (mulai aktif sebagai siswa)
@@ -179,7 +186,7 @@
     <input type="date"
            name="joint_date"
            class="w-full border rounded-xl p-3">
-</div> --}}
+</div> 
 
             <select name="status" class="w-full border rounded-xl p-3">
                 <option value="">-- Pilih Status --</option>

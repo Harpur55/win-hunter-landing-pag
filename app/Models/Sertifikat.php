@@ -23,6 +23,7 @@ class Sertifikat extends Model
         'current_belt_level',
         'next_belt_level',
         'file_pdf',
+        'generated_at',
         'is_active',
     ];
 
@@ -53,8 +54,13 @@ class Sertifikat extends Model
         return "{$this->current_belt_level} → {$this->next_belt_level}";
     }
 
-    public function getFileUrlAttribute(): string
-    {
-        return asset('storage/' . $this->file_pdf);
+    public function getFileUrlAttribute(): ?string
+{
+    if (!$this->file_pdf) {
+        return null;
     }
+
+    return asset('storage/' . $this->file_pdf);
+}
+
 }

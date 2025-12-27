@@ -19,6 +19,7 @@ class coach extends Model
         'role',
         'alamat',
         'nomor_telepon',
+        'document',
     ];
 protected static function booted()
 {
@@ -37,6 +38,11 @@ protected static function booted()
             Storage::disk('public')->delete($coach->foto);
         }
     });
+}
+
+public function documents()
+{
+    return $this->hasMany(CoachDocument::class);
 }
 
     

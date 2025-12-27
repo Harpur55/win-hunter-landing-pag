@@ -115,6 +115,20 @@ class CoachResource extends Resource
                                 ->required()
                                 ->maxLength(100)
                                 ->placeholder('Contoh: Hitam Dan I'),
+                         Forms\Components\FileUpload::make('document')
+                    ->label('Dokumen Coach')
+                    ->directory('coaches/documents')
+                    ->disk('public')
+                    ->acceptedFileTypes([
+                        'application/pdf',
+                        'application/msword',
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'image/jpeg',
+                        'image/png',
+                    ])
+                    ->maxSize(5120)
+                    ->helperText('Upload dokumen pendukung (PDF/Word/Gambar), maks 5MB.'),
+                    ]),
                             
                             Select::make('status') // Nama field 'status'
                                 ->label('Status')
@@ -127,7 +141,7 @@ class CoachResource extends Resource
                                 ->default('Aktif') // Nilai default 'Aktif'
                                 ->native(false),
                         ]),
-                ]),
+                    
 
             Section::make('Detail Kontak')
                 ->description('Informasi kontak dan alamat.')

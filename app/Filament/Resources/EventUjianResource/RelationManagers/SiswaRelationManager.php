@@ -13,12 +13,18 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\FileUpload;
 use App\Models\Siswa;
+use App\Models\UjianSiswa;
 use App\Imports\EventUjianSiswaImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\EventUjianSiswaExport;
 use Filament\Tables\Enums\ActionsPosition;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\SertifikatController;  
+use Illuminate\Support\Facades\Storage;
+
+
+
 
 
 class SiswaRelationManager extends RelationManager
@@ -189,7 +195,7 @@ class SiswaRelationManager extends RelationManager
                                         'L' => 'Laki-laki',
                                         'P' => 'Perempuan',
                                     ]),
-                                    
+
 
                                 TextInput::make('tempat_lahir')
                                     ->label('Tempat Lahir')
@@ -362,167 +368,107 @@ class SiswaRelationManager extends RelationManager
                     }),
             ])
 
-            ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label('Edit')
-                    ->icon('heroicon-o-pencil')
-                    ->modalHeading('Edit Data Ujian Siswa')
-                    ->form([
-                        TextInput::make('pivot.current_belt_level')
-                            ->label('Sabuk UKT Saat Ini')
-                            ->disabled()
-                            ->dehydrated(false),
+->actions([
+    Action::make('update_hasil')
+        ->label('Edit Hasil Ujian')
+        ->color('warning')
+        ->modalHeading('Update Hasil Ujian Siswa')
+        ->modalDescription('Atur hasil ujian untuk siswa ini.')
+        ->form([
+            Select::make('keterangan')
+                ->label('Hasil Ujian')
+                ->options([
+                    'on_proses'   => 'On Proses',
+                    'lulus'       => 'Lulus',
+                    'tidak_lulus' => 'Tidak Lulus',
+                ])
+                ->required(),
+        ])
+        ->action(function (Siswa $record, array $data) {
 
-                        Select::make('pivot.keterangan')
-                            ->label('Status Ujian')
-                            ->options([
-                                'on_proses'   => 'On Proses',
-                                'lulus'       => 'Lulus',
-                                'tidak_lulus' => 'Tidak Lulus',
-                            ])
-                            ->required(),
-                    ])
-                    ->action(function (Siswa $record, $data) {
-                        $this->getOwnerRecord()
-                            ->siswa()
-                            ->updateExistingPivot($record->id, [
-                                'next_belt_level' => $data['pivot']['next_belt_level'] ?? null,
-                                'keterangan'      => $data['pivot']['keterangan'],
-                            ]);
-                    }),
+            $event = $this->getOwnerRecord();
 
-                Action::make('update_hasil')
-                    ->label('Edit Hasil Ujian')
-                    ->color('warning')
-                    ->modalHeading('Update Hasil Ujian Siswa')
-                    ->modalDescription('Atur hasil ujian untuk siswa ini.')
-                    ->form([
-                        Select::make('keterangan')
-                            ->label('Hasil Ujian')
-                            ->options([
-                                'on_proses'   => 'On Proses',
-                                'lulus'       => 'Lulus',
-                                'tidak_lulus' => 'Tidak Lulus',
-                            ])
-                            ->required(),
-                    ])
-                    ->action(function (Siswa $record, array $data) {
+            $pivot = $event->siswa()
+                ->where('siswa_id', $record->id)
+                ->first()?->pivot;
 
-                        $event = $this->getOwnerRecord(); // event ujian
+            if (! $pivot) {
+                throw new \Exception('Data ujian siswa tidak ditemukan.');
+            }
 
-                        // Pastikan event ada
-                        if (! $event) {
-                            throw new \Exception('Event ujian tidak ditemukan.');
-                        }
+            // ===============================
+            // SAMAKAN DENGAN LOGIKA COMMAND
+            // ===============================
 
-                        // Ambil data pivot yang sedang diedit
-                        $pivot = $event->siswa()->where('siswa_id', $record->id)->first()?->pivot;
+            if ($data['keterangan'] === 'lulus') {
+                $record->update([
+                    'current_belt_level' => $pivot->next_belt_level,
+                    'status_lulus'       => true,
+                ]);
+            }
 
-                        if (! $pivot) {
-                            throw new \Exception('Data ujian siswa tidak ditemukan di pivot.');
-                        }
+            if ($data['keterangan'] === 'tidak_lulus') {
+                // TIDAK LULUS → SABUK TIDAK DIUBAH
+                $record->update([
+                    'status_lulus' => false,
+                ]);
+            }
 
-                        /*
-         |---------------------------------------------------------
-         | Jika TIDAK LULUS → sabuk siswa kembali ke sabuk sebelumnya
-         | (diambil dari kolom current_belt_level di pivot)
-         |---------------------------------------------------------
-         */
-                        if ($data['keterangan'] === 'tidak_lulus') {
-                            $record->update([
-                                'sabuk' => $pivot->current_belt_level,
-                            ]);
-                        }
+            // Update pivot
+            $event->siswa()->updateExistingPivot($record->id, [
+                'keterangan' => $data['keterangan'],
+            ]);
 
-                        // Update kolom di pivot
-                        $event->siswa()
-                            ->updateExistingPivot($record->id, [
-                                'keterangan' => $data['keterangan'],
-                            ]);
+            Notification::make()
+                ->title('Hasil ujian siswa berhasil diperbarui.')
+                ->success()
+                ->send();
+        }),
 
-                        Notification::make()
-                            ->title('Hasil ujian siswa berhasil diperbarui.')
-                            ->success()
-                            ->send();
-                    }),
-                    Action::make('generate_sertifikat')
+        Action::make('generate_sertifikat')
     ->label('Generate Sertifikat')
-    ->icon('heroicon-o-document-text')
+    ->icon('heroicon-o-document')
     ->color('success')
     ->requiresConfirmation()
     ->modalHeading('Generate Sertifikat Ujian')
-    ->modalDescription('Sertifikat hanya akan dibuat untuk siswa yang statusnya Lulus.')
-    // Tampil hanya kalau keterangan di pivot = lulus
+    ->modalDescription('Sertifikat hanya dapat digenerate untuk siswa yang LULUS.')
     ->visible(function (Siswa $record): bool {
+
         $event = $this->getOwnerRecord();
 
-        if (! $event) {
-            return false;
-        }
-
-        $pivot = $event->siswa()
-            ->where('siswa_id', $record->id)
-            ->first()?->pivot;
-
-        return $pivot && $pivot->keterangan === 'lulus';
-    })
-    ->action(function (Siswa $record) {
-
-        $event = $this->getOwnerRecord(); // Event ujian
-
-        if (! $event) {
-            throw new \Exception('Event ujian tidak ditemukan.');
-        }
-
-        $pivotModel = $event->siswa()
+        $ujianSiswa = UjianSiswa::where('event_ujian_id', $event->id)
             ->where('siswa_id', $record->id)
             ->first();
 
-        if (! $pivotModel) {
-            throw new \Exception('Data ujian siswa tidak ditemukan di pivot.');
+        return $ujianSiswa
+            && $ujianSiswa->keterangan === 'lulus'
+            && ! $ujianSiswa->sertifikat;
+    })
+    ->action(function (Siswa $record) {
+
+        try {
+            $event = $this->getOwnerRecord();
+
+            $sertifikat = app(SertifikatController::class)
+                ->generate($event->id, $record->id);
+
+            Notification::make()
+                ->title('🎉 Sertifikat Berhasil Digenerate')
+                ->body("No Sertifikat: {$sertifikat->no_sertifikat}")
+                ->success()
+                ->send();
+
+        } catch (\Throwable $e) {
+
+            Notification::make()
+                ->title('Gagal Generate Sertifikat')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
         }
-
-        $pivot = $pivotModel->pivot;
-
-        if ($pivot->keterangan !== 'lulus') {
-            throw new \Exception('Sertifikat hanya bisa dibuat jika siswa sudah Lulus.');
-        }
-
-        // 1. Generate PDF dari view Blade
-        $pdf = Pdf::loadView('pdf.sertifikat-ujian', [
-            'siswa' => $record,
-            'event' => $event,
-            'pivot' => $pivot,
-        ]);
-
-        $fileName = 'sertifikat/' . now()->format('YmdHis')
-            . '_' . $event->id . '_' . $record->id . '.pdf';
-
-        Storage::disk('public')->put($fileName, $pdf->output());
-
-        // 2. Simpan ke kolom certificate_path di pivot event_ujian_siswa
-        $event->siswa()
-            ->updateExistingPivot($record->id, [
-                'certificate_path' => $fileName,
-            ]);
-
-        // 3. Opsional: simpan ke tabel history ujian
-        HistoryUjian::create([
-            'event_ujian_id'   => $event->id,
-            'siswa_id'         => $record->id,
-            'status'           => 'sertifikat_dibuat',
-            'certificate_path' => $fileName,
-            'generated_at'     => now(),
-        ]);
-
-        Notification::make()
-            ->title('Sertifikat berhasil digenerate.')
-            ->body('Sertifikat tersimpan dan dapat diakses dari menu History Ujian.')
-            ->success()
-            ->send();
     }),
 
-                Tables\Actions\DetachAction::make()
+    Tables\Actions\DetachAction::make()
                     ->label('Hapus')
                     ->icon('heroicon-o-trash'),
             ])

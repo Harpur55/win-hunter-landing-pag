@@ -22,9 +22,9 @@ class EventUjian extends Model
         ->withTimestamps();
 }
 
-    public function dataUjians()
+   public function ujianSiswa()
 {
-    return $this->hasMany(DataUjian::class, 'event_ujian_id');
+    return $this->hasMany(UjianSiswa::class, 'event_ujian_id');
 }
     
 }
