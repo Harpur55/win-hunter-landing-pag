@@ -33,35 +33,35 @@ class DaftarUjian extends Page
     #[Validate('required', message: 'Sabuk berikutnya wajib dipilih.')]
     public $next_belt_level;
 
-   public function mount(): void
-{
-    $this->events = EventUjian::whereDate('tanggal_ujian', '>=', now())
-        ->orderBy('tanggal_ujian', 'asc')
-        ->get();
+    public function mount(): void
+    {
+        $this->events = EventUjian::whereDate('tanggal_ujian', '>=', now())
+            ->orderBy('tanggal_ujian', 'asc')
+            ->get();
 
-    // Cek event baru (dibuat dalam 3 hari terakhir)
-    $latestEvent = EventUjian::where('created_at', '>=', now()->subDays(3))
-        ->latest('created_at')
-        ->first();
+        // Cek event baru (dibuat dalam 3 hari terakhir)
+        $latestEvent = EventUjian::where('created_at', '>=', now()->subDays(3))
+            ->latest('created_at')
+            ->first();
 
-    if ($latestEvent && !session()->has('ujian_notification_seen')) {
-        // Tampilkan popup
-        Notification::make()
-            ->title('📢 Event Ujian Baru!')
-            ->body('Ujian "' . $latestEvent->nama_ujian . '" telah dibuka. Yuk, daftar sekarang!')
-            ->success()
-            ->icon('heroicon-o-megaphone')
-            ->send();
+        if ($latestEvent && !session()->has('ujian_notification_seen')) {
+            // Tampilkan popup
+            Notification::make()
+                ->title('📢 Event Ujian Baru!')
+                ->body('Ujian "' . $latestEvent->nama_ujian . '" telah dibuka. Yuk, daftar sekarang!')
+                ->success()
+                ->icon('heroicon-o-megaphone')
+                ->send();
 
-        // Tambahkan angka badge di sidebar
-        session(['ujian_notification_count' => 1]);
-    } else {
-        session(['ujian_notification_count' => 0]);
+            // Tambahkan angka badge di sidebar
+            session(['ujian_notification_count' => 1]);
+        } else {
+            session(['ujian_notification_count' => 0]);
+        }
+
+        // Tandai sudah dilihat ketika halaman dibuka
+        session(['ujian_notification_seen' => true]);
     }
-
-    // Tandai sudah dilihat ketika halaman dibuka
-    session(['ujian_notification_seen' => true]);
-}
 
 
 
@@ -104,72 +104,79 @@ class DaftarUjian extends Page
         ]);
     }
 
-    public function daftarUjian()
-    {
-        $this->validate();
+ public function daftarUjian()
+{
+    $this->validate();
+       
+    $siswa = Auth::user()->siswa;
+    $event = $this->selectedEvent;
 
-        $siswa = Auth::user()->siswa;
-        $event = $this->selectedEvent;
-
-        if (!$siswa || !$event) {
-            Notification::make()
-                ->title('Gagal')
-                ->danger()
-                ->body('Data siswa atau event tidak ditemukan.')
-                ->send();
-            return;
-        }
-
-        // 🚫 Cek status pendaftaran
-        if ($event->is_registration_closed) {
-            Notification::make()
-                ->title('Pendaftaran Ditutup ⛔')
-                ->body('Pendaftaran untuk kejuaraan ini telah ditutup oleh panitia.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        // 🕓 Cek tanggal selesai jika ada
-        if (isset($event->tanggal_selesai) && Carbon::now()->greaterThan(Carbon::parse($event->tanggal_selesai))) {
-            Notification::make()
-                ->title('Pendaftaran sudah ditutup ⛔')
-                ->body('Batas waktu pendaftaran telah berakhir pada ' . Carbon::parse($event->tanggal_selesai)->format('d M Y') . '.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        // 🔁 Cegah duplikasi
-        if ($event->siswa()->where('siswa_id', $siswa->id)->exists()) {
-            Notification::make()
-                ->title('Sudah Terdaftar')
-                ->warning()
-                ->body('Kamu sudah terdaftar pada event ini.')
-                ->send();
-            return;
-        }
-
-        // ✅ Simpan data pendaftaran
-        $event->siswa()->attach($siswa->id, [
-            'nama_lengkap'      => $this->nama_lengkap,
-            'tempat_lahir'      => $this->tempat_lahir,
-            'tanggal_lahir'     => $this->tanggal_lahir,
-            'no_register'       => $this->no_register,
-            'jenis_kelamin'     => $this->jenis_kelamin,
-            'current_belt_level' => $this->current_belt_level,
-            'next_belt_level'    => $this->next_belt_level,
-            'keterangan'         => 'on progres',
-        ]);
-
-        $this->showVerification = false;
-
+    if (!$siswa || !$event) {
         Notification::make()
-            ->title('Berhasil')
-            ->success()
-            ->body('Kamu berhasil mendaftar ujian ini.')
+            ->title('Gagal')
+            ->danger()
+            ->body('Data siswa atau event tidak ditemukan.')
             ->send();
+        return;
     }
+
+    // 🚫 Cek status pendaftaran
+    if ($event->is_registration_closed) {
+        Notification::make()
+            ->title('Pendaftaran Ditutup ⛔')
+            ->body('Pendaftaran untuk kejuaraan ini telah ditutup oleh panitia.')
+            ->danger()
+            ->send();
+        return;
+    }
+
+    // 🕓 Cek tanggal selesai
+    if (isset($event->tanggal_selesai) && Carbon::now()->greaterThan(Carbon::parse($event->tanggal_selesai))) {
+        Notification::make()
+            ->title('Pendaftaran sudah ditutup ⛔')
+            ->body('Batas waktu pendaftaran telah berakhir.')
+            ->danger()
+            ->send();
+        return;
+    }
+
+    // 🔁 Cegah duplikasi
+    if ($event->siswa()->where('siswa_id', $siswa->id)->exists()) {
+        Notification::make()
+            ->title('Sudah Terdaftar')
+            ->warning()
+            ->body('Kamu sudah terdaftar pada event ini.')
+            ->send();
+        return;
+    }
+
+    // ✅ Ambil ID (tanpa ubah alur)
+    $unitId  = $siswa->units_id;
+    $kelasId = $siswa->kelas_id;
+
+    // ✅ Simpan data pendaftaran
+    $event->siswa()->attach($siswa->id, [
+        'nama_lengkap'       => $this->nama_lengkap,
+        'tempat_lahir'       => $this->tempat_lahir,
+        'tanggal_lahir'      => $this->tanggal_lahir,
+        'no_register'        => $this->no_register,
+        'unit_id'            => $unitId,
+        'kelas_id'           => $kelasId,
+        'jenis_kelamin'      => $this->jenis_kelamin,
+        'current_belt_level' => $this->current_belt_level,
+        'next_belt_level'    => $this->next_belt_level,
+        'keterangan'         => 'on progres',
+    ]);
+
+    $this->showVerification = false;
+
+    Notification::make()
+        ->title('Berhasil')
+        ->success()
+        ->body('Kamu berhasil mendaftar ujian ini.')
+        ->send();
+}
+
 
     public function batalDaftar($eventId)
     {
@@ -184,6 +191,9 @@ class DaftarUjian extends Page
                 ->send();
             return;
         }
+
+        
+
 
         $event->siswa()->detach($siswa->id);
 
@@ -222,10 +232,10 @@ class DaftarUjian extends Page
         return self::beltOptions();
     }
     public static function getNavigationBadge(): ?string
-{
-    // Ambil dari session
-    return session('ujian_notification_count', 0) > 0
-        ? (string) session('ujian_notification_count')
-        : null;
-}
+    {
+        // Ambil dari session
+        return session('ujian_notification_count', 0) > 0
+            ? (string) session('ujian_notification_count')
+            : null;
+    }
 }

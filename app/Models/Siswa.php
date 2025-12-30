@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+
+
 class Siswa extends Model
 {
     protected $fillable = [
@@ -121,7 +123,8 @@ class Siswa extends Model
     // 🔐 Enkripsi Data Sensitif
     // =======================
 
-    protected function alamatLengkap(): Attribute
+ 
+      protected function alamatLengkap(): Attribute
     {
         return Attribute::make(
             get: fn($value) => $value ? Crypt::decryptString($value) : null,
@@ -152,6 +155,7 @@ class Siswa extends Model
             set: fn($value) => $value ? Crypt::encryptString($value) : null,
         );
     }
+
 
 
 
@@ -325,4 +329,22 @@ class Siswa extends Model
     {
         return $this->hasMany(Sertifikat::class);
     }
+
+    private function decryptSafe(?string $value): ?string
+{
+    if (empty($value)) {
+        return null;
+    }
+
+    try {
+        return Crypt::decryptString($value);
+    } catch (\Throwable $e) {
+        // ⛔ JANGAN tampilkan ciphertext
+        return null;
+    }
+}
+
+
+   
+
 }

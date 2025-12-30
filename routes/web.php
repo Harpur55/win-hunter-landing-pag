@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\SiswaRegisterController;
 use App\Http\Controllers\Auth\SiswaForgotPasswordController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\DaftarUjianController;
+use App\Http\Controllers\KejuaraanController;
 use App\Http\Controllers\SiswaController;
 
 /*
@@ -13,6 +14,7 @@ use App\Http\Controllers\SiswaController;
 | Landing Page
 |--------------------------------------------------------------------------
 */
+
 Route::get('/', [LandingPageController::class, 'show'])->name('landing-page');
 
 Route::get('/force-403', fn() => abort(403));
@@ -52,9 +54,15 @@ Route::get('auth/google/callback', [GoogleController::class, 'callback'])->name(
 | Sertifikat Page
 |--------------------------------------------------------------------------
 */
-Route::get('/test-sertifikat', function () {
-    return view('tes');
-})->name('test-sertifikat');
+Route::get('/test-eror', function () {
+    return view('ujian.layouts.error.ujian-berakhir', [
+        'eventUjian' => (object) [
+            'nama_ujian' => 'Ujian Kenaikan Tingkat',
+            'tanggal_ujian' => now()->subDay()->toDateString(),
+        ],
+    ]);
+})->name('test-eror');
+
 
 
 /*
@@ -67,9 +75,9 @@ Route::get('/test-sertifikat', function () {
 
 Route::get('/api/siswa/{id}', [SiswaController::class, 'getSiswa'])
     ->name('api.siswa.get');
-    
 
-  Route::prefix('siswa')->name('siswa.')->group(function () {
+
+Route::prefix('siswa')->name('siswa.')->group(function () {
 
     // Halaman Form Input
     Route::get('/input', [SiswaController::class, 'inputDataSiswa'])
@@ -85,11 +93,17 @@ Route::get('/api/siswa/{id}', [SiswaController::class, 'getSiswa'])
 });
 
 
-Route::get('/ujian/daftar/{eventId}', [DaftarUjianController::class, 'create'])
+Route::get('/ujian/daftar/{slug}', [DaftarUjianController::class, 'create'])
     ->name('ujian.daftar');
 
-Route::post('/ujian/daftar/{eventId}', [DaftarUjianController::class, 'store'])
+Route::post('/ujian/daftar/{slug}', [DaftarUjianController::class, 'store'])
     ->name('ujian.daftar.store');
 
+    // Kejuaraan Routes
+Route::controller(KejuaraanController::class)->group(function () {
+    Route::get('/kejuaraan/daftar/{slug}/', 'daftar')
+        ->name('kejuaraan.daftar');
 
-
+    Route::post('/kejuaraan/aftar/{slug}/', 'store')
+        ->name('kejuaraan.daftar.store');
+});

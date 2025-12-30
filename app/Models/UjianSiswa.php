@@ -63,4 +63,10 @@ class UjianSiswa extends Pivot
 {
     return $this->hasMany(UjianSiswa::class, 'event_ujian_siswa_id');
 }
+public function collection()
+{
+    return UjianSiswa::with('siswa')
+        ->where('event_ujian_id', $this->eventUjian->id)
+        ->get();
+}
 }

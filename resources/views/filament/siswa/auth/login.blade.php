@@ -59,7 +59,7 @@
 
             {{-- Daftar --}}
             <div class="mt-4 text-center">
-                <a href="/siswa.wh/register"
+                <a href="/siswa/register"
                    class="inline-block w-full px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition text-center">
                     Daftar di sini
                 </a>
@@ -94,7 +94,7 @@
             errorMsg.classList.remove('hidden');
         }
 
-        // 🧩 Cegah login tanpa captcha
+       
         document.getElementById('login-form').addEventListener('submit', function (e) {
             if (!isCaptchaVerified) {
                 e.preventDefault();

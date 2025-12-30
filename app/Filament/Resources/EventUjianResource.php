@@ -67,17 +67,17 @@ class EventUjianResource extends Resource
                 ->label('Lokasi Ujian'),
 
             // ✅ LINK DAFTAR (LOGIC TETAP)
-            TextEntry::make('link_daftar')
-                ->label('Link Pendaftaran')
-                ->state(fn ($record) =>
-                    route('ujian.daftar', $record->id)
-                )
-                ->copyable()
-                ->copyMessage('Link berhasil disalin')
-                ->url(fn ($record) =>
-                    route('ujian.daftar', $record->id)
-                )
-                ->openUrlInNewTab(),
+         TextEntry::make('link_daftar')
+    ->label('Link Pendaftaran')
+    ->state(fn ($record) =>
+        route('ujian.daftar', $record->slug)
+    )
+    ->copyable()
+    ->copyMessage('Link berhasil disalin')
+    ->url(fn ($record) =>
+        route('ujian.daftar', $record->slug)
+    )
+    ->openUrlInNewTab(),
         ]);
 }
 
@@ -132,31 +132,7 @@ class EventUjianResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
 
-                // ✅ Tombol Toggle Pendaftaran di setiap baris
-                // Action::make('toggle_registration')
-                //     ->label(fn(EventUjian $record) => $record->is_registration_closed
-                //         ? 'Buka Pendaftaran'
-                //         : 'Tutup Pendaftaran')
-                //     ->icon(fn(EventUjian $record) => $record->is_registration_closed
-                //         ? 'heroicon-o-check-circle'
-                //         : 'heroicon-o-x-circle')
-                //     ->color(fn(EventUjian $record) => $record->is_registration_closed
-                //         ? 'success'
-                //         : 'danger')
-                //     ->requiresConfirmation()
-                //     ->action(function (EventUjian $record) {
-                //         $newStatus = !$record->is_registration_closed;
-
-                //         $record->update([
-                //             'is_registration_closed' => $newStatus,
-                //         ]);
-
-                //         Notification::make()
-                //             ->title($newStatus ? 'Pendaftaran Ditutup' : 'Pendaftaran Dibuka')
-                //             ->body('Pendaftaran untuk ' . $record->nama_ujian . ' telah ' . ($newStatus ? 'ditutup.' : 'dibuka kembali.'))
-                //             ->success()
-                //             ->send();
-                //     }),
+              
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

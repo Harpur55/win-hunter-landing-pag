@@ -246,11 +246,13 @@ class SiswaRelationManager extends RelationManager
                             ->required()
                             ->visible(fn($get) => $get('kategori_pertandingan') === 'kyorugi'),
 
-                        TextInput::make('kelas_berat')   // ✅ harus 'kelas_berat'
+                        TextInput::make('kelas_berat')
                             ->label('Kelas Berat')
-                            ->required()
+                            ->placeholder('U-45, U-58, U+80')
                             ->visible(fn(callable $get) => $get('kategori_pertandingan') === 'kyorugi')
-                            ->placeholder('U-45, U-58, U+80'),
+                            ->dehydrated(fn(callable $get) => $get('kategori_pertandingan') === 'kyorugi')
+                            ->required(fn(callable $get) => $get('kategori_pertandingan') === 'kyorugi'),
+
 
 
                         Select::make('tingkat_kategori')
@@ -272,6 +274,15 @@ class SiswaRelationManager extends RelationManager
                                     '6' => 'Taegeuk 6',
                                     '7' => 'Taegeuk 7',
                                     '8' => 'Taegeuk 8',
+                                    'koryo' => 'Koryo',
+                                    'keumgang' => 'Keumgang',
+                                    'taebaek' => 'Taebaek',
+                                    'pyongwon' => 'Pyongwon',
+                                    'sipjin' => 'Sipjin',
+                                    'jitae' => 'Jitae',
+                                    'cheonkwon' => 'Cheonkwon',
+                                    'hangul' => 'Hangul',
+                                    'ilyeo' => 'Ilyeo',
                                 ])
                                 ->required()
                                 ->visible(fn($get) => strtolower((string)$get('kategori_pertandingan')) === 'poomsae'),
@@ -365,12 +376,12 @@ class SiswaRelationManager extends RelationManager
                             ->suffix('cm')
                             ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'kyorugi'),
 
-                            TextInput::make('kelas_berat')   // ✅ harus 'kelas_berat'
+                        TextInput::make('kelas_berat')   // ✅ harus 'kelas_berat'
                             ->label('Kelas Berat')
                             ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'kyorugi')
                             ->placeholder('U-45, U-58, U+80'),
 
-                            Select::make('tingkat_kategori')
+                        Select::make('tingkat_kategori')
                             ->label('Kategori (Beginer / Advance)')
                             ->options([
                                 'Pro' => 'Pro',
@@ -388,6 +399,15 @@ class SiswaRelationManager extends RelationManager
                                 '6' => 'Taegeuk 6',
                                 '7' => 'Taegeuk 7',
                                 '8' => 'Taegeuk 8',
+                                'koryo' => 'Koryo',
+                                'keumgang' => 'Keumgang',
+                                'taebaek' => 'Taebaek',
+                                'pyongwon' => 'Pyongwon',
+                                'sipjin' => 'Sipjin',
+                                'jitae' => 'Jitae',
+                                'cheonkwon' => 'Cheonkwon',
+                                'hangul' => 'Hangul',
+                                'ilyeo' => 'Ilyeo',
                             ])
                             ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'poomsae'),
 

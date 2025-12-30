@@ -1,4 +1,4 @@
-@if(session('success'))
+@if (session('success'))
     <div class="bg-green-500 text-white p-3 rounded mb-4">
         {{ session('success') }}
     </div>
@@ -23,28 +23,26 @@
 
 @if ($mode == 'edit')
     <div class="mb-4">
-        <a href="{{ route('ujian.hasil', $pendaftaran->id) }}"
-           class="bg-green-600 px-4 py-2 text-white rounded shadow">
+        <a href="{{ route('ujian.hasil', $pendaftaran->id) }}" class="bg-green-600 px-4 py-2 text-white rounded shadow">
             Lihat Hasil Ujian
         </a>
     </div>
 @endif
 
-<form action="{{ $mode=='create'
-        ? route('ujian.daftar.store', $eventUjian->id)
-        : route('ujian.daftar.update', [$eventUjian->id, $pendaftaran->id]) }}"
-      method="POST" class="space-y-6">
-
+<form
+    action="{{ $mode == 'create'
+        ? route('ujian.daftar.store', $eventUjian->slug)
+        : route('ujian.daftar.update', [$eventUjian->slug, $pendaftaran->id]) }}"
+    method="POST" class="space-y-6">
     @csrf
 
     {{-- NAMA SISWA --}}
     <div>
         <label class="font-semibold">Nama Siswa *</label>
         <select id="siswa_id" name="siswa_id"
-                class="w-full p-3 border rounded @error('siswa_id') border-red-500 @enderror"
-                required>
+            class="w-full p-3 border rounded @error('siswa_id') border-red-500 @enderror" required>
             <option value="">-- Pilih --</option>
-            @foreach($siswas as $s)
+            @foreach ($siswas as $s)
                 <option value="{{ $s->id }}"
                     {{ old('siswa_id', $pendaftaran->siswa_id ?? '') == $s->id ? 'selected' : '' }}>
                     {{ $s->nama_lengkap }}
@@ -56,31 +54,30 @@
         @enderror
     </div>
     <div>
-    <label>Jenis Kelamin *</label>
-    <select name="jenis_kelamin"
-            class="w-full p-3 border rounded @error('jenis_kelamin') border-red-500 @enderror"
+        <label>Jenis Kelamin *</label>
+        <select name="jenis_kelamin" class="w-full p-3 border rounded @error('jenis_kelamin') border-red-500 @enderror"
             required>
-        <option value="">-- Pilih --</option>
-        <option value="L"
-            {{ old('jenis_kelamin', $pendaftaran->jenis_kelamin ?? '') == 'L' ? 'selected' : '' }}>
-            Laki-laki
-        </option>
-        <option value="P"
-            {{ old('jenis_kelamin', $pendaftaran->jenis_kelamin ?? '') == 'P' ? 'selected' : '' }}>
-            Perempuan
-        </option>
-    </select>
-    @error('jenis_kelamin')
-        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-    @enderror
-</div>
+            <option value="">-- Pilih --</option>
+            <option value="L"
+                {{ old('jenis_kelamin', $pendaftaran->jenis_kelamin ?? '') == 'L' ? 'selected' : '' }}>
+                Laki-laki
+            </option>
+            <option value="P"
+                {{ old('jenis_kelamin', $pendaftaran->jenis_kelamin ?? '') == 'P' ? 'selected' : '' }}>
+                Perempuan
+            </option>
+        </select>
+        @error('jenis_kelamin')
+            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+        @enderror
+    </div>
 
     {{-- TEMPAT LAHIR --}}
     <div>
         <label>Tempat Lahir *</label>
         <input type="text" name="tempat_lahir"
-               class="w-full p-3 border rounded @error('tempat_lahir') border-red-500 @enderror"
-               value="{{ old('tempat_lahir', $pendaftaran->tempat_lahir ?? '') }}" required>
+            class="w-full p-3 border rounded @error('tempat_lahir') border-red-500 @enderror"
+            value="{{ old('tempat_lahir', $pendaftaran->tempat_lahir ?? '') }}" required>
         @error('tempat_lahir')
             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
         @enderror
@@ -90,8 +87,8 @@
     <div>
         <label>Tanggal Lahir *</label>
         <input type="date" name="tanggal_lahir"
-               class="w-full p-3 border rounded @error('tanggal_lahir') border-red-500 @enderror"
-               value="{{ old('tanggal_lahir', $pendaftaran->tanggal_lahir ?? '') }}" required>
+            class="w-full p-3 border rounded @error('tanggal_lahir') border-red-500 @enderror"
+            value="{{ old('tanggal_lahir', $pendaftaran->tanggal_lahir ?? '') }}" required>
         @error('tanggal_lahir')
             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
         @enderror
@@ -101,8 +98,8 @@
     <div>
         <label>No Register *</label>
         <input type="text" name="no_register"
-               class="w-full p-3 border rounded @error('no_register') border-red-500 @enderror"
-               value="{{ old('no_register', $pendaftaran->no_register ?? '') }}" required>
+            class="w-full p-3 border rounded @error('no_register') border-red-500 @enderror"
+            value="{{ old('no_register', $pendaftaran->no_register ?? '') }}" required>
         @error('no_register')
             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
         @enderror
@@ -112,10 +109,9 @@
     <div>
         <label>Sabuk Sekarang *</label>
         <select name="current_belt_level"
-                class="w-full p-3 border rounded @error('current_belt_level') border-red-500 @enderror"
-                required>
+            class="w-full p-3 border rounded @error('current_belt_level') border-red-500 @enderror" required>
             <option value="">-- Pilih --</option>
-            @foreach($sabukList as $key => $label)
+            @foreach ($sabukList as $key => $label)
                 <option value="{{ $key }}"
                     {{ old('current_belt_level', $pendaftaran->current_belt_level ?? '') == $key ? 'selected' : '' }}>
                     {{ $label }}
@@ -131,10 +127,9 @@
     <div>
         <label>Sabuk Berikutnya *</label>
         <select name="next_belt_level"
-                class="w-full p-3 border rounded @error('next_belt_level') border-red-500 @enderror"
-                required>
+            class="w-full p-3 border rounded @error('next_belt_level') border-red-500 @enderror" required>
             <option value="">-- Pilih --</option>
-            @foreach($sabukList as $key => $label)
+            @foreach ($sabukList as $key => $label)
                 <option value="{{ $key }}"
                     {{ old('next_belt_level', $pendaftaran->next_belt_level ?? '') == $key ? 'selected' : '' }}>
                     {{ $label }}
@@ -149,11 +144,9 @@
     {{-- UNIT --}}
     <div>
         <label>Unit *</label>
-        <select name="units_id"
-                class="w-full p-3 border rounded @error('units_id') border-red-500 @enderror"
-                required>
+        <select name="units_id" class="w-full p-3 border rounded @error('units_id') border-red-500 @enderror" required>
             <option value="">-- Pilih --</option>
-            @foreach($units as $u)
+            @foreach ($units as $u)
                 <option value="{{ $u->id }}"
                     {{ old('units_id', $pendaftaran->units_id ?? '') == $u->id ? 'selected' : '' }}>
                     {{ $u->name }}
@@ -168,11 +161,9 @@
     {{-- KELAS --}}
     <div>
         <label>Kelas *</label>
-        <select name="kelas_id"
-                class="w-full p-3 border rounded @error('kelas_id') border-red-500 @enderror"
-                required>
+        <select name="kelas_id" class="w-full p-3 border rounded @error('kelas_id') border-red-500 @enderror" required>
             <option value="">-- Pilih --</option>
-            @foreach($kelas as $k)
+            @foreach ($kelas as $k)
                 <option value="{{ $k->id }}"
                     {{ old('kelas_id', $pendaftaran->kelas_id ?? '') == $k->id ? 'selected' : '' }}>
                     {{ $k->name }}
@@ -185,7 +176,7 @@
     </div>
 
     <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg">
-        {{ $mode=='create' ? 'Daftar Ujian' : 'Update Pendaftaran' }}
+        {{ $mode == 'create' ? 'Daftar Ujian' : 'Update Pendaftaran' }}
     </button>
 </form>
 
@@ -196,11 +187,11 @@
 <script>
     $('#siswa_id').select2();
 
-    $('#siswa_id').on('change', function () {
+    $('#siswa_id').on('change', function() {
         let id = $(this).val();
         if (!id) return;
 
-        $.get("/api/siswa/" + id, function (data) {
+        $.get("/api/siswa/" + id, function(data) {
             console.log('Data siswa:', data);
 
             $('input[name="tempat_lahir"]').val(data.tempat_lahir ?? '');

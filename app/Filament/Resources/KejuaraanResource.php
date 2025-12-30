@@ -29,7 +29,7 @@ class KejuaraanResource extends Resource
                     ->required()
                     ->maxLength(255),
 
-                    Forms\Components\Select::make('grades')
+                Forms\Components\Select::make('grades')
                     ->label('Grades')
                     ->options([
                         'nasional_A'          => 'Nasional A',
@@ -58,14 +58,18 @@ class KejuaraanResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+
+             ->recordUrl(fn ($record) =>
+            KejuaraanResource::getUrl('view', ['record' => $record])
+        )
             ->columns([
                 Tables\Columns\TextColumn::make('nama_kejuaraan')
                     ->label('Nama Kejuaraan')
                     ->searchable(),
 
-                    Tables\Columns\TextColumn::make('grades')
+                Tables\Columns\TextColumn::make('grades')
                     ->label('Grades')
-                    ->formatStateUsing(fn ($state) => match ($state) {
+                    ->formatStateUsing(fn($state) => match ($state) {
                         'nasional_A'        => 'Nasional A',
                         'nasional_B'        => 'Nasional B',
                         'daerah_A'          => 'Daerah A',
@@ -107,51 +111,68 @@ class KejuaraanResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                // Tables\Columns\TextColumn::make('slug')
+                //     ->label('Link Pendaftaran')
+                //     ->state(fn($record) => route('kejuaraan.daftar', $record->slug))
+                //     ->url(fn($state) => $state)
+                //     ->openUrlInNewTab()
+                //     ->copyable()
+                //     ->icon('heroicon-o-link')
+                //     ->limit(40),
             ])
-               ->filters([
-            Tables\Filters\SelectFilter::make('tahun')
-                ->label('Tahun Kejuaraan')
-                ->options(function () {
-                    // Ambil daftar tahun unik dari kolom tanggal_mulai
-                    return \App\Models\Kejuaraan::selectRaw('YEAR(tanggal_mulai) as tahun')
-                        ->distinct()
-                        ->orderByDesc('tahun')
-                        ->pluck('tahun', 'tahun')
-                        ->toArray();
-                })
-                ->query(function ($query, $data) {
-                    // Terapkan filter berdasarkan tahun yang dipilih
-                    if (!empty($data['value'])) {
-                        $query->whereYear('tanggal_mulai', $data['value']);
-                    }
-                }),
-        ])
+
+
+
+            ->filters([
+                Tables\Filters\SelectFilter::make('tahun')
+                    ->label('Tahun Kejuaraan')
+                    ->options(function () {
+                        // Ambil daftar tahun unik dari kolom tanggal_mulai
+                        return \App\Models\Kejuaraan::selectRaw('YEAR(tanggal_mulai) as tahun')
+                            ->distinct()
+                            ->orderByDesc('tahun')
+                            ->pluck('tahun', 'tahun')
+                            ->toArray();
+                    })
+                    ->query(function ($query, $data) {
+                        // Terapkan filter berdasarkan tahun yang dipilih
+                        if (!empty($data['value'])) {
+                            $query->whereYear('tanggal_mulai', $data['value']);
+                        }
+                    }),
+            ])
 
 
             ->actions([
+
+                 Tables\Actions\EditAction::make()
+        ->label('Edit')
+        ->icon('heroicon-o-pencil-square'),
                 // ✅ Tombol Tutup/Buka Pendaftaran
                 Action::make('toggle_registration')
-                    ->label(fn ($record) => $record->is_registration_closed ? 'Buka Pendaftaran' : 'Tutup Pendaftaran')
-                    ->color(fn ($record) => $record->is_registration_closed ? 'success' : 'danger')
-                    ->icon(fn ($record) => $record->is_registration_closed ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
+                    ->label(fn($record) => $record->is_registration_closed ? 'Buka Pendaftaran' : 'Tutup Pendaftaran')
+                    ->color(fn($record) => $record->is_registration_closed ? 'success' : 'danger')
+                    ->icon(fn($record) => $record->is_registration_closed ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
                     ->requiresConfirmation()
                     ->action(function ($record) {
                         $record->is_registration_closed = ! $record->is_registration_closed;
                         $record->save();
 
                         Notification::make()
-                            ->title($record->is_registration_closed 
-                                ? '⛔ Pendaftaran telah ditutup.' 
+                            ->title($record->is_registration_closed
+                                ? '⛔ Pendaftaran telah ditutup.'
                                 : '✅ Pendaftaran telah dibuka kembali.')
                             ->success()
                             ->send();
                     }),
 
                 // ✅ Tombol Ubah ke Selesai
-                          ])
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+
                 ]),
             ]);
     }
@@ -168,6 +189,7 @@ class KejuaraanResource extends Resource
         return [
             'index' => Pages\ListKejuaraans::route('/'),
             'create' => Pages\CreateKejuaraan::route('/create'),
+            'view' => Pages\ViewKejuaraan::route('/{record}'),
             'edit' => Pages\EditKejuaraan::route('/{record}/edit'),
         ];
     }

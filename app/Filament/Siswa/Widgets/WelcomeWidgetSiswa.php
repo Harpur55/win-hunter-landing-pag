@@ -19,8 +19,10 @@ class WelcomeWidgetSiswa extends Widget
         $user = Auth::user();
         $siswa = Siswa::with('kelas')->where('user_id', $user->id)->first();
 
+
         $nama  = $siswa->nama_lengkap ?? $user->name ?? 'User';
         $kelas = $siswa?->kelas?->name ?? '-';
+        $current_belt_level = $siswa?->current_belt_level ?? '-';
         $kuota = [];
 
         if ($siswa && $siswa->kelas) {
@@ -51,6 +53,6 @@ class WelcomeWidgetSiswa extends Widget
             ];
         }
 
-        return compact('nama', 'kelas', 'kuota');
+        return compact('nama', 'kelas', 'kuota', 'current_belt_level');
     }
 }

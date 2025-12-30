@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sertifikat', function (Blueprint $table) {
+        Schema::table('event_ujian', function (Blueprint $table) {
             //
-                // $table->string('file_pdf')->nullable(); 
-
+            $table->string('slug')->after('lokasi_ujian')->unique();
         });
     }
 
@@ -23,9 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('sertifikat', function (Blueprint $table) {
+        Schema::table('event_ujian', function (Blueprint $table) {
             //
-            // $table->dropColumn('file_pdf');
+            $table->dropColumn('slug');
         });
     }
 };

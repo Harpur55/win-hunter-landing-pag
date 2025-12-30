@@ -23,8 +23,7 @@ use App\Filament\Siswa\Pages\Profile;
 use App\Filament\Widgets\SiswaDashboardStats;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
-use App\Filament\Pages\DaftarUjianForm;
-
+use App\Filament\Siswa\Pages\DaftarUjianForm;
 class SiswaPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Siswa\Pages;
 
 use Filament\Pages\Page;
 use App\Models\EventUjian;

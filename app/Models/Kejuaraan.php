@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Kejuaraan extends Model
 {
@@ -18,11 +19,29 @@ class Kejuaraan extends Model
         'kuota_prestasi',
         'kuota_khusus',
         'kuota_kelas_poomsae',
+        'slug',
     ];
 
     /**
      * Relasi ke siswa yang mengikuti kejuaraan.
      */
+    protected static function booted()
+    {
+        static::creating(function ($kejuaraan) {
+            if (empty($kejuaraan->slug)) {
+                $baseSlug = Str::slug($kejuaraan->nama_kejuaraan);
+                $slug = $baseSlug;
+                $count = 1;
+
+                // pastikan unik
+                while (self::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $count++;
+                }
+
+                $kejuaraan->slug = $slug;
+            }
+        });
+    }
     public function siswa()
     {
         return $this->belongsToMany(Siswa::class, 'kejuaraan_siswa', 'kejuaraan_id', 'siswa_id')

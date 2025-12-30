@@ -91,19 +91,22 @@
                             </div>
 
                             {{-- Kelas Berat --}}
-                            <div>
-                                <p
-                                    class="text-s
- font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
-                                    Kelas Berat (Under)
-                                </p>
-                                <span
-                                    class="inline-flex px-3 py-1 rounded-full text-s
- font-semibold
-                     bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
-                                    {{ $item['kelas_berat'] ?? '-' }}
-                                </span>
-                            </div>
+                           @if(($item['kategori_pertandingan'] ?? '') === 'kyorugi')
+    <div>
+        <p
+            class="text-sm font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+            Kelas Berat (Under)
+        </p>
+
+        <span
+            class="inline-flex px-3 py-1 rounded-full text-sm font-semibold
+                   bg-emerald-50 text-emerald-700
+                   dark:bg-emerald-900/40 dark:text-emerald-200">
+            {{ $item['kelas_berat'] ?? '-' }}
+        </span>
+    </div>
+@endif
+
 
                         </div>
 

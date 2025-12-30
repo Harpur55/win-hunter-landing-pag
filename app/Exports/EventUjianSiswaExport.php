@@ -3,14 +3,17 @@
 namespace App\Exports;
 
 use App\Models\EventUjian;
+use App\Models\UjianSiswa;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use DateTime;
 
-class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles, WithMapping
+class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles, WithMapping,  WithColumnFormatting
 {
     protected $eventUjian;
 
@@ -19,18 +22,23 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
         $this->eventUjian = $eventUjian;
     }
 
+    // 🔥 AMBIL DARI PIVOT (UjianSiswa)
     public function collection()
     {
-        return $this->eventUjian->siswa; // hanya siswa yang ikut ujian ini
+        return UjianSiswa::with('siswa')
+            ->where('event_ujian_id', $this->eventUjian->id)
+            ->get();
     }
 
     public function headings(): array
     {
         return [
             ['DATA PESERTA UJIAN'],
-            ['Tanggal Ujian : ' . ($this->eventUjian->tanggal_ujian ? (new DateTime($this->eventUjian->tanggal_ujian))->format('d/m/Y') : '-')],
+            ['Tanggal Ujian : ' . ($this->eventUjian->tanggal_ujian
+                ? (new DateTime($this->eventUjian->tanggal_ujian))->format('d/m/Y')
+                : '-')],
             ['Lokasi        : ' . ($this->eventUjian->lokasi_ujian ?? '-')],
-            [],
+            ['Jumlah Peserta : ' . $this->eventUjian->ujianSiswa()->count()],
             [
                 'NO',
                 'NAMA SISWA',
@@ -40,46 +48,47 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
                 'ALAMAT',
                 'NOMOR HP',
                 'SABUK SAAT INI',
-                'GEUP/ DAN',
+                'GEUP / DAN',
                 'SABUK BERIKUTNYA',
                 'KETERANGAN',
             ],
         ];
     }
 
-   public function map($siswa): array
-{
-    static $no = 0;
-    $no++;
+    // 🔥 MAP DARI MODEL UjianSiswa
+    public function map($ujianSiswa): array
+    {
+        static $no = 0;
+        $no++;
 
-    $currentBelt = strtolower($siswa->pivot->current_belt_level ?? '');
-    $nextBelt = $siswa->pivot->next_belt_level ?? '-';
+        $siswa = $ujianSiswa->siswa;
 
-    return [
-        $no,
-        $siswa->nama_lengkap,
-        $siswa->tempat_lahir,
-        $siswa->tanggal_lahir?->format('d/m/Y'),
-        $siswa->no_register,
-        $siswa->alamat,
-        $siswa->nomor_telpon,
-        $siswa->pivot->current_belt_level,       // Sabuk saat ini
-        self::beltToGeup($currentBelt),          // Geup / Dan dari sabuk saat ini
-        $nextBelt,                               // Sabuk berikutnya
-        $siswa->pivot->keterangan,
-    ];
-}
+        $currentBelt = strtolower($ujianSiswa->current_belt_level ?? '');
+        $nextBelt = $ujianSiswa->next_belt_level ?? '-';
 
+        return [
+            $no,
+            $siswa->nama_lengkap,
+            $siswa->tempat_lahir,
+            $siswa->tanggal_lahir?->format('d/m/Y'),
+           (string) $siswa->no_register,
+
+            // ✅ AUTO DECRYPT (ACCESSOR MODEL SISWA)
+            $siswa->alamat_lengkap,
+           (string) $siswa->no_telpon,
+
+            $ujianSiswa->current_belt_level,
+            self::beltToGeup($currentBelt),
+            $nextBelt,
+            $ujianSiswa->keterangan,
+        ];
+    }
 
     public function styles(Worksheet $sheet)
     {
-        // Bold judul
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-
-        
         $sheet->mergeCells('A1:J1');
 
-        // Border semua data
         $highestRow = $sheet->getHighestRow();
         $highestColumn = $sheet->getHighestColumn();
 
@@ -88,7 +97,6 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
             ->getAllBorders()
             ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // Auto width kolom
         foreach (range('A', $highestColumn) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
@@ -96,23 +104,29 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
         return [];
     }
 
-    private static function beltToGeup(?string $belt): string
+        public function columnFormats(): array
 {
-    $mapping = [
-        'putih'               => '10 Geup',
-        'kuning'              => '9 Geup',
-        'kuning strip hijau'  => '8 Geup',
-        'hijau'               => '7 Geup',
-        'hijau strip biru'    => '6 Geup',
-        'biru'                => '5 Geup',
-        'biru strip merah'    => '4 Geup',
-        'merah'               => '3 Geup',
-        'merah strip hitam 1' => '2 Geup',
-        'merah strip hitam 2' => '1 Geup',
-        'hitam'               => '1 Dan',
+    return [
+        'E' => NumberFormat::FORMAT_TEXT, // NO REGISTER
+        'G' => NumberFormat::FORMAT_TEXT, // NOMOR HP (sekalian biar aman)
     ];
-
-    return $mapping[$belt] ?? '-';
 }
+    private static function beltToGeup(?string $belt): string
+    {
+        $mapping = [
+            'putih'               => '10 Geup',
+            'kuning'              => '9 Geup',
+            'kuning strip hijau'  => '8 Geup',
+            'hijau'               => '7 Geup',
+            'hijau strip biru'    => '6 Geup',
+            'biru'                => '5 Geup',
+            'biru strip merah'    => '4 Geup',
+            'merah'               => '3 Geup',
+            'merah strip hitam 1' => '2 Geup',
+            'merah strip hitam 2' => '1 Geup',
+            'hitam'               => '1 Dan',
+        ];
 
+        return $mapping[$belt] ?? '-';
+    }
 }

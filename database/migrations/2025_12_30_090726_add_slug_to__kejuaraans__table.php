@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sertifikat', function (Blueprint $table) {
+        Schema::table('kejuaraans', function (Blueprint $table) {
             //
-                // $table->string('file_pdf')->nullable(); 
-
+             $table->string('slug')->nullable()->unique()->after('lokasi');
         });
     }
 
@@ -23,9 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('sertifikat', function (Blueprint $table) {
+        Schema::table('kejuaraans', function (Blueprint $table) {
             //
-            // $table->dropColumn('file_pdf');
         });
     }
 };

@@ -11,6 +11,8 @@ use App\Helpers\NameHelper;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
+
 use Carbon\Carbon;
 
 class Profile extends Page implements Forms\Contracts\HasForms
@@ -204,12 +206,12 @@ class Profile extends Page implements Forms\Contracts\HasForms
             return;
         }
 
-        $normalizedNama = NameHelper::normalize($namaLengkap);
+$compareNama = strtolower(trim(preg_replace('/\s+/', ' ', $namaLengkap)));
 
-        $siswa = Siswa::where('nis', $nis)
-            ->whereRaw('LOWER(nama_lengkap) = ?', [strtolower($normalizedNama)])
-            ->where('units_id', $unitId)
-            ->first();
+       $siswa = Siswa::where('nis', $nis)
+    ->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$compareNama])
+    ->where('units_id', $unitId)
+    ->first();
 
         if ($siswa) {
             $this->loadSiswaData($set, $siswa);
@@ -255,78 +257,105 @@ class Profile extends Page implements Forms\Contracts\HasForms
     /**
      * Simpan dan reload data ke form & header
      */
-    public function save(): void
-    {
-        $user     = Auth::user();
-        $formData = $this->form->getState();
+  public function save(): void
+{
+    $user     = Auth::user();
+    $formData = $this->form->getState();
 
-        \Log::info('SAVE FORM DATA:', $formData);
+    //\Log::info('SAVE FORM DATA:', $formData);
 
-        if (!empty($formData['nama_lengkap'])) {
-            $formData['nama_lengkap'] = NameHelper::normalize($formData['nama_lengkap']);
-        }
+    // ===============================
+    // 1. Validasi field wajib
+    // ===============================
+    if (
+        empty($formData['nis']) ||
+        empty($formData['nama_lengkap']) ||
+        empty($formData['units_id'])
+    ) {
+        Notification::make()
+            ->title('❌ Data wajib tidak lengkap!')
+            ->danger()
+            ->send();
 
-        if (empty($formData['nis']) || empty($formData['nama_lengkap']) || empty($formData['units_id'])) {
+        return;
+    }
+
+    // ===============================
+    // 2. Nama untuk PENCARIAN DB (jangan pakai normalize)
+    // ===============================
+    $compareNama = strtolower(
+        trim(
+            preg_replace('/\s+/', ' ', $formData['nama_lengkap'])
+        )
+    );
+
+    
+    $existing = Siswa::where('nis', $formData['nis'])
+        ->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$compareNama])
+        ->where('units_id', $formData['units_id'])
+        ->first();
+
+    
+    $formData['nama_lengkap'] = NameHelper::normalize($formData['nama_lengkap']);
+
+    if ($existing) {
+        // Jika sudah dipakai user lain → TOLAK
+        if ($existing->user_id && $existing->user_id !== $user->id) {
             Notification::make()
-                ->title('❌ Data wajib tidak lengkap!')
+                ->title('❌ Data sudah digunakan user lain!')
                 ->danger()
                 ->send();
 
             return;
         }
 
-        $existing = Siswa::where('nis', $formData['nis'])
-            ->whereRaw('LOWER(nama_lengkap) = ?', [strtolower($formData['nama_lengkap'])])
-            ->where('units_id', $formData['units_id'])
-            ->first();
+        // Update field
+        $existing->fill($formData);
 
-        if ($existing) {
-            // jika sudah dipakai user lain, tolak
-            if ($existing->user_id && $existing->user_id !== $user->id) {
-                Notification::make()
-                    ->title('❌ Data sudah digunakan user lain!')
-                    ->danger()
-                    ->send();
-
-                return;
-            }
-
-            // update field lain
-            $existing->fill($formData);
-
-            // kalau belum pernah di-link ke user, isi user_id
-            if (!$existing->user_id) {
-                $existing->user_id = $user->id;
-            }
-
-            $existing->save();
-
-            $user->update(['name' => $existing->nama_lengkap]);
-
-            Notification::make()
-                ->title('✅ Data berhasil diupdate')
-                ->success()
-                ->send();
-        } else {
-            $new = Siswa::create(array_merge($formData, [
-                'user_id' => $user->id,
-                'status'  => 'Aktif',
-            ]));
-
-            $user->update(['name' => $new->nama_lengkap]);
-
-            Notification::make()
-                ->title('✅ Data siswa baru disimpan')
-                ->success()
-                ->send();
+        // Jika belum pernah di-link ke user
+        if (!$existing->user_id) {
+            $existing->user_id = $user->id;
         }
 
-        // reload state & form (supaya header & form ikut update)
-        $this->loadSiswaDataToForm();
-        $this->lockKeyFields = true;
-        $this->dataSaved     = true;
-        $this->isEditing     = false;
+        $existing->save();
+
+        // Sinkron nama user
+        $user->update([
+            'name' => $existing->nama_lengkap,
+        ]);
+
+        Notification::make()
+            ->title('✅ Data berhasil diupdate')
+            ->success()
+            ->send();
     }
+    // ===============================
+    // 6. Jika data siswa BELUM ada
+    // ===============================
+    else {
+        $new = Siswa::create(array_merge($formData, [
+            'user_id' => $user->id,
+            'status'  => 'Aktif',
+        ]));
+
+        $user->update([
+            'name' => $new->nama_lengkap,
+        ]);
+
+        Notification::make()
+            ->title('✅ Data siswa baru disimpan')
+            ->success()
+            ->send();
+    }
+
+    // ===============================
+    // 7. Reload state & lock form
+    // ===============================
+    $this->loadSiswaDataToForm();
+    $this->lockKeyFields = true;
+    $this->dataSaved     = true;
+    $this->isEditing     = false;
+}
 
     public static function beltOptions(): array
     {

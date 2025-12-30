@@ -279,6 +279,7 @@ class SiswaRelationManager extends RelationManager
                             'tempat_lahir'       => $tempat_lahir,
                             'tanggal_lahir'      => $tanggal_lahir,
                             'no_register'        => $data['no_register'] ?? $siswa->no_register,
+                            'jenis_kelamin'  =>      $data['jenis_kelamin'] ?? $siswa->jenis_kelamin,
                             'units_id'           => $siswa->units_id,
                             'kelas_id'           => $siswa->kelas_id,
                             'current_belt_level' => $current_belt,

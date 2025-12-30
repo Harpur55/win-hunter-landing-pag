@@ -53,10 +53,8 @@
     
         @csrf
 
-        {{-- ID SISWA (UNTUK UPDATE) --}}
         <input type="hidden" name="siswa_id" id="siswa_id">
 
-        {{-- ================= INFORMASI DASAR ================= --}}
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Informasi Dasar</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
 
@@ -67,17 +65,20 @@
             </div>
 
            <div>
-    <label>No Register</label>
-    <input
-        type="text"
-        name="no_register"
-        id="no_register"
-        maxlength="18"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        class="w-full mt-1 border rounded-xl p-3"
-        placeholder="Maksimal 18 digit">
-</div>
+        <label>No Register</label>
+        <input
+            type="text"
+            name="no_register"
+            id="no_register"
+            maxlength="18"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            class="w-full mt-1 border rounded-xl p-3"
+            placeholder="Maksimal 15 digit">
+            <p class="mt-1 text-xs text-gray-500 italic">
+    * Gunakan No Register yang tertera di sertifikat ujian terakhir (bukan kartu peserta).
+</p>
+    </div>
 
             <div>
                 <label>Jenis Kelamin</label>

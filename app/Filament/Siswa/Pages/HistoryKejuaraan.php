@@ -31,18 +31,21 @@ class HistoryKejuaraan extends Page
                 ->get()
                 ->map(function ($item) {
                     return [
-                        'nama_kejuaraan'       => $item->kejuaraan->nama_kejuaraan ?? '-',
-                        'grades'               => $item->kejuaraan->grades ?? '-',
-                        'tanggal'              => $item->kejuaraan->tanggal_mulai
+                        'nama_kejuaraan' => $item->kejuaraan->nama_kejuaraan ?? '-',
+                        'grades' => $this->formatGrade($item->kejuaraan->grades ?? ''),
+                        'tanggal' => $item->kejuaraan->tanggal_mulai
                             ? Carbon::parse($item->kejuaraan->tanggal_mulai)->translatedFormat('d F Y')
                             : '-',
-                        'lokasi'               => $item->kejuaraan->lokasi ?? '-',
-                        'kelas_berat'          => $item->kelas_berat ?? '-',
-                        'tingkat_kategori'     => $item->tingkat_kategori ?? '-',
-                        'medali'               => $item->medali ?? null,
-                        'grades'         => $this->formatGrade($item->kejuaraan->grades ?? ''),
-                        // 'nama_peserta'         => $item->nama_lengkap ?? '-', // dari kejuaraan_siswa
+                        'lokasi' => $item->kejuaraan->lokasi ?? '-',
+
                         'kategori_pertandingan' => $item->kategori_pertandingan ?? '-',
+
+                        'kelas_berat' => $item->kategori_pertandingan === 'kyorugi'
+                            ? $item->kelas_berat
+                            : null,
+
+                        'tingkat_kategori' => $item->tingkat_kategori ?? '-',
+                        'medali' => $item->medali ?? null,
                     ];
                 })
                 ->toArray();

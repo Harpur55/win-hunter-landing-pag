@@ -7,15 +7,25 @@ use App\Models\EventUjian;
 use App\Models\Siswa;
 use App\Models\Unit;
 use App\Models\Kelas;
+use Carbon\Carbon;
 
 class DaftarUjianController extends Controller
 {
     /**
      * Form daftar ujian
      */
-    public function create($eventId)
+    public function create(string $slug)
     {
-        $eventUjian = EventUjian::findOrFail($eventId);
+        $eventUjian = EventUjian::where('slug', $slug)->firstOrFail();
+
+         if (Carbon::today()->greaterThanOrEqualTo(
+        Carbon::parse($eventUjian->tanggal_ujian)
+    )) {
+        return response()->view('ujian.ujian-berakhir', [
+            'eventUjian' => $eventUjian,
+        ], 403);
+    }
+
         $units      = Unit::orderBy('name')->get();
         $kelas      = Kelas::orderBy('name')->get();
         $siswas     = Siswa::orderBy('nama_lengkap')->get();
@@ -47,8 +57,17 @@ class DaftarUjianController extends Controller
     /**
      * Simpan data pendaftaran ujian
      */
-    public function store(Request $request, $eventId)
+    public function store(Request $request, string $slug)
     {
+        $eventUjian = EventUjian::where('slug', $slug)->firstOrFail();
+
+    // ⛔ BLOK JIKA UJIAN SUDAH DIMULAI / LEWAT
+    if (Carbon::today()->greaterThanOrEqualTo(
+        Carbon::parse($eventUjian->tanggal_ujian)
+    )) {
+        abort(403, 'Ujian ini sudah berakhir.');
+    }
+
         $validated = $request->validate([
             'siswa_id'           => 'required|exists:siswas,id',
             // 'nama_lengkap'      => 'required|string|max:255',
@@ -63,7 +82,7 @@ class DaftarUjianController extends Controller
         ]);
         // dd($request->all());
 
-        $eventUjian = EventUjian::findOrFail($eventId);
+        $eventUjian = EventUjian::where('slug', $slug)->firstOrFail();
         $siswa      = Siswa::findOrFail($validated['siswa_id']);
 
         // Sinkronkan data master siswa jika perlu (misalnya no_register)

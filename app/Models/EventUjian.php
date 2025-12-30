@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class EventUjian extends Model
 {
@@ -12,7 +13,18 @@ class EventUjian extends Model
         'tanggal_ujian',
         'is_regitration_closed',
         'lokasi_ujian',
+        'slug'
+    
     ];
+
+       protected static function booted()
+    {
+        static::creating(function ($event) {
+            if (empty($event->slug)) {
+                $event->slug = Str::slug($event->nama_ujian);
+            }
+        });
+    }
    
    public function siswa()
 {
