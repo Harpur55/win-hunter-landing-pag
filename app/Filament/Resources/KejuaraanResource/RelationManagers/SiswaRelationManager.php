@@ -56,6 +56,10 @@ class SiswaRelationManager extends RelationManager
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('nama_lengkap')->label('Nama'),
+                TextColumn::make('unit.name')
+                    ->label('Unit')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('jenis_kelamin')->label('JK')->badge(),
                 Tables\Columns\TextColumn::make('sabuk')->label('Sabuk')->badge(),
                 Tables\Columns\TextColumn::make('kategori_pertandingan')
@@ -195,21 +199,45 @@ class SiswaRelationManager extends RelationManager
                     ->form([
                         Select::make('siswa_id')
                             ->label('Nama Lengkap')
-                            ->options(fn() => Siswa::all()->pluck('nama_lengkap', 'id'))
+                            ->options(
+                                fn() =>
+                                Siswa::with('unit')
+                                    ->get()
+                                    ->mapWithKeys(fn($siswa) => [
+                                        $siswa->id => $siswa->nama_lengkap . ' — ' . ($siswa->unit?->name ?? '-')
+                                    ])
+                            )
                             ->searchable()
                             ->required()
                             ->reactive()
                             ->afterStateUpdated(function ($state, callable $set) {
-                                $siswa = Siswa::find($state);
+                                $siswa = Siswa::with('unit')->find($state);
+
                                 if ($siswa) {
                                     $set('nama_lengkap', $siswa->nama_lengkap);
                                     $set('tempat_lahir', $siswa->tempat_lahir);
-                                    $set('tanggal_lahir', $siswa->tanggal_lahir ? Carbon::parse($siswa->tanggal_lahir)->format('Y-m-d') : null);
-                                    $set('jenis_kelamin', $siswa->jenis_kelamin === 'Laki-laki' ? 'L' : 'P');
+
+                                    $set(
+                                        'tanggal_lahir',
+                                        $siswa->tanggal_lahir
+                                            ? Carbon::parse($siswa->tanggal_lahir)->format('Y-m-d')
+                                            : null
+                                    );
+
+                                    $set(
+                                        'jenis_kelamin',
+                                        $siswa->jenis_kelamin === 'Laki-laki' ? 'L' : 'P'
+                                    );
+
                                     $set('sabuk', $siswa->current_belt_level);
                                     $set('kategori_atlit', $this->hitungKategoriUmur($siswa->tanggal_lahir));
+
+                                    // 🔥 AUTO SET UNIT
+                                    $set('units_id', $siswa->units_id);
+                                    $set('unit_name', $siswa->unit?->name);
                                 }
                             }),
+
 
                         TextInput::make('nama_lengkap')->readOnly(),
                         TextInput::make('tempat_lahir')->readOnly(),
@@ -319,29 +347,35 @@ class SiswaRelationManager extends RelationManager
                             ])
                             ->default('tidak_ada'),
                     ])
-                    ->action(function (array $data) {
-                        $event = $this->getOwnerRecord();
+    ->action(function (array $data) {
+        $event = $this->getOwnerRecord();
 
-                        $sudahAda = $event->siswa()
-                            ->where('kejuaraan_siswa.siswa_id', $data['siswa_id'])
-                            ->where('kejuaraan_siswa.kategori_pertandingan', $data['kategori_pertandingan'])
-                            ->exists();
+        // 🔐 Ambil siswa + unit langsung dari DB
+        $siswa = Siswa::with('unit')->findOrFail($data['siswa_id']);
 
-                        if ($sudahAda) {
-                            Notification::make()
-                                ->title('⚠️ Siswa sudah terdaftar di kategori ini.')
-                                ->danger()
-                                ->send();
-                            return;
-                        }
+        // 🔥 PAKSA units_id DARI SERVER
+        $data['units_id'] = $siswa->units_id;
 
-                        $event->siswa()->attach($data['siswa_id'], $data);
+        $sudahAda = $event->siswa()
+            ->where('kejuaraan_siswa.siswa_id', $data['siswa_id'])
+            ->where('kejuaraan_siswa.kategori_pertandingan', $data['kategori_pertandingan'])
+            ->exists();
 
-                        Notification::make()
-                            ->title('✅ Peserta berhasil ditambahkan.')
-                            ->success()
-                            ->send();
-                    }),
+        if ($sudahAda) {
+            Notification::make()
+                ->title('⚠️ Siswa sudah terdaftar di kategori ini.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $event->siswa()->attach($data['siswa_id'], $data);
+
+        Notification::make()
+            ->title('✅ Peserta berhasil ditambahkan.')
+            ->success()
+            ->send();
+    }),
             ])
 
             ->actions([

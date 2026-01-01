@@ -60,45 +60,35 @@ class Siswa extends Model
     {
         parent::boot();
 
-        //  static::creating(function ($siswa) {
-        //     if (empty($siswa->lookup_token)) {
-        //         $siswa->lookup_token = (string) Str::uuid();
-        //     }
-        //     if (empty($siswa->current_belt_level)) {
-        //         $siswa->current_belt_level = 'Putih';
-        //     }
-        //     if (empty($siswa->status)) {
-        //         $siswa->status = 'Aktif';
-        //     }
-        // });
-
         // Auto generate NIS
-        static::creating(function ($siswa) {
+      static::creating(function ($siswa) {
 
-            // ===== generate NIS otomatis =====
-            if (empty($siswa->nis)) {
+        if (!empty($siswa->nis)) {
+            return;
+        }
 
-                // Tahun dibuat = tahun saat data masuk
-                $tahunBuat = now()->format('Y');
+        DB::transaction(function () use ($siswa) {
 
-                // Tanggal lahir format Ymd atau "00000000" jika null
-                $tgl = $siswa->tanggal_lahir
-                    ? date('Ymd', strtotime($siswa->tanggal_lahir))
-                    : '00000000';
+            // 🔄 AUTO update tahun & bulan
+            $tahun = now()->format('y'); // contoh: 25
+            $bulan = now()->format('m'); // contoh: 09
 
-                // Ambil 3 digit terakhir dari no_register
-                $angka = $siswa->no_register
-                    ? substr($siswa->no_register, -3)
-                    : '000';
+            $prefix = 'WH-' . $tahun . $bulan;
 
-                $siswa->nis = "WH-{$tahunBuat}{$tgl}{$angka}";
-            }
+            // 🔒 Aman untuk queue & input bersamaan
+            $lastNis = DB::table('siswas')
+                ->where('nis', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->orderBy('nis', 'desc')
+                ->value('nis');
 
-            // ✅ Set sisa_kuota awal sesuai kelas
-            if ($siswa->kelas && isset($siswa->kelas->kuota_awal)) {
-                $siswa->sisa_kuota = $siswa->kelas->kuota_awal;
-            }
+            $nextNumber = $lastNis
+                ? ((int) substr($lastNis, -4)) + 1
+                : 1;
+
+            $siswa->nis = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
         });
+    });
 
         // Saat siswa berpindah kelas
         static::updating(function ($siswa) {

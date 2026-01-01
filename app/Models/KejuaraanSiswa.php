@@ -27,6 +27,7 @@ class KejuaraanSiswa extends Model
         'medali',
         'status',
         'kelas_berat',
+        'units_id',
     ];
 
     /*
@@ -175,4 +176,8 @@ class KejuaraanSiswa extends Model
             ->where('kategori_pertandingan', $kategori)
             ->exists();
     }
+    public function unit()
+{
+    return $this->belongsTo(Unit::class, 'units_id');
+}
 }
