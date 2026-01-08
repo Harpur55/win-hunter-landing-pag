@@ -11,37 +11,32 @@ use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
-    /**
-     * The policy mappings for the application.
-     *
-     * @var array<class-string, class-string>
-     */
     protected $policies = [
-        User::class => UserPolicy::class,
+        User::class  => UserPolicy::class,
         Siswa::class => SiswaPolicy::class,
     ];
 
-    /**
-     * Register any authentication / authorization services.
-     */
     public function boot(): void
     {
         $this->registerPolicies();
 
         /**
-         * Contoh Gate tambahan
-         * Bisa dipanggil dengan Gate::allows('manage-users')
+         * Gate berbasis Spatie Role
          */
         Gate::define('manage-users', function (User $user) {
-            return $user->role === 2; // hanya Super Admin
+            return $user->hasRole('super-admin');
         });
 
         Gate::define('is-admin', function (User $user) {
-            return $user->role === 1;
+            return $user->hasRole('admin');
         });
 
         Gate::define('is-siswa', function (User $user) {
-            return $user->role === 0;
+            return $user->hasRole('siswa');
+        });
+
+        Gate::define('is-pelatih', function (User $user) {
+            return $user->hasRole('pelatih');
         });
     }
 }
