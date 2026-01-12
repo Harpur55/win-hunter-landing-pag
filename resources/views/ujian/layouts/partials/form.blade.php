@@ -14,12 +14,7 @@
     </div>
 @endif
 
-<div class="bg-blue-600 text-white p-4 rounded-lg mb-6">
-    <h2 class="text-xl font-bold">
-        {{ $mode == 'create' ? 'Daftar Ujian:' : 'Edit Pendaftaran:' }}
-        {{ $eventUjian->nama_ujian }}
-    </h2>
-</div>
+
 
 @if ($mode == 'edit')
     <div class="mb-4">
@@ -37,22 +32,27 @@
     @csrf
 
     {{-- NAMA SISWA --}}
-    <div>
-        <label class="font-semibold">Nama Siswa *</label>
-        <select id="siswa_id" name="siswa_id"
-            class="w-full p-3 border rounded @error('siswa_id') border-red-500 @enderror" required>
-            <option value="">-- Pilih --</option>
-            @foreach ($siswas as $s)
-                <option value="{{ $s->id }}"
-                    {{ old('siswa_id', $pendaftaran->siswa_id ?? '') == $s->id ? 'selected' : '' }}>
-                    {{ $s->nama_lengkap }}
-                </option>
-            @endforeach
-        </select>
-        @error('siswa_id')
-            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-        @enderror
+        <div class="mb-6 relative">
+    <label class="font-semibold mb-2 block">Cari Nama Siswa *</label>
+
+    <input id="search"
+           type="text"
+           autocomplete="off"
+           placeholder="Ketik nama siswa..."
+           class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-400"
+           required>
+
+    <input type="hidden" name="siswa_id" id="siswa_id">
+
+    <div id="dropdown"
+         class="absolute w-full bg-white border rounded shadow-lg mt-1 hidden max-h-60 overflow-y-auto z-50">
     </div>
+
+    @error('siswa_id')
+        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
     <div>
         <label>Jenis Kelamin *</label>
         <select name="jenis_kelamin" class="w-full p-3 border rounded @error('jenis_kelamin') border-red-500 @enderror"
@@ -185,34 +185,59 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
 
 <script>
-    $('#siswa_id').select2();
+const SISWA = @json($siswaJson);
 
-    $('#siswa_id').on('change', function() {
-        let id = $(this).val();
-        if (!id) return;
+const search   = document.getElementById('search');
+const dropdown = document.getElementById('dropdown');
+const siswaId  = document.getElementById('siswa_id');
 
-        $.get("/api/siswa/" + id, function(data) {
-            console.log('Data siswa:', data);
+function pilihSiswa(s) {
+    siswaId.value = s.id;
+    search.value  = s.nama;
 
-            $('input[name="tempat_lahir"]').val(data.tempat_lahir ?? '');
-            $('input[name="tanggal_lahir"]').val(data.tanggal_lahir ?? '');
-            $('input[name="no_register"]').val(data.no_register ?? '');
+    // isi otomatis (sama seperti API sebelumnya)
+    document.querySelector('input[name="tempat_lahir"]').value  = s.tempat_lahir ?? '';
+    document.querySelector('input[name="tanggal_lahir"]').value = s.tanggal_lahir ?? '';
+    document.querySelector('input[name="no_register"]').value   = s.no_register ?? '';
 
-            $('select[name="current_belt_level"]')
-                .val(data.current_belt_level ?? '')
-                .trigger('change');
+    document.querySelector('select[name="current_belt_level"]').value = s.current_belt_level ?? '';
+    document.querySelector('select[name="next_belt_level"]').value    = s.next_belt_level ?? '';
+    document.querySelector('select[name="units_id"]').value           = s.units_id ?? '';
+    document.querySelector('select[name="kelas_id"]').value           = s.kelas_id ?? '';
 
-            $('select[name="next_belt_level"]')
-                .val(data.next_belt_level ?? '')
-                .trigger('change');
+    dropdown.classList.add('hidden');
+}
 
-            $('select[name="units_id"]')
-                .val(data.units_id ?? '')
-                .trigger('change');
+search.addEventListener('input', function () {
+    const key = this.value.toLowerCase();
+    dropdown.innerHTML = '';
 
-            $('select[name="kelas_id"]')
-                .val(data.kelas_id ?? '')
-                .trigger('change');
-        });
+    if (key.length < 2) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+
+    const hasil = SISWA
+        .filter(s => s.nama.toLowerCase().includes(key))
+        .slice(0, 6);
+
+    if (!hasil.length) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+
+    hasil.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'px-4 py-3 cursor-pointer hover:bg-blue-100';
+        div.innerHTML = `
+            <b>${s.nama}</b>
+            <div class="text-sm text-gray-500">${s.unit}</div>
+        `;
+        div.onclick = () => pilihSiswa(s);
+        dropdown.appendChild(div);
     });
+
+    dropdown.classList.remove('hidden');
+});
 </script>
+

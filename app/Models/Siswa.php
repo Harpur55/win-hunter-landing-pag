@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Factories\HasFactory;  
 
 
 
 class Siswa extends Model
 {
+        use HasFactory;
+
     protected $fillable = [
         'no_register',
         'nis',
@@ -225,11 +228,26 @@ class Siswa extends Model
         }
     }
 
-    public function sisaKuota(): int
-    {
-        return max(0, (int) $this->sisa_kuota); // selalu minimal 0
-
+  public function sisaKuota(): int
+{
+    if (! $this->kelas) {
+        return 0;
     }
+
+    $kuotaAwal = (int) $this->kelas->kuota_awal;
+
+    if ($kuotaAwal <= 0) {
+        return 0;
+    }
+
+    $terpakai = KejuaraanSiswa::query()
+        ->where('siswa_id', $this->id)
+        ->where('periode', now()->year)
+        ->where('use_kuota', true)
+        ->count();
+
+    return max(0, $kuotaAwal - $terpakai);
+}
 
     public function syncSisaKuota(): void
     {
@@ -334,6 +352,18 @@ class Siswa extends Model
     }
 }
 
+  
+
+    public function cutis()
+{
+    return $this->hasMany(SiswaCuti::class);
+}
+
+public function cutiAktif()
+{
+    return $this->hasOne(SiswaCuti::class)
+        ->where('status', 'aktif');
+}
 
    
 

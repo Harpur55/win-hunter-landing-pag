@@ -89,61 +89,64 @@ class CoachResource extends Resource
     }),
 
                     // Grid untuk detail teks (memakan 2 kolom sisa dari Section)
-                    Grid::make(2) 
-                        ->columnSpan(2) 
-                        ->schema([
-                            TextInput::make('nama') // Nama field 'nama'
-                                ->label('Nama Lengkap')
-                                ->required()
-                                ->maxLength(255)
-                                ->placeholder('Masukkan nama lengkap'),
+            Grid::make(2) 
+                ->columnSpan(2) 
+                ->schema([
+                    TextInput::make('nama') // Nama field 'nama'
+                        ->label('Nama Lengkap')
+                        ->required()
+                        ->maxLength(255)
+                        ->placeholder('Masukkan nama lengkap'),
 
-                            Select::make('role') 
-                                ->label('Peran')
-                                ->options([
-                                    'Pelatih' => 'Pelatih',
-                                    'Asisten Pelatih' => 'Asisten Pelatih',
-                                    'Pengurus' => 'Pengurus',
-                                    'Administrator' => 'Administrator',
-                                ])
-                                ->required()
-                                ->native(false) 
-                                ->placeholder('Pilih peran'),
+                    Select::make('role') 
+                        ->label('Peran')
+                        ->options([
+                            'Pelatih' => 'Pelatih',
+                            'Asisten Pelatih' => 'Asisten Pelatih',
+                            'Pengurus' => 'Pengurus',
+                            'Administrator' => 'Administrator',
+                        ])
+                        ->required()
+                        ->native(false) 
+                        ->placeholder('Pilih peran'),
 
-                            TextInput::make('sabuk') 
-                                ->label('Tingkatan Sabuk')
-                                ->required()
-                                ->maxLength(100)
-                                ->placeholder('Contoh: Hitam Dan I'),
-                         Forms\Components\FileUpload::make('document')
-                    ->label('Dokumen Coach')
-                    ->directory('coaches/documents')
-                    ->disk('public')
-                    ->acceptedFileTypes([
-                        'application/pdf',
-                        'application/msword',
-                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                        'image/jpeg',
-                        'image/png',
-                    ])
-                    ->maxSize(5120)
-                    ->helperText('Upload dokumen pendukung (PDF/Word/Gambar), maks 5MB.'),
-                    ]),
-                            
-                            Select::make('status') // Nama field 'status'
-                                ->label('Status')
-                                ->options([
-                                    'Aktif' => 'Aktif',
-                                    'Tidak Aktif' => 'Tidak Aktif',
-                                    'Cuti' => 'Cuti',
-                                ])
-                                ->required()
-                                ->default('Aktif') // Nilai default 'Aktif'
-                                ->native(false),
-                        ]),
-                    
+                    TextInput::make('sabuk') 
+                        ->label('Tingkatan Sabuk')
+                        ->required()
+                        ->maxLength(100)
+                        ->placeholder('Contoh: Hitam Dan I'),
+                ]),
+                        
+            Forms\Components\FileUpload::make('document')
+                ->label('Dokumen Coach')
+                ->directory('coaches/documents')
+                ->disk('public')
+                ->multiple() // jika bisa lebih dari 1 dokumen
+                ->acceptedFileTypes([
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'image/jpeg',
+                    'image/png',
+                ])
+                ->maxSize(5120)
+                ->helperText('Upload dokumen pendukung (PDF/Word/Gambar), maks 5MB.')
+                ->dehydrated(false) // 🔥 PENTING: jangan simpan ke tabel coach
+                ->saveRelationshipsUsing(function ($state, $record) {
+                    if (!$record || empty($state)) {
+                        return;
+                    }
 
-            Section::make('Detail Kontak')
+                    foreach ((array) $state as $file) {
+                        $record->documents()->create([
+                            'document' => $file,
+                            'document_name' => basename($file),
+                        ]);
+                    }
+                }),
+    ]),
+
+    Section::make('Detail Kontak')
                 ->description('Informasi kontak dan alamat.')
                 ->columns(1) 
                 ->schema([

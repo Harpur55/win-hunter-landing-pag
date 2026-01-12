@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Kejuaraan extends Model
 {
+
+    use HasFactory;
     protected $table = 'kejuaraans';
 
     protected $fillable = [

@@ -4,80 +4,83 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Carbon\Carbon;
 
 class KejuaraanSiswa extends Model
 {
+    use HasFactory;
+
     protected $table = 'kejuaraan_siswa';
 
     protected $fillable = [
         'kejuaraan_id',
         'siswa_id',
+        'units_id',
+
         'nama_lengkap',
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
         'sabuk',
-        'kategori_pertandingan', // kyorugi / poomsae
-        'tageuk',
-        'tingkat_kategori', // Beginner / Advance (kalau poomsae)
-        'kategori_atlit',   // pracadet, cadet, junior, senior
+
+        'kategori_pertandingan',
+        'kategori_atlit',
+
         'berat_badan',
         'tinggi_badan',
+        'kelas_berat',
+
+        'tageuk',
+        'tingkat_kategori',
+
         'medali',
         'status',
-        'kelas_berat',
-        'units_id',
+
+        'use_kuota',
+        'periode',
+    ];
+
+    protected $casts = [
+        'tanggal_lahir' => 'date',
+        'use_kuota'     => 'boolean',
+        'periode'       => 'integer',
     ];
 
     /*
     |--------------------------------------------------------------------------
-    | 🔁 Event Boot - Otomatis Update Kuota Siswa
+    | 🔁 Model Events (AMAN UNTUK FILAMENT)
     |--------------------------------------------------------------------------
     */
-  protected static function booted()
+    protected static function booted()
 {
-    // 🔹 Saat siswa mendaftar kejuaraan
-    static::creating(function ($record) {
-        $siswa = $record->siswa;
-
-        if (!$siswa) {
-            throw new \Exception('Data siswa tidak ditemukan.');
-        }
-
-        // ✅ Set periode otomatis ke tahun berjalan
-        $record->periode = now()->year;
-
-        // ✅ Cegah pendaftaran jika kuota habis
-        if ($siswa->sisa_kuota <= 0) {
-            throw new \Exception('Kuota siswa sudah habis. Tidak dapat mendaftar kejuaraan lagi.');
-        }
-
-        // ✅ Pastikan tidak melebihi batas kuota di tahun yang sama
-        $jumlahTahunIni = self::where('siswa_id', $siswa->id)
-            ->where('periode', now()->year)
-            ->count();
-
-        if ($jumlahTahunIni >= $siswa->kelas->kuota_awal) {
-            throw new \Exception('Kuota siswa sudah habis untuk tahun ini.');
-        }
-
-        // ✅ Kurangi kuota hanya jika berhasil
-        $siswa->decrement('sisa_kuota', 1);
-    });
+   
 
     
-    static::deleted(function ($record) {
-        $siswa = $record->siswa;
+      static::creating(function (self $record) {
 
-        if ($siswa) {
-            // ✅ Tambah kuota kembali
-            $siswa->increment('sisa_kuota', 1);
+            /**
+             * ❗ HANYA DEFAULT VALUE
+             * ❌ TIDAK ADA LOGIC BISNIS
+             */
+
+            $record->periode ??= now()->year;
+            $record->use_kuota ??= true;
+
+             if ($record->tanggal_lahir) {
+            $umur = Carbon::parse($record->tanggal_lahir)->age;
+
+            $record->kategori_atlit = match (true) {
+                $umur >= 6 && $umur <= 11 => 'pracadet',
+                $umur >= 12 && $umur <= 14 => 'cadet',
+                $umur >= 15 && $umur <= 17 => 'junior',
+                $umur >= 18                => 'senior',
+                default                    => null,
+            };
         }
+       
     });
 }
-
-
 
 
     /*
@@ -87,97 +90,72 @@ class KejuaraanSiswa extends Model
     */
     public function kejuaraan(): BelongsTo
     {
-        return $this->belongsTo(Kejuaraan::class, 'kejuaraan_id');
+        return $this->belongsTo(Kejuaraan::class);
     }
 
     public function siswa(): BelongsTo
     {
-        return $this->belongsTo(Siswa::class, 'siswa_id');
+        return $this->belongsTo(Siswa::class);
     }
 
-    public function Kuotakejuaraan()
+    public function unit(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Kejuaraan::class, 'kejuaraan_id');
+        return $this->belongsTo(Unit::class, 'units_id');
     }
 
     /*
     |--------------------------------------------------------------------------
-    | 🧩 Helper Functions & Accessors
+    | 🧩 Helper & Accessor (AMAN UNTUK FILAMENT)
     |--------------------------------------------------------------------------
     */
     public function isKyorugi(): bool
     {
-        return strtolower($this->kategori_pertandingan ?? '') === 'kyorugi';
+        return $this->kategori_pertandingan === 'kyorugi';
     }
 
     public function isPoomsae(): bool
     {
-        return strtolower($this->kategori_pertandingan ?? '') === 'poomsae';
+        return $this->kategori_pertandingan === 'poomsae';
     }
 
-    public function getKategoriLabelAttribute(): string
+    public function getUmurAttribute(): ?int
     {
-        return ucfirst($this->kategori_pertandingan ?? '-');
+        return $this->tanggal_lahir
+            ? Carbon::parse($this->tanggal_lahir)->age
+            : null;
     }
 
-    public function getKategoriColorAttribute(): string
+    public function getKategoriFullLabelAttribute(): string
     {
-        return match (strtolower($this->kategori_pertandingan ?? '')) {
-            'kyorugi' => 'primary',
-            'poomsae' => 'info',
-            default   => 'secondary',
-        };
+        return ucfirst($this->kategori_pertandingan)
+            . ' - '
+            . ucfirst($this->kategori_atlit ?? '-');
     }
 
     public function getMedaliLabelAttribute(): string
     {
         return match ($this->medali) {
-            'emas' => 'Emas',
-            'perak' => 'Perak',
+            'emas'     => 'Emas',
+            'perak'    => 'Perak',
             'perunggu' => 'Perunggu',
-            default => 'Tidak Ada',
+            default    => 'Tidak Ada',
         };
-    }
-
-    public function getMedaliColorAttribute(): string
-    {
-        return match ($this->medali) {
-            'emas' => 'success',
-            'perak' => 'gray',
-            'perunggu' => 'warning',
-            default => 'secondary',
-        };
-    }
-
-    public function getBiodataAttribute(): string
-    {
-        return "{$this->nama_lengkap} ({$this->sabuk})";
-    }
-
-    public function getUmurAttribute(): ?int
-    {
-        return $this->tanggal_lahir ? Carbon::parse($this->tanggal_lahir)->age : null;
-    }
-
-    public function getKategoriFullLabelAttribute(): string
-    {
-        return ucfirst($this->kategori_pertandingan) . ' - ' . ucfirst($this->kategori_atlit);
     }
 
     /*
     |--------------------------------------------------------------------------
-    | 🧠 Helper: Cek Apakah Siswa Sudah Terdaftar
+    | 🧠 Helper Static
     |--------------------------------------------------------------------------
     */
-    public static function sudahTerdaftar($kejuaraanId, $siswaId, $kategori)
-    {
-        return self::where('kejuaraan_id', $kejuaraanId)
+    public static function sudahTerdaftar(
+        int $kejuaraanId,
+        int $siswaId,
+        string $kategori
+    ): bool {
+        return self::query()
+            ->where('kejuaraan_id', $kejuaraanId)
             ->where('siswa_id', $siswaId)
             ->where('kategori_pertandingan', $kategori)
             ->exists();
     }
-    public function unit()
-{
-    return $this->belongsTo(Unit::class, 'units_id');
-}
 }

@@ -73,6 +73,7 @@ class SiswaImport implements ToCollection, WithHeadingRow
             try {
                 Siswa::create([
                     // 'nis'                          => $nis,
+                    'no_register'                  => $row['no_register'] ?? null,
                     'nama_lengkap'                 => $row['nama_lengkap'] ?? '-',
                     'jenis_kelamin'                => $row['jenis_kelamin'] ?? '-',
                     'tempat_lahir'                 => $row['tempat_lahir'] ?? '-',

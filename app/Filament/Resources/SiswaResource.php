@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 use App\Models\Siswa;
 use App\models\Unit;
+use App\models\SiswaCuti;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -38,11 +39,10 @@ use Dom\Text;
 use Filament\Tables;
 use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Table;
-// use Illuminate\Database\Eloquent\Builder;
-// use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Collection;
+use App\Filament\Resources\SiswaResource\RelationManagers\CutisRelationManager;
 
 
 
@@ -68,180 +68,202 @@ class SiswaResource extends Resource
     {
         return 1; // tampil setelah Dashboard
     }
-
     public static function form(Form $form): Form
-    {
-        return $form
+{
+    return $form->schema([
+
+        /* =========================
+         * INFORMASI DASAR SISWA
+         * ========================= */
+        Section::make('Informasi Dasar Siswa')
+            ->description('Detail pribadi dan identifikasi utama siswa.')
+            ->columns(3)
             ->schema([
-                Section::make('Informasi Dasar Siswa')
-                    ->description('Detail pribadi dan identifikasi utama siswa.')
-                    ->columns(3) // Menggunakan 3 kolom untuk tata letak yang lebih fleksibel
+
+                FileUpload::make('image')
+                    ->label('Foto Siswa')
+                    ->image()
+                    ->imagePreviewHeight('100')
+                    ->directory('siswa')
+                    ->nullable()
+                    ->columnSpan(1),
+
+                Grid::make(2)
+                    ->columnSpan(2)
                     ->schema([
-                        FileUpload::make('image')
-                            ->label('Foto Siswa')
-                            ->image()
-                            ->imagePreviewHeight('100')
-                            ->directory('siswa')
 
-                            ->nullable()
-                            ->columnSpan(1),
-                        // Menempati 1 kolom dari 3 di dalam Section ini
+                        TextInput::make('nis')
+                            ->label('NIS')
+                            ->disabled()
+                            ->dehydrated(true)
+                            ->helperText('NIS dibuat otomatis dan tidak dapat diubah.'),
 
-                        Grid::make(2) // Grid terpisah di dalam Section untuk detail teks
-                            ->columnSpan(2) // Menempati 2 kolom sisanya di dalam Section ini
-                            ->schema([
-                                TextInput::make('nis')
-                                    ->label('NIS')
-                                    ->disabled()
-                                    ->dehydrated(true)
-                                    ->helperText('NIS akan otomatis dibuat atau tidak dapat diubah.'),
+                        TextInput::make('no_register')
+                            ->label('Nomor Registrasi')
+                            ->reactive()
+                            ->required(fn ($get) => strtolower($get('current_belt_level') ?? '') !== 'putih')
+                            ->rules(fn ($get) =>
+                                strtolower($get('current_belt_level') ?? '') === 'putih'
+                                    ? ['nullable', 'string', 'max:15']
+                                    : ['required', 'string', 'max:255']
+                            )
+                            ->helperText('Boleh kosong jika sabuk Putih')
+                            ->maxLength(13),
 
-                                TextInput::make('no_register')
-                                    ->label('Nomor Registrasi')
-                                    ->reactive()
-                                    ->required(fn(callable $get) => strtolower($get('current_belt_level') ?? '') !== 'putih') // hanya wajib jika bukan putih
-                                    ->rules(function (callable $get) {
-                                        $sabuk = strtolower($get('current_belt_level') ?? '');
-                                        if ($sabuk === 'putih') {
-                                            return ['nullable', 'string', 'max:15'];
-                                        }
-                                        return ['required', 'string', 'max:255'];
-                                    })
-                                    ->helperText('Boleh kosong jika sabuk Putih, wajib diisi untuk sabuk di atas Putih')
-                                    ->maxlength(13),
-
-                                // Pastikan unik, abaikan record saat mengedit yang sudah ada
-
-                                TextInput::make('nama_lengkap') // Sesuaikan dengan nama field di database
-                                    ->label('Nama Lengkap')
-                                    ->required(), // Wajib diisi
-
-                                Select::make('jenis_kelamin')
-                                    ->label('Jenis Kelamin')
-                                    ->options([
-                                        'Laki-laki' => 'Laki-laki',
-                                        'Perempuan' => 'Perempuan',
-                                    ])
-                                    ->required() // Wajib diisi
-                                    ->native(false), // Untuk tampilan yang lebih modern
-
-                                TextInput::make('tempat_lahir')
-                                    ->label('Tempat Lahir')
-                                    ->placeholder('Contoh: Jakarta'), // Contoh placeholder
-
-                                DatePicker::make('tanggal_lahir')
-                                    ->label('Tanggal Lahir')
-                                    ->displayFormat('d/m/Y')
-                                    ->native(false), // Format tampilan tanggal
-
-                                Select::make('golongan_darah')
-                                    ->label('Golongan Darah')
-                                    ->options([
-                                        'A' => 'A',
-                                        'B' => 'B',
-                                        'AB' => 'AB',
-                                        'O' => 'O',
-                                        'Tidak Diketahui' => 'Tidak Diketahui', // Opsi jika tidak tahu
-                                    ])
-                                    ->nullable() // Boleh kosong
-                                    ->native(false),
-
-                            ]),
-
-                    ]),
-                Section::make('Informasi Akademik & Pelatihan')
-                    ->description('Detail mengenai unit latihan, kelas, sabuk, dan status siswa.')
-                    ->columns(3) // Menggunakan 3 kolom
-                    ->schema([
-                        Select::make('units_id')
-                            ->label('Unit')
-                            ->relationship('unit', 'name') // 'unit' = nama fungsi relasi di model
-                            ->searchable()
-                            ->preload()
+                        TextInput::make('nama_lengkap')
+                            ->label('Nama Lengkap')
                             ->required(),
 
-
-
-                        Forms\Components\Select::make('kelas_id')
-                            ->label('Kelas')
-                            ->relationship('kelas', 'name') // kolom 'nama' ditampilkan
-                            ->searchable()
-                            ->preload()
-                            ->required(),
-
-                        Select::make('current_belt_level')
-                            ->label('Tingkatan Sabuk')
-                            ->options(self::beltOptions())
-                            ->required()
-                            ->reactive(), // Wajib diisi
-
-                        TextInput::make('beladiri_yang_pernah_diikuti')
-                            ->label('Beladiri yang Pernah Diikuti')
-                            ->nullable()
-                            ->placeholder('Contoh: Pencak Silat, Taekwondo, dll'),
-
-                        DatePicker::make('joint_date')
-                            ->label('Tanggal Bergabung')
-                            ->native(false)
-                            ->displayFormat('d/m/Y')
-                            ->nullable(), // Boleh kosong
-
-                        Select::make('status')
-                            ->label('Status Kesiswaan')
+                        Select::make('jenis_kelamin')
+                            ->label('Jenis Kelamin')
                             ->options([
-                                'Aktif' => 'Aktif',
-                                'Tidak Aktif' => 'Tidak Aktif',
-                                'Cuti' => 'Cuti',
+                                'Laki-laki' => 'Laki-laki',
+                                'Perempuan' => 'Perempuan',
                             ])
                             ->required()
-                            ->default('Aktif')
-                            ->native(false)
-                            ->columnSpan(2),
-                    ]),
+                            ->native(false),
 
-                Section::make('Informasi Kontak & Alamat')
-                    ->description('Detail kontak dan alamat lengkap siswa.')
-                    ->columns(2)
-                    ->schema([
-                        TextInput::make('no_telepon')
-                            ->label('Nomor Telepon')
-                            ->tel()
+                        TextInput::make('tempat_lahir')
+                            ->label('Tempat Lahir'),
+
+                        DatePicker::make('tanggal_lahir')
+                            ->label('Tanggal Lahir')
+                            ->displayFormat('d/m/Y')
+                            ->native(false),
+
+                        Select::make('golongan_darah')
+                            ->label('Golongan Darah')
+                            ->options([
+                                'A' => 'A',
+                                'B' => 'B',
+                                'AB' => 'AB',
+                                'O' => 'O',
+                                'Tidak Diketahui' => 'Tidak Diketahui',
+                            ])
                             ->nullable()
-                            ->placeholder('Contoh: 081234567890'),
-
-                        Textarea::make('alamat_lengkap') // Menggunakan Textarea untuk alamat
-                            ->label('Alamat Lengkap')
-                            ->rows(3) // Tinggi textarea
-                            ->nullable() // Boleh kosong
-                            ->columnSpanFull(), // Mengambil lebar penuh di grid ini
+                            ->native(false),
                     ]),
+            ]),
 
-                Section::make('Informasi Orang Tua')
-                    ->description('Detail informasi ayah dan ibu siswa.')
-                    ->columns(2) // Menggunakan 2 kolom
-                    ->schema([
-                        TextInput::make('nama_ayah')
-                            ->label('Nama Ayah')
-                            ->nullable(),
+        /* =========================
+         * INFORMASI AKADEMIK
+         * ========================= */
+        Section::make('Informasi Akademik & Pelatihan')
+            ->description('Detail unit, kelas, sabuk, dan status siswa.')
+            ->columns(3)
+            ->schema([
 
-                        TextInput::make('pekerjaan_ayah')
-                            ->label('Pekerjaan Ayah')
-                            ->nullable(),
+                Select::make('units_id')
+                    ->label('Unit')
+                    ->relationship('unit', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
 
-                        TextInput::make('nama_ibu')
-                            ->label('Nama Ibu')
-                            ->nullable(),
+                Select::make('kelas_id')
+                    ->label('Kelas')
+                    ->relationship('kelas', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
 
-                        TextInput::make('pekerjaan_ibu')
-                            ->label('Pekerjaan Ibu')
-                            ->nullable(),
-                    ]),
+                Select::make('current_belt_level')
+                    ->label('Tingkatan Sabuk')
+                    ->options(self::beltOptions())
+                    ->required()
+                    ->reactive(),
+
+                TextInput::make('beladiri_yang_pernah_diikuti')
+                    ->label('Beladiri yang Pernah Diikuti')
+                    ->nullable(),
+
+                DatePicker::make('joint_date')
+                    ->label('Tanggal Bergabung')
+                    ->displayFormat('d/m/Y')
+                    ->native(false)
+                    ->nullable(),
+
+                Select::make('status')
+                    ->label('Status Kesiswaan')
+                    ->options([
+                        'Aktif'       => 'Aktif',
+                        'Tidak Aktif' => 'Tidak Aktif',
+                        'Cuti'        => 'Cuti',
+                    ])
+                    ->default('Aktif')
+                    ->reactive()
+                    ->native(false)
+                    ->columnSpan(2)
+                    ->helperText(fn ($get) =>
+                        $get('status') === 'Cuti'
+                            ? '⚠️ Lengkapi informasi cuti di bawah.'
+                            : null
+                    ),
+            ]),
+
+        /* =========================
+         * FORM CUTI
+         * ========================= */
+        Grid::make(1)
+            ->columnSpanFull()
+            ->visible(fn ($get) => $get('status') === 'Cuti')
+            ->schema([
+
+                DatePicker::make('cuti.tanggal_mulai')
+                    ->label('Tanggal Mulai Cuti')
+                    ->required()
+                    ->displayFormat('d/m/Y')
+                    ->native(false),
+
+                DatePicker::make('cuti.tanggal_selesai')
+                    ->label('Tanggal Selesai Cuti')
+                    ->displayFormat('d/m/Y')
+                    ->native(false)
+                    ->helperText('Boleh dikosongkan'),
+
+                Textarea::make('cuti.alasan')
+                    ->label('Alasan Cuti')
+                    ->rows(3)
+                    ->required(),
+            ]),
+
+        /* =========================
+         * KONTAK & ALAMAT
+         * ========================= */
+        Section::make('Informasi Kontak & Alamat')
+            ->columns(2)
+            ->schema([
+
+                TextInput::make('no_telepon')
+                    ->label('Nomor Telepon')
+                    ->tel()
+                    ->nullable(),
+
+                Textarea::make('alamat_lengkap')
+                    ->label('Alamat Lengkap')
+                    ->rows(3)
+                    ->nullable()
+                    ->columnSpanFull(),
+            ]),
+
+        /* =========================
+         * INFORMASI ORANG TUA
+         * ========================= */
+        Section::make('Informasi Orang Tua')
+            ->columns(2)
+            ->schema([
+
+                TextInput::make('nama_ayah')->label('Nama Ayah')->nullable(),
+                TextInput::make('pekerjaan_ayah')->label('Pekerjaan Ayah')->nullable(),
+
+                TextInput::make('nama_ibu')->label('Nama Ibu')->nullable(),
+                TextInput::make('pekerjaan_ibu')->label('Pekerjaan Ibu')->nullable(),
+            ]),
+    ]);
+}
 
 
-            ]);
-    }
-
-    public static function table(Table $table): Table
+     public static function table(Table $table): Table
     {
 
         return $table
@@ -368,17 +390,25 @@ class SiswaResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('status')
-                    ->label('Status')
-                    ->badge() // Menampilkan sebagai badge dengan warna otomatis Filament
-                    ->color(fn(string $state): string => match ($state) {
-                        'Aktif' => 'success',
-                        'Tidak Aktif' => 'danger',
-                        'Cuti' => 'warning',
-                        default => 'gray',
-                    })
-                    ->searchable()
-                    ->sortable(),
+            TextColumn::make('status')
+    ->label('Status')
+    ->badge()
+    ->state(function ($record) {
+        // Jika ada cuti aktif, override jadi Cuti
+        if ($record->cutiAktif) {
+            return 'Cuti';
+        }
+
+        return $record->status;
+    })
+    ->color(fn (string $state): string => match ($state) {
+        'Aktif'       => 'success',
+        'Tidak Aktif' => 'danger',
+        'Cuti'        => 'warning',
+        default       => 'gray',
+    })
+    ->searchable()
+    ->sortable(),
 
                 TextColumn::make('no_telepon')
                     ->label('Nomor Telepon')
@@ -508,13 +538,11 @@ class SiswaResource extends Resource
                             ->send();
                     }),
 
-
-
                 Tables\Actions\Action::make('export')
                     ->label('Export Siswa')
                     ->icon('heroicon-o-document-arrow-up')
                     ->color('success')
-                    ->action(fn() => \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\SiswaExport, 'data_siswa.xlsx')),
+                    ->action(fn() => \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\SiswaExport, 'data_siswa_win-Hunter_' . date('m_Y') . '.xlsx')),
 
                 Tables\Actions\Action::make('import')
                     ->label('Import Siswa')
@@ -584,7 +612,15 @@ class SiswaResource extends Resource
             'merah'               => 'Merah',
             'merah strip hitam 1' => 'Merah Strip Hitam 1',
             'merah strip hitam 2' => 'Merah Strip Hitam 2',
-            'hitam'               => 'Hitam',
+            'hitam dan 1'               => 'Hitam DAN 1',
+            'hitam dan 2'               => 'Hitam DAN 2',
+            'hitam dan 3'               => 'Hitam DAN 3',
+            'hitam dan 4'               => 'Hitam DAN 4',
+            'hitam dan 5'               => 'Hitam DAN 5',
+            'hitam dan 6'               => 'Hitam DAN 6',
+            'hitam dan 7'               => 'Hitam DAN 7',
+            'hitam dan 8'               => 'Hitam DAN 8',
+            'hitam dan 9'               => 'Hitam DAN 9',
         ];
     }
 
@@ -592,8 +628,9 @@ class SiswaResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Add relation managers here, for example:
-            // RelationManagers\SomeRelationManager::class,
+                CutisRelationManager::class,
+
+
         ];
     }
 

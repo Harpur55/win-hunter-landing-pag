@@ -279,13 +279,26 @@
           <p class="text-gray-600 font-medium mb-4 text-xs">
             {{ $coach->role }}
           </p>
-          <button class="group/btn inline-flex items-center gap-2 px-5 py-2 font-semibold text-xs bg-white text-gray-900 rounded-xl border border-gray-200 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 active:bg-emerald-600 active:scale-95 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
-            <span class="tracking-wide">Lihat Sertifikat</span>
-            <svg class="w-4 h-4 opacity-70 group-hover/btn:opacity-100 group-hover/btn:translate-x-1 transition-all duration-300"
-                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
-          </button>
+        @php
+  $doc = $coach->documents->first();
+@endphp
+
+@if ($doc)
+  <button
+    type="button"
+    data-doc="{{ asset('storage/' . $doc->document) }}"
+    onclick="openDocModal(this)"
+    class="group/btn inline-flex items-center gap-2 px-5 py-2 font-semibold text-xs bg-white text-gray-900 rounded-xl border border-gray-200 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 active:bg-emerald-600 active:scale-95 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
+  >
+    <span class="tracking-wide">Lihat Sertifikat</span>
+    <svg class="w-4 h-4 opacity-70 group-hover/btn:opacity-100 group-hover/btn:translate-x-1 transition-all duration-300"
+         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+    </svg>
+  </button>
+@else
+  <span class="text-xs text-gray-400 italic">Dokumen belum ada</span>
+@endif
         </div>
       @endforeach
     </div>
@@ -325,13 +338,27 @@
                 <p class="text-gray-600 text-xs mb-4">
                   {{ $coach->role }}
                 </p>
+                @php
+  $doc = $coach->documents->first();
+@endphp
 
-                <button class="inline-flex items-center gap-2 px-4 py-2 font-semibold text-xs bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 active:bg-emerald-700 transition-all duration-200">
-                  <span class="tracking-wide">Lihat Sertifikat</span>
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </button>
+@if ($doc)
+  <button
+    type="button"
+    data-doc="{{ asset('storage/' . $doc->document) }}"
+    onclick="openDocModal(this)"
+    class="group/btn inline-flex items-center gap-2 px-5 py-2 font-semibold text-xs bg-white text-gray-900 rounded-xl border border-gray-200 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 active:bg-emerald-600 active:scale-95 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
+  >
+    <span class="tracking-wide">Lihat Sertifikat</span>
+    <svg class="w-4 h-4 opacity-70 group-hover/btn:opacity-100 group-hover/btn:translate-x-1 transition-all duration-300"
+         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+    </svg>
+  </button>
+@else
+  <span class="text-xs text-gray-400 italic">Dokumen belum ada</span>
+@endif
+
               </div>
             </div>
           @endforeach
@@ -344,6 +371,35 @@
   </div>
 </section>
 
+<div id="docModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+
+  <div class="relative w-full h-full flex items-center justify-center p-4">
+    <div class="relative bg-black rounded-xl w-full max-w-4xl h-[85vh] shadow-2xl overflow-hidden">
+
+      <!-- CLOSE -->
+      <button onclick="closeDocModal()"
+        class="absolute top-3 right-3 z-50 text-white bg-black/60 hover:bg-black px-3 py-1 rounded-lg text-sm">
+        ✕ Tutup
+      </button>
+
+      <!-- PREVIEW -->
+      <iframe
+        id="docFrame"
+        class="w-full h-full"
+        src=""
+        frameborder="0"
+        sandbox="allow-scripts allow-same-origin">
+      </iframe>
+
+      <!-- WATERMARK -->
+      <div class="pointer-events-none absolute inset-0 flex items-center justify-center opacity-10 text-white text-4xl font-bold rotate-[-30deg] select-none">
+        WIN HUNTER
+      </div>
+
+    </div>
+  </div>
+</div>
 
 
 
@@ -364,9 +420,10 @@
                 <div
                     class="flex flex-col bg-blue-50 border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-all transform hover:scale-105 duration-300 animate-fade-up h-full">
                     <!-- Gambar -->
-                    <img src="{{ asset($cls->image) }}" alt="{{ $cls->name }}"
-                        class="w-full h-45 object-cover rounded-t-2xl mb-4">
-
+                   <img 
+    src="{{ Storage::url($cls->image) }}" 
+    alt="{{ $cls->name }}"
+    class="w-full h-45 object-cover rounded-t-2xl mb-4">
                     <!-- Nama Kelas -->
                     <div
                         class="bg-gradient-to-r from-blue-600 to-blue-800 text-white text-center py-3 px-4 font-bold text-lg tracking-wide">
@@ -696,25 +753,7 @@
     });
 </script>
 
-{{-- <script>
-    new Swiper(".galerySwiper", {
-        effect: "coverflow",
-        grabCursor: true,
-        centeredSlides: false,
-        slidesPerView: "auto",
-        loop: true,
-        coverflowEffect: {
-            rotate: 30,
-            stretch: 0,
-            depth: 200,
-            modifier: 1,
-            slideShadows: true,
-        },
-        pagination: {
-            el: ".swiper-pagination",
-        },
-    });
-</script> --}}
+
 <script>
     function toggleDescription(index) {
         const el = document.getElementById(`desc-${index}`);
@@ -813,6 +852,46 @@
         links.forEach(link => link.addEventListener('click', closeMenu));
     </script>
 
+<script>
+function openDocModal(btn) {
+  const modal = document.getElementById('docModal');
+  const frame = document.getElementById('docFrame');
+
+  frame.src = btn.dataset.doc;
+  modal.classList.remove('hidden');
+
+  // Disable right click
+  document.addEventListener('contextmenu', blockContextMenu);
+
+  // Block key screenshot (PrintScreen, Ctrl+P, Ctrl+S)
+  document.addEventListener('keydown', blockKeys);
+}
+
+function closeDocModal() {
+  const modal = document.getElementById('docModal');
+  const frame = document.getElementById('docFrame');
+
+  frame.src = '';
+  modal.classList.add('hidden');
+
+  document.removeEventListener('contextmenu', blockContextMenu);
+  document.removeEventListener('keydown', blockKeys);
+}
+
+function blockContextMenu(e) {
+  e.preventDefault();
+}
+
+function blockKeys(e) {
+  if (
+    e.key === 'PrintScreen' ||
+    (e.ctrlKey && ['p', 's', 'u'].includes(e.key.toLowerCase()))
+  ) {
+    e.preventDefault();
+    alert('Screenshot & download dinonaktifkan');
+  }
+}
+</script>
 
 
 

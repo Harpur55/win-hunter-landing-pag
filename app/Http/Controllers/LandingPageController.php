@@ -12,14 +12,18 @@ use App\Models\Kelas;
 class LandingPageController extends Controller
 {
     
-    public function show(){
-        $galleries = Gallery::all();
-        $units = Unit::all();
-        $coaches = Coach::all();
-        $kelas = Kelas::all();
-         
+    public function show()
+{
+    $galleries = Gallery::all();
+    $units     = Unit::all();
+    $kelas     = Kelas::all();
 
-        return view('index', compact('galleries','units','coaches','kelas' ));
+    // LOAD relasi documents (INI PENTING)
+    $coaches = Coach::with('documents')->get();
 
-    }
+    return view('index', compact('galleries', 'units', 'coaches', 'kelas'));
+}
+
+
+    
 }

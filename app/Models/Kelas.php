@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 
 class Kelas extends Model
 {
+        use HasFactory;
+
     protected $table = 'kelas';
 
     protected $fillable = [
@@ -14,6 +18,10 @@ class Kelas extends Model
         'description',
         'kuota',
         'kuota_awal',
+    ];
+
+    protected $casts = [
+         'kuota_awal' => 'integer',
     ];
 
     public function getSisaKuotaAttribute()

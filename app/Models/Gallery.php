@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Gallery extends Model
 {
     protected $table = 'gallery'; 
-    protected $fillable = ['title', 'description','images_path'];
+    protected $fillable = ['title', 'description','images_path','status'];
 
       protected $casts = [
         'images_path' => 'array',

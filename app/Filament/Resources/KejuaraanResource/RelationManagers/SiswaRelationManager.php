@@ -24,12 +24,20 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Get;  // ✅ IMPORT INI
 use Filament\Tables\Columns\TextColumn;
 use Filament\Support\Enums\FontWeight;
+use App\Helpers\TageukOption;
+
 use Filament\Tables\Columns\TextColumn\TextColumnSize;
 
 class SiswaRelationManager extends RelationManager
 {
     protected static string $relationship = 'siswa';
     protected static ?string $title = 'Peserta Kejuaraan';
+
+
+     public function isReadOnly(): bool
+    {
+        return false;
+    }
 
     /**
      * Hitung kategori usia otomatis berdasarkan tanggal lahir
@@ -281,61 +289,57 @@ class SiswaRelationManager extends RelationManager
                             ->dehydrated(fn(callable $get) => $get('kategori_pertandingan') === 'kyorugi')
                             ->required(fn(callable $get) => $get('kategori_pertandingan') === 'kyorugi'),
 
-
-
                         Select::make('tingkat_kategori')
-                            ->label('Kategori (Beginer / Advance)')
-                            ->options([
-                                'Pro' => 'Pro',
-                                'Regular' => 'Regular',
-                            ]),
+                            ->label('Kategori')
+                            ->options(fn(callable $get) => match (strtolower((string) $get('kategori_pertandingan'))) {
+                                'kyorugi' => [
+                                    'Pro'     => 'Pro',
+                                    'Regular' => 'Regular',
+                                ],
+                                'poomsae' => [
+                                    'Beginer' => 'Beginer',
+                                    'Advance' => 'Advance',
+                                ],
+                                default => [],
+                            })
+                            ->required(fn(callable $get) => in_array(
+                                strtolower((string) $get('kategori_pertandingan')),
+                                ['kyorugi', 'poomsae']
+                            ))
+                            ->disabled(fn(callable $get) => blank($get('kategori_pertandingan')))
+                            ->reactive(),
+
+                        // Select::make('tingkat_kategori')
+                        //     ->label('Kategori (Beginer / Advance)')
+                        //     ->options([
+                        //         'Pro' => 'Pro',
+                        //         'Regular' => 'Regular',
+                        //     ]),
 
                         Grid::make(2)->schema([
                             Select::make('tageuk')
                                 ->label('Taegeuk')
-                                ->options([
-                                    '1' => 'Taegeuk 1',
-                                    '2' => 'Taegeuk 2',
-                                    '3' => 'Taegeuk 3',
-                                    '4' => 'Taegeuk 4',
-                                    '5' => 'Taegeuk 5',
-                                    '6' => 'Taegeuk 6',
-                                    '7' => 'Taegeuk 7',
-                                    '8' => 'Taegeuk 8',
-                                    'koryo' => 'Koryo',
-                                    'keumgang' => 'Keumgang',
-                                    'taebaek' => 'Taebaek',
-                                    'pyongwon' => 'Pyongwon',
-                                    'sipjin' => 'Sipjin',
-                                    'jitae' => 'Jitae',
-                                    'cheonkwon' => 'Cheonkwon',
-                                    'hangul' => 'Hangul',
-                                    'ilyeo' => 'Ilyeo',
-                                ])
+                                ->options(TageukOption::taegeuk()) // 👈 PANGGIL HELPER
+                                ->required()
+                                ->visible(
+                                    fn(Get $get) =>
+                                    strtolower((string) $get('kategori_pertandingan')) === 'poomsae'
+                                )
                                 ->required()
                                 ->visible(fn($get) => strtolower((string)$get('kategori_pertandingan')) === 'poomsae'),
 
-                            Select::make('tingkat_kategori')
-                                ->label('Kategori (Beginer / Advance)')
+                            Select::make('kategori_atlit')
+                                ->label('Kelompok Usia')
                                 ->options([
-                                    'Beginer' => 'Beginer',
-                                    'Advance' => 'Advance',
+                                    'pracadet' => 'Pra-Cadet',
+                                    'cadet'    => 'Cadet',
+                                    'junior'   => 'Junior',
+                                    'senior'   => 'Senior',
                                 ])
                                 ->required()
-                                ->visible(fn($get) => strtolower((string)$get('kategori_pertandingan')) === 'poomsae'),
+                                ->default(fn(callable $get) => $this->hitungKategoriUmur($get('tanggal_lahir')))
+                                ->reactive(),
                         ]),
-
-                        Select::make('kategori_atlit')
-                            ->label('Kelompok Usia')
-                            ->options([
-                                'pracadet' => 'Pra-Cadet',
-                                'cadet'    => 'Cadet',
-                                'junior'   => 'Junior',
-                                'senior'   => 'Senior',
-                            ])
-                            ->required()
-                            ->default(fn(callable $get) => $this->hitungKategoriUmur($get('tanggal_lahir')))
-                            ->reactive(),
 
                         Select::make('medali')
                             ->label('Medali')
@@ -347,135 +351,136 @@ class SiswaRelationManager extends RelationManager
                             ])
                             ->default('tidak_ada'),
                     ])
-    ->action(function (array $data) {
-        $event = $this->getOwnerRecord();
+                    ->action(function (array $data) {
+                        $event = $this->getOwnerRecord();
 
-        // 🔐 Ambil siswa + unit langsung dari DB
-        $siswa = Siswa::with('unit')->findOrFail($data['siswa_id']);
+                        // 🔐 Ambil siswa + unit langsung dari DB
+                        $siswa = Siswa::with('unit')->findOrFail($data['siswa_id']);
 
-        // 🔥 PAKSA units_id DARI SERVER
-        $data['units_id'] = $siswa->units_id;
+                        // 🔥 PAKSA units_id DARI SERVER
+                        $data['units_id'] = $siswa->units_id;
 
-        $sudahAda = $event->siswa()
-            ->where('kejuaraan_siswa.siswa_id', $data['siswa_id'])
-            ->where('kejuaraan_siswa.kategori_pertandingan', $data['kategori_pertandingan'])
-            ->exists();
+                        $sudahAda = $event->siswa()
+                            ->where('kejuaraan_siswa.siswa_id', $data['siswa_id'])
+                            ->where('kejuaraan_siswa.kategori_pertandingan', $data['kategori_pertandingan'])
+                            ->exists();
 
-        if ($sudahAda) {
-            Notification::make()
-                ->title('⚠️ Siswa sudah terdaftar di kategori ini.')
-                ->danger()
-                ->send();
-            return;
-        }
+                        if ($sudahAda) {
+                            Notification::make()
+                                ->title('⚠️ Siswa sudah terdaftar di kategori ini.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
 
-        $event->siswa()->attach($data['siswa_id'], $data);
+                        $event->siswa()->attach($data['siswa_id'], $data);
 
-        Notification::make()
-            ->title('✅ Peserta berhasil ditambahkan.')
-            ->success()
-            ->send();
-    }),
+                        Notification::make()
+                            ->title('✅ Peserta berhasil ditambahkan.')
+                            ->success()
+                            ->send();
+                    }),
             ])
 
             ->actions([
 
+                Tables\Actions\Action::make('edit_peserta')
+    ->label('Edit')
+    ->icon('heroicon-o-pencil-square')
+    ->color('warning')
+    ->modalHeading('Edit Data Peserta')
+
+    ->fillForm(fn ($record) => $record->pivot->toArray())
+
+    ->form([
+
+        /* ================= KYORUGI ================= */
+        TextInput::make('berat_badan')
+            ->numeric()
+            ->suffix('kg')
+            ->visible(fn ($record) =>
+                strtolower($record->pivot->kategori_pertandingan) === 'kyorugi'
+            ),
+
+        TextInput::make('tinggi_badan')
+            ->numeric()
+            ->suffix('cm')
+            ->visible(fn ($record) =>
+                strtolower($record->pivot->kategori_pertandingan) === 'kyorugi'
+            ),
+
+        TextInput::make('kelas_berat')
+            ->label('Kelas Berat')
+            ->placeholder('U-45, U-58, U+80')
+            ->visible(fn ($record) =>
+                strtolower($record->pivot->kategori_pertandingan) === 'kyorugi'
+            ),
+
+        /* ================= POOMSAE ================= */
+        Select::make('tageuk')
+            ->label('Taegeuk')
+            ->options([
+                '1' => 'Taegeuk 1',
+                '2' => 'Taegeuk 2',
+                '3' => 'Taegeuk 3',
+                '4' => 'Taegeuk 4',
+                '5' => 'Taegeuk 5',
+                '6' => 'Taegeuk 6',
+                '7' => 'Taegeuk 7',
+                '8' => 'Taegeuk 8',
+                'koryo' => 'Koryo',
+                'keumgang' => 'Keumgang',
+            ])
+            ->visible(fn ($record) =>
+                strtolower($record->pivot->kategori_pertandingan) === 'poomsae'
+            ),
+
+        Select::make('tingkat_kategori')
+            ->label('Tingkat')
+            ->options([
+                'beginner' => 'Beginner',
+                'advance'  => 'Advance',
+            ])
+            ->visible(fn ($record) =>
+                strtolower($record->pivot->kategori_pertandingan) === 'poomsae'
+            ),
+
+        /* ================= UMUM ================= */
+        Select::make('medali')
+            ->label('Medali')
+            ->options([
+                'tidak_ada' => 'Tidak Ada',
+                'emas'      => 'Emas',
+                'perak'     => 'Perak',
+                'perunggu'  => 'Perunggu',
+            ]),
+    ])
+
+    ->action(function ($record, array $data) {
+
+        $this->getOwnerRecord()
+            ->siswa()
+            ->updateExistingPivot(
+                $record->id,
+                $data
+            );
+
+        Notification::make()
+            ->title('✅ Data peserta berhasil diperbarui.')
+            ->success()
+            ->send();
+    }),
+
+
                 Tables\Actions\Action::make('hapus_peserta')
-                    ->label('Hapus')
-                    ->icon('heroicon-o-trash')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->action(function ($record) {
-                        $kejuaraan = $this->getOwnerRecord();
-
-                        // Hapus relasi di tabel pivot kejuaraan_siswa
-                        $kejuaraan->siswa()->detach($record->id);
-
-                        Notification::make()
-                            ->title('Peserta Dihapus 🗑️')
-                            ->body('Siswa telah dihapus dari daftar peserta kejuaraan.')
-                            ->success()
-                            ->send();
-                    }),
-
-                Tables\Actions\EditAction::make()
-                    ->form([
-                        TextInput::make('berat_badan')
-                            ->numeric()
-                            ->suffix('kg')
-                            ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'kyorugi'),
-
-                        TextInput::make('tinggi_badan')
-                            ->numeric()
-                            ->suffix('cm')
-                            ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'kyorugi'),
-
-                        TextInput::make('kelas_berat')   // ✅ harus 'kelas_berat'
-                            ->label('Kelas Berat')
-                            ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'kyorugi')
-                            ->placeholder('U-45, U-58, U+80'),
-
-                        Select::make('tingkat_kategori')
-                            ->label('Kategori (Beginer / Advance)')
-                            ->options([
-                                'Pro' => 'Pro',
-                                'Regular' => 'Regular',
-                            ]),
-
-                        Select::make('tageuk')
-                            ->label('Taegeuk')
-                            ->options([
-                                '1' => 'Taegeuk 1',
-                                '2' => 'Taegeuk 2',
-                                '3' => 'Taegeuk 3',
-                                '4' => 'Taegeuk 4',
-                                '5' => 'Taegeuk 5',
-                                '6' => 'Taegeuk 6',
-                                '7' => 'Taegeuk 7',
-                                '8' => 'Taegeuk 8',
-                                'koryo' => 'Koryo',
-                                'keumgang' => 'Keumgang',
-                                'taebaek' => 'Taebaek',
-                                'pyongwon' => 'Pyongwon',
-                                'sipjin' => 'Sipjin',
-                                'jitae' => 'Jitae',
-                                'cheonkwon' => 'Cheonkwon',
-                                'hangul' => 'Hangul',
-                                'ilyeo' => 'Ilyeo',
-                            ])
-                            ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'poomsae'),
-
-                        Select::make('tingkat_kategori')
-                            ->label('Kategori (Beginer / Advance)')
-                            ->options([
-                                'pro' => 'Pro',
-                                'reguler' => 'Reguler',
-                            ])
-                            ->visible(fn($record) => strtolower($record->pivot->kategori_pertandingan) === 'poomsae'),
-
-                        Select::make('kategori_atlit')
-                            ->label('Kelompok Usia')
-                            ->options([
-                                'pracadet' => 'Pra-Cadet',
-                                'cadet'    => 'Cadet',
-                                'junior'   => 'Junior',
-                                'senior'   => 'Senior',
-                            ]),
-
-                        Select::make('medali')
-                            ->label('Medali')
-                            ->options([
-                                'tidak_ada' => 'Tidak Ada',
-                                'emas'      => 'Emas',
-                                'perak'     => 'Perak',
-                                'perunggu'  => 'Perunggu',
-                            ]),
-                    ])
-                    ->mutateFormDataUsing(function (array $data, $record): array {
-                        $record->pivot->update($data);
-                        return $data;
-                    })
-                    ->fillForm(fn($record) => $record->pivot->toArray()),
+        ->label('Hapus')
+        ->icon('heroicon-o-trash')
+        ->color('danger')
+        ->requiresConfirmation()
+        ->action(fn ($record) =>
+            $this->getOwnerRecord()->siswa()->detach($record->id)
+        ),
+              
             ]);
     }
 }

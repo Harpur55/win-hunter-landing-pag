@@ -12,18 +12,49 @@
 <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-10">
 
     <!-- HEADER -->
-    <div class="flex items-center gap-4 mb-10">
-        <img src="{{ asset('images/logo.png') }}"
-             class="w-16 h-16 object-contain"
-             onerror="this.style.display='none'">
+   <div class="mb-10 rounded-2xl bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 p-5 sm:p-6 text-white shadow-lg">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
 
-        <div>
-            <h1 class="text-3xl font-extrabold text-blue-700">
-                Pendaftaran Kejuaraan
+        <!-- LOGO CLUB -->
+        <div class="mx-auto sm:mx-0 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full 
+                    bg-white shadow-md ring-4 ring-white/30 overflow-hidden">
+            <img
+                src="https://www.win-hunter.com/assets/images/download.jpg"
+                alt="Logo Sacti Win-Hunter"
+                class="h-full w-full object-cover rounded-full"
+                onerror="this.style.display='none'"
+            >
+        </div>
+
+        <!-- TEXT -->
+        <div class="text-center sm:text-left">
+            <p class="text-xs sm:text-sm uppercase tracking-widest text-blue-200">
+                Sacti Win-Hunter
+            </p>
+
+            <h1 class="mt-1 text-2xl sm:text-3xl font-extrabold leading-tight">
+                Form Pendaftaran Kejuaraan
             </h1>
-            <p class="text-gray-500">{{ $kejuaraan->nama_kejuaraan }}</p>
+
+            <p class="mt-1 text-sm sm:text-lg font-semibold text-blue-100">
+                {{ $kejuaraan->nama_kejuaraan }}
+            </p>
         </div>
     </div>
+
+    
+
+    <!-- DIVIDER -->
+    <div class="mt-5 h-px w-full bg-white/20"></div>
+
+    <p class="mt-3 text-xs sm:text-sm text-blue-100 text-center sm:text-left">
+        Silakan lengkapi data atlet dengan benar dan sesuai kategori pertandingan
+    </p>
+</div>
+
+        <!-- TEXT -->
+
+    
 
     <!-- ALERT -->
     @if (session('success'))
@@ -62,6 +93,12 @@
         <div class="grid md:grid-cols-2 gap-4 mb-8">
             <input id="nama" name="nama_lengkap" placeholder="Nama Lengkap"
                    class="border rounded-xl p-3 bg-gray-50">
+            
+                   <div id="info-kuota"
+     class="mb-6 hidden text-xs text-gray-600 bg-yellow-50 border border-yellow-200 rounded-xl p-3">
+    <b>Debug Kuota:</b>
+    <span id="kuota-text">-</span>
+</div>
 
             <input id="tempat" name="tempat_lahir" placeholder="Tempat Lahir"
                    class="border rounded-xl p-3 bg-gray-50">
@@ -70,7 +107,7 @@
                    class="border rounded-xl p-3 bg-gray-50">
 
             <select id="jk" name="jenis_kelamin"
-                    class="border rounded-xl p-3 bg-gray-50">
+                    class="border rounded-xl p-3 bg-gray-50" placeholder="Jenis Kelamin">
                 <option value="">-- Pilih Jenis Kelamin --</option>
                 <option value="L">👦 Laki-laki</option>
                 <option value="P">👧 Perempuan</option>
@@ -83,6 +120,33 @@
             <input type="hidden" name="sabuk" id="sabuk">
         </div>
 
+        <div class="mb-6">
+    <label class="font-semibold block mb-2">Penggunaan Kuota</label>
+
+    <div class="flex gap-4">
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio"
+                   name="use_kuota"
+                   value="1"
+                   checked
+                   class="accent-blue-600">
+            <span class="text-sm">Gunakan Kuota</span>
+        </label>
+
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio"
+                   name="use_kuota"
+                   value="0"
+                   class="accent-gray-600">
+            <span class="text-sm">Tidak Gunakan Kuota</span>
+        </label>
+    </div>
+
+    <p class="text-xs text-gray-500 mt-1">
+        Kuota hanya berkurang jika opsi <b>Gunakan Kuota</b> dipilih
+    </p>
+</div>
+
         <!-- KATEGORI -->
         <div class="mb-6">
             <label class="font-semibold">Kategori Pertandingan</label>
@@ -93,6 +157,7 @@
                 <option value="poomsae">Poomsae</option>
             </select>
         </div>
+
 
         <!-- KYORUGI -->
         <div id="kyorugi" class="hidden bg-blue-50 p-5 rounded-2xl mb-6">
@@ -118,15 +183,8 @@
                    placeholder="Sabuk otomatis dari database"
                    disabled
                    class="w-full border rounded-xl p-3 bg-gray-100 mb-4">
-
-            <select name="kategori_atlit"
-                    disabled
-                    class="w-full border rounded-xl p-3">
-                <option value="">-- Kategori Atlit (Opsional) --</option>
-                <option value="Pro">Pro</option>
-                <option value="Regular">Regular</option>
-            </select>
         </div>
+
 
         <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl font-bold text-lg">
             Daftarkan Peserta
@@ -151,6 +209,23 @@ function pilihSiswa(s) {
     unit_id.value = s.unit_id;
     sabuk.value = s.sabuk;
 
+  const infoKuota = document.getElementById('info-kuota');
+    const kuotaText = document.getElementById('kuota-text');
+
+    if (s.kuota !== null && s.kuota !== undefined) {
+        infoKuota.classList.remove('hidden');
+        kuotaText.innerHTML = `
+            Sisa kuota kelas: 
+            <b class="text-yellow-700">${s.kuota}</b>
+        `;
+    } else {
+        infoKuota.classList.remove('hidden');
+        kuotaText.innerHTML = `
+            Kuota kelas: <b class="text-gray-500">Tidak tersedia</b>
+        `;
+    }
+
+  
     search.value = s.nama;
     dropdown.classList.add('hidden');
 }

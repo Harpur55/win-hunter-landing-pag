@@ -81,7 +81,9 @@ return new class extends Migration
             $table->string('current_belt_level')->default('Putih');
 
             $table->date('joint_date')->nullable();
-            $table->string('status')->default('Aktif');
+            $table->enum('status', ['aktif', 'cuti', 'nonaktif'])
+          ->default('aktif')
+          ->after('tanggal_lahir');
 
             $table->timestamps();
 

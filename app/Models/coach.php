@@ -19,7 +19,7 @@ class coach extends Model
         'role',
         'alamat',
         'nomor_telepon',
-        'document',
+       
     ];
 protected static function booted()
 {

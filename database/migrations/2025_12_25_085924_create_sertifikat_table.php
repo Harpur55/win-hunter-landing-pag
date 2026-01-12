@@ -19,20 +19,19 @@ return new class extends Migration {
                 ->constrained('siswas')
                 ->cascadeOnDelete();
 
-            // 🧾 Identitas Sertifikat
+
             $table->string('no_sertifikat')->unique();
             $table->string('no_register');
 
-            // 👤 Data Peserta (snapshot)
+
             $table->string('nama_lengkap');
             $table->date('tanggal_lahir');
             $table->date('tanggal_ujian');
 
-            // 🥋 Sabuk
+
             $table->string('current_belt_level');
             $table->string('next_belt_level');
 
-            // 📄 File Sertifikat
             $table->string('file_pdf');
 
             // 🧩 Metadata

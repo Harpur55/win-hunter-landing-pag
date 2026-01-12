@@ -18,9 +18,10 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
     protected $eventUjian;
 
     public function __construct(EventUjian $eventUjian)
-    {
-        $this->eventUjian = $eventUjian;
-    }
+{
+    // 🔥 pastikan ambil data FULL dari DB
+    $this->eventUjian = EventUjian::find($eventUjian->id);
+}
 
     // 🔥 AMBIL DARI PIVOT (UjianSiswa)
     public function collection()
@@ -33,7 +34,7 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
     public function headings(): array
     {
         return [
-            ['DATA PESERTA UJIAN'],
+            ['DATA PESERTA UJIAN',($this->eventUjian->nama_ujian ?? '-')],
             ['Tanggal Ujian : ' . ($this->eventUjian->tanggal_ujian
                 ? (new DateTime($this->eventUjian->tanggal_ujian))->format('d/m/Y')
                 : '-')],

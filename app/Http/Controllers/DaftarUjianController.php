@@ -18,39 +18,62 @@ class DaftarUjianController extends Controller
     {
         $eventUjian = EventUjian::where('slug', $slug)->firstOrFail();
 
-         if (Carbon::today()->greaterThanOrEqualTo(
-        Carbon::parse($eventUjian->tanggal_ujian)
-    )) {
-        return response()->view('ujian.ujian-berakhir', [
-            'eventUjian' => $eventUjian,
-        ], 403);
-    }
+        // ⛔ Blok jika ujian sudah dimulai / lewat
+        if (Carbon::today()->greaterThanOrEqualTo(
+            Carbon::parse($eventUjian->tanggal_ujian)
+        )) {
+            return response()->view('ujian.ujian-berakhir', [
+                'eventUjian' => $eventUjian,
+            ], 403);
+        }
 
-        $units      = Unit::orderBy('name')->get();
-        $kelas      = Kelas::orderBy('name')->get();
-        $siswas     = Siswa::orderBy('nama_lengkap')->get();
-
-        $sabukList = [
-            'putih'                 => 'Putih',
-            'kuning'                => 'Kuning',
-            'kuning strip hijau'    => 'Kuning Strip Hijau',
-            'hijau'                 => 'Hijau',
-            'hijau strip biru'      => 'Hijau Strip Biru',
-            'biru'                  => 'Biru',
-            'biru strip merah'      => 'Biru Strip Merah',
-            'merah'                 => 'Merah',
-            'merah strip hitam 1'   => 'Merah Strip Hitam 1',
-            'merah strip hitam 2'   => 'Merah Strip Hitam 2',
-            'hitam'                 => 'Hitam',
-        ];
+        // 🔥 DATA SISWA UNTUK AUTOCOMPLETE (SAMA SEPERTI KEJUARAAN)
+        $siswaJson = Siswa::with(['unit'])
+            ->orderBy('nama_lengkap')
+            ->get()
+            ->map(function ($s) {
+                return [
+                    'id'                  => $s->id,
+                    'nama'                => $s->nama_lengkap,
+                    'tempat_lahir'        => $s->tempat_lahir,
+                    'tanggal_lahir'       => $s->tanggal_lahir,
+                    'no_register'         => $s->no_register,
+                    'current_belt_level'  => $s->current_belt_level,
+                    'next_belt_level'     => $s->next_belt_level,
+                    'units_id'            => $s->units_id,
+                    'kelas_id'            => $s->kelas_id,
+                    'unit'                => $s->unit->name ?? '-',
+                ];
+            });
 
         return view('ujian.daftar', [
             'eventUjian' => $eventUjian,
-            'units'      => $units,
-            'kelas'      => $kelas,
-            'siswas'     => $siswas,
-            'sabukList'  => $sabukList,
-            'mode'       => 'create',
+            'units'      => Unit::orderBy('name')->get(),
+            'kelas'      => Kelas::orderBy('name')->get(),
+            'siswas'     => Siswa::orderBy('nama_lengkap')->get(), // boleh dihapus jika sudah tidak dipakai
+            'siswaJson'  => $siswaJson, // ⭐ WAJIB
+            'sabukList'  => [
+                'putih'               => 'Putih',
+                'kuning'              => 'Kuning',
+                'kuning strip hijau'  => 'Kuning Strip Hijau',
+                'hijau'               => 'Hijau',
+                'hijau strip biru'    => 'Hijau Strip Biru',
+                'biru'                => 'Biru',
+                'biru strip merah'    => 'Biru Strip Merah',
+                'merah'               => 'Merah',
+                'merah strip hitam 1' => 'Merah Strip Hitam 1',
+                'merah strip hitam 2' => 'Merah Strip Hitam 2',
+                'hitam dan 1'               => 'Hitam DAN 1',
+                'hitam dan 2'               => 'Hitam DAN 2',
+                'hitam dan 3'               => 'Hitam DAN 3',
+                'hitam dan 4'               => 'Hitam DAN 4',
+                'hitam dan 5'               => 'Hitam DAN 5',
+                'hitam dan 6'               => 'Hitam DAN 6',
+                'hitam dan 7'               => 'Hitam DAN 7',
+                'hitam dan 8'               => 'Hitam DAN 8',
+                'hitam dan 9'               => 'Hitam DAN 9',
+            ],
+            'mode' => 'create',
         ]);
     }
 
@@ -61,41 +84,43 @@ class DaftarUjianController extends Controller
     {
         $eventUjian = EventUjian::where('slug', $slug)->firstOrFail();
 
-    // ⛔ BLOK JIKA UJIAN SUDAH DIMULAI / LEWAT
-    if (Carbon::today()->greaterThanOrEqualTo(
-        Carbon::parse($eventUjian->tanggal_ujian)
-    )) {
-        abort(403, 'Ujian ini sudah berakhir.');
-    }
+        // ⛔ Blok jika ujian sudah dimulai / lewat
+        if (Carbon::today()->greaterThanOrEqualTo(
+            Carbon::parse($eventUjian->tanggal_ujian)
+        )) {
+            abort(403, 'Ujian ini sudah berakhir.');
+        }
 
         $validated = $request->validate([
             'siswa_id'           => 'required|exists:siswas,id',
-            // 'nama_lengkap'      => 'required|string|max:255',
-            'jenis_kelamin'   => 'required|in:L,P',
+            'jenis_kelamin'      => 'required|in:L,P',
             'tempat_lahir'       => 'required|string|max:255',
             'tanggal_lahir'      => 'required|date',
-            'no_register'        => ['required', 'regex:/^[0-9]{15}$/'],
-            'current_belt_level' => 'required|string|max:255',
-            'next_belt_level'    => 'required|string|max:255',
+            'no_register'        => ['required', 'regex:/^[0-9]{13}$/'],
+            'current_belt_level' => 'required|string',
+            'next_belt_level'    => 'required|string',
             'units_id'           => 'required|exists:units,id',
             'kelas_id'           => 'required|exists:kelas,id',
         ]);
-        // dd($request->all());
 
-        $eventUjian = EventUjian::where('slug', $slug)->firstOrFail();
-        $siswa      = Siswa::findOrFail($validated['siswa_id']);
+        $siswa = Siswa::findOrFail($validated['siswa_id']);
 
-        // Sinkronkan data master siswa jika perlu (misalnya no_register)
-        if (empty($siswa->no_register) && !empty($validated['no_register'])) {
+        // ⛔ Cegah siswa daftar dua kali
+        if ($eventUjian->siswa()->where('siswa_id', $siswa->id)->exists()) {
+            return back()->withErrors([
+                'siswa_id' => 'Siswa ini sudah terdaftar pada ujian ini.',
+            ]);
+        }
+
+        if (empty($siswa->no_register)) {
             $siswa->update([
                 'no_register' => $validated['no_register'],
             ]);
         }
 
-        // Insert via relasi many-to-many (pivot)
         $eventUjian->siswa()->attach($siswa->id, [
             'nama_lengkap'       => $siswa->nama_lengkap,
-            'jenis_kelamin'  =>      $validated['jenis_kelamin'],
+            'jenis_kelamin'      => $validated['jenis_kelamin'],
             'tempat_lahir'       => $validated['tempat_lahir'],
             'tanggal_lahir'      => $validated['tanggal_lahir'],
             'no_register'        => $validated['no_register'],
@@ -106,6 +131,6 @@ class DaftarUjianController extends Controller
             'keterangan'         => 'on_proses',
         ]);
 
-        return back()->with('success', 'Data berhasil didaftarkan! Status ujian: On Proses');
+        return back()->with('success', 'Data berhasil didaftarkan. Status: On Proses');
     }
 }
