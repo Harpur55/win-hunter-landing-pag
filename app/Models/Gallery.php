@@ -24,6 +24,11 @@ class Gallery extends Model
 
         return [];
     }
+
+   public function scopeActive($query)
+{
+    return $query->where('status', 'aktif');
+}
 }
 
 

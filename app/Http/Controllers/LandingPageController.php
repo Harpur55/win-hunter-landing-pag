@@ -14,7 +14,9 @@ class LandingPageController extends Controller
     
     public function show()
 {
-    $galleries = Gallery::all();
+     $galleries = Gallery::where('status', 'aktif')
+    ->latest()
+    ->get();
     $units     = Unit::all();
     $kelas     = Kelas::all();
 

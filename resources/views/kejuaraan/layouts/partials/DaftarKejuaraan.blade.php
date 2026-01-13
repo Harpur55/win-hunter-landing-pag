@@ -96,7 +96,7 @@
             
                    <div id="info-kuota"
      class="mb-6 hidden text-xs text-gray-600 bg-yellow-50 border border-yellow-200 rounded-xl p-3">
-    <b>Debug Kuota:</b>
+    <b>Kuota:</b>
     <span id="kuota-text">-</span>
 </div>
 
