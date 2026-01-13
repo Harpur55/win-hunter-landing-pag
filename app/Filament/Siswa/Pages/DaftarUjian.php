@@ -151,7 +151,8 @@ class DaftarUjian extends Page
     }
 
     // ✅ Ambil ID (tanpa ubah alur)
-    $unitId  = $siswa->units_id;
+    $unitId  =$unitId  = $siswa->unit?->id;
+
     $kelasId = $siswa->kelas_id;
 
     // ✅ Simpan data pendaftaran
@@ -160,7 +161,7 @@ class DaftarUjian extends Page
         'tempat_lahir'       => $this->tempat_lahir,
         'tanggal_lahir'      => $this->tanggal_lahir,
         'no_register'        => $this->no_register,
-        'unit_id'            => $unitId,
+        'units_id'            => $unitId,
         'kelas_id'           => $kelasId,
         'jenis_kelamin'      => $this->jenis_kelamin,
         'current_belt_level' => $this->current_belt_level,

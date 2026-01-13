@@ -45,6 +45,7 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
                 'NAMA SISWA',
                 'TEMPAT LAHIR',
                 'TANGGAL LAHIR',
+                'UNIT',
                 'NO REGISTER',
                 'ALAMAT',
                 'NOMOR HP',
@@ -72,7 +73,8 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
             $siswa->nama_lengkap,
             $siswa->tempat_lahir,
             $siswa->tanggal_lahir?->format('d/m/Y'),
-           (string) $siswa->no_register,
+            $siswa->unit->nama_unit ?? '-',
+             "'" . $siswa->no_register,
 
             // ✅ AUTO DECRYPT (ACCESSOR MODEL SISWA)
             $siswa->alamat_lengkap,
@@ -108,7 +110,7 @@ class EventUjianSiswaExport implements FromCollection, WithHeadings, WithStyles,
         public function columnFormats(): array
 {
     return [
-        'E' => NumberFormat::FORMAT_TEXT, // NO REGISTER
+        'F' => NumberFormat::FORMAT_TEXT, // NO REGISTER
         'G' => NumberFormat::FORMAT_TEXT, // NOMOR HP (sekalian biar aman)
     ];
 }
