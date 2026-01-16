@@ -54,9 +54,9 @@ class GalleryResource extends Resource
     ->required(),
 
             FileUpload::make('images_path')
-                ->label('Foto (maks 4)')
+                ->label('Foto (maks 6)')
                 ->multiple()
-                ->maxFiles(4)
+                ->maxFiles(6)
                 ->disk('public')
                 ->directory('gallery')
                 ->image()
@@ -78,14 +78,15 @@ class GalleryResource extends Resource
                     ->label('Deskripsi')
                     ->limit(50),
 
-                Forms\Components\Select::make('status')
-                    ->label('Status')
-                    ->options([
-                        'aktif'     => 'Aktif',
-                        'non-aktif' => 'Tidak Aktif',
-                    ])
-                    ->default('aktif')
-                    ->required(),
+                 Tables\Columns\TextColumn::make('status')
+    ->label('Status')
+    ->badge()
+    ->color(fn (string $state): string => match ($state) {
+        'aktif' => 'success',
+        'non-aktif' => 'danger',
+        default => 'gray',
+    })
+    ->sortable(),
 
                 Tables\Columns\ImageColumn::make('images_path')
                     ->label('Foto Utama')

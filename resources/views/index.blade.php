@@ -504,7 +504,7 @@
         </div>
     </section>
 
-    <section id="galery" class="bg-white py-10 px-4 sm:px-6 lg:px-20">
+    <section id="galery" class="bg-white py-10 px-4 sm:px-6 lg:px-20 bg-gradient-to-br from-emerald-50 to-blue-500 ">
   <div class="container mx-auto">
     <h2 class="text-3xl text-black text-center font-extrabold sm:text-4xl mb-4">
       Galeri
@@ -518,7 +518,7 @@
       <div class="swiper-wrapper">
         @foreach ($galleries as $gallery)
           <div class="swiper-slide">
-            <div class="bg-gray-50 rounded-2xl shadow-md p-4 sm:p-6">
+            <div class="bg-gradient-to-br from-amber-50/70 via-white to-slate-50 rounded-3xl border border-amber-100/40 shadow-md p-4 sm:p-6">
               {{-- Judul galeri --}}
               <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 text-center">
                 {{ $gallery->title }}
