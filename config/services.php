@@ -36,9 +36,10 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
     'turnstile' => [
-        'site' => env('TURNSTILE_SITE_KEY'),
-        'secret' => env('TURNSTILE_SECRET_KEY'),
-    ],
+    'site_key'   => env('TURNSTILE_SITE_KEY'),
+    'secret_key' => env('TURNSTILE_SECRET_KEY'),
+    'mode'       => env('TURNSTILE_MODE', 'auto'),
+],
     
 ];
 

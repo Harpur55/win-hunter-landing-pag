@@ -57,10 +57,10 @@
                             </div>
                         </div>
 
-                        {{-- Kategori, Tingkat & Kelas Berat --}}
+                       
                         <div class="col-span-1 sm:col-span-1 lg:col-span-1 space-y-3">
 
-                            {{-- Kategori Pertandingan --}}
+                          
                             <div>
                                 <p
                                     class="text-s
@@ -75,7 +75,7 @@
                                 </span>
                             </div>
 
-                            {{-- Tingkat Kategori --}}
+                           
                             <div>
                                 <p
                                     class="text-s
@@ -90,76 +90,79 @@
                                 </span>
                             </div>
 
-                            {{-- Kelas Berat --}}
-                           @if(($item['kategori_pertandingan'] ?? '') === 'kyorugi')
-    <div>
-        <p
-            class="text-sm font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
-            Kelas Berat (Under)
-        </p>
+                            @if (($item['kategori_pertandingan'] ?? '') === 'kyorugi')
+                                <div>
+                                    <p
+                                        class="text-sm font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                                        Kelas Berat (Under)
+                                    </p>
 
-        <span
-            class="inline-flex px-3 py-1 rounded-full text-sm font-semibold
+                                    <span
+                                        class="inline-flex px-3 py-1 rounded-full text-sm font-semibold
                    bg-emerald-50 text-emerald-700
                    dark:bg-emerald-900/40 dark:text-emerald-200">
-            {{ $item['kelas_berat'] ?? '-' }}
-        </span>
-    </div>
-@endif
+                                        {{ $item['kelas_berat'] ?? '-' }}
+                                    </span>
+                                </div>
+                            @endif
 
 
                         </div>
 
+                       
                         {{-- Medali --}}
-                        <div
-                            class="col-span-1 sm:col-span-1 lg:col-span-1 flex items-start lg:justify-end order-first sm:order-none
-">
-                            <div class="text-left lg:text-right w-full">
-                                <p
-                                    class="text-s
- font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
-                                    Medali
-                                </p>
+<div
+    class="col-span-1 sm:col-span-1 lg:col-span-1 flex items-start lg:justify-end order-first sm:order-none">
+    <div class="text-left lg:text-right w-full">
+        <p
+            class="text-sm font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+            Medali
+        </p>
 
-                                @php
-                                    $med = strtolower($item['medali'] ?? '');
-                                @endphp
+        @php
+            $med = strtolower($item['medali'] ?? '');
+            $hasMedal = in_array($med, ['emas', 'gold', '🥇', 'perak', 'silver', '🥈', 'perunggu', 'bronze', '🥉']);
+        @endphp
 
-                                @if ($med === 'emas' || $med === 'gold' || $med === '🥇')
-                                    <span
-                                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
-                                                 bg-yellow-400 text-gray-900 text-s
- font-semibold">
-                                        🥇 Emas
-                                    </span>
-                                @elseif ($med === 'perak' || $med === 'silver' || $med === '🥈')
-                                    <span
-                                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
-                                                 bg-gray-300 text-gray-900 text-s
- font-semibold">
-                                        🥈 Perak
-                                    </span>
-                                @elseif ($med === 'perunggu' || $med === 'bronze' || $med === '🥉')
-                                    <span
-                                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
-                                                 bg-orange-400 text-white text-s
- font-semibold">
-                                        🥉 Perunggu
-                                    </span>
-                                @else
-                                    <span
-                                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
-                                                 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300
-                                                 text-s
- font-medium">
-                                        Belum Ada
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
+        @if ($med === 'emas' || $med === 'gold' || $med === '🥇')
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
+                         bg-yellow-400 text-gray-900 text-sm font-semibold">
+                🥇 Emas
+            </span>
+        @elseif ($med === 'perak' || $med === 'silver' || $med === '🥈')
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
+                         bg-gray-300 text-gray-900 text-sm font-semibold">
+                🥈 Perak
+            </span>
+        @elseif ($med === 'perunggu' || $med === 'bronze' || $med === '🥉')
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
+                         bg-orange-400 text-white text-sm font-semibold">
+                🥉 Perunggu
+            </span>
+        @else
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
+                         bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300
+                         text-sm font-medium">
+                Belum Ada
+            </span>
+        @endif
 
-                    </div>
-                </div>
+      
+        @if ($hasMedal && !empty($item['sertifikat']['file_pdf']))
+            <div class="mt-3">
+                <a
+                    href="{{ asset('storage/' . $item['sertifikat']['file_pdf']) }}"
+                    target="_blank"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg
+                           bg-indigo-600 hover:bg-indigo-700 text-white
+                           text-sm font-semibold transition">
+                    📄 Lihat Sertifikat
+                </a>
+            </div>
+        @endif
+    </div>
+</div>
+
             @empty
                 <div
                     class="w-full py-10 text-center text-gray-500 dark:text-gray-400

@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class KejuaraanController extends Controller
 {
-    /**
-     * =========================
-     * FORM PENDAFTARAN
-     * =========================
-     */
+    
     public function daftar(string $slug)
     {
         $kejuaraan = Kejuaraan::where('slug', $slug)->firstOrFail();
@@ -46,11 +42,7 @@ class KejuaraanController extends Controller
         );
     }
 
-    /**
-     * =========================
-     * SIMPAN PENDAFTARAN
-     * =========================
-     */
+   
     public function store(
         Request $request,
         string $slug,

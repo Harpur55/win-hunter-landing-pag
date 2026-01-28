@@ -8,6 +8,9 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\DaftarUjianController;
 use App\Http\Controllers\KejuaraanController;
 use App\Http\Controllers\SiswaController;
+use App\Models\Sertifikat;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -107,3 +110,19 @@ Route::controller(KejuaraanController::class)->group(function () {
     Route::post('/kejuaraan/aftar/{slug}/', 'store')
         ->name('kejuaraan.daftar.store');
 });
+
+Route::get('/sertifikat-kejuaraan/{sertifikat}/download', function (
+    Sertifikat $sertifikat
+) {
+    abort_if(
+        auth()->user()->siswa->id !== $sertifikat->kejuaraanSiswa->siswa_id,
+        403
+    );
+
+    return response()->download(
+        storage_path('app/public/' . $sertifikat->file)
+    );
+})->name('sertifikat.kejuaraan.download');
+
+
+

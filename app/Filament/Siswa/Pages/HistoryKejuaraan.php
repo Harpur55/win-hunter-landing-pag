@@ -21,35 +21,50 @@ class HistoryKejuaraan extends Page
     public function mount(): void
     {
         $siswa = Auth::user()->siswa;
-
         $this->tahun = request()->get('tahun');
 
-        if ($siswa) {
-            $this->riwayat = KejuaraanSiswa::with('kejuaraan')
-                ->where('siswa_id', $siswa->id)
-                ->orderByDesc('created_at')
-                ->get()
-                ->map(function ($item) {
-                    return [
-                        'nama_kejuaraan' => $item->kejuaraan->nama_kejuaraan ?? '-',
-                        'grades' => $this->formatGrade($item->kejuaraan->grades ?? ''),
-                        'tanggal' => $item->kejuaraan->tanggal_mulai
-                            ? Carbon::parse($item->kejuaraan->tanggal_mulai)->translatedFormat('d F Y')
-                            : '-',
-                        'lokasi' => $item->kejuaraan->lokasi ?? '-',
-
-                        'kategori_pertandingan' => $item->kategori_pertandingan ?? '-',
-
-                        'kelas_berat' => $item->kategori_pertandingan === 'kyorugi'
-                            ? $item->kelas_berat
-                            : null,
-
-                        'tingkat_kategori' => $item->tingkat_kategori ?? '-',
-                        'medali' => $item->medali ?? null,
-                    ];
-                })
-                ->toArray();
+        if (! $siswa) {
+            return;
         }
+
+        $this->riwayat = KejuaraanSiswa::with(['kejuaraan', 'sertifikat'])
+            ->where('siswa_id', $siswa->id)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($item) {
+
+                $sertifikat = $item->sertifikat;
+
+                return [
+                    'nama_kejuaraan' => $item->kejuaraan->nama_kejuaraan ?? '-',
+                    'grades'         => $this->formatGrade($item->kejuaraan->grades ?? ''),
+                    'tanggal'        => $item->kejuaraan->tanggal_mulai
+                        ? Carbon::parse($item->kejuaraan->tanggal_mulai)
+                            ->translatedFormat('d F Y')
+                        : '-',
+                    'lokasi' => $item->kejuaraan->lokasi ?? '-',
+
+                    'kategori_pertandingan' => $item->kategori_pertandingan ?? '-',
+
+                    'kelas_berat' => $item->kategori_pertandingan === 'kyorugi'
+                        ? $item->kelas_berat
+                        : null,
+
+                    'tingkat_kategori' => $item->tingkat_kategori ?? '-',
+                    'medali'           => $item->medali ?? null,
+
+                    // 📄 DATA SERTIFIKAT
+                    'sertifikat' => $sertifikat
+                        ? [
+                            'id'        => $sertifikat->id,
+                            'file_pdf'  => $sertifikat->file_pdf,
+                            'url'       => asset('storage/' . $sertifikat->file_pdf),
+                            'uploaded'  => true,
+                        ]
+                        : null,
+                ];
+            })
+            ->toArray();
     }
 
     private function formatGrade($grade): string
@@ -57,10 +72,10 @@ class HistoryKejuaraan extends Page
         return match ($grade) {
             'nasional_a', 'nasionalA', 'NasionalA' => 'Nasional A',
             'nasional_b', 'nasionalB', 'NasionalB' => 'Nasional B',
-            'daerah_a', 'daerahA', 'DaerahA'      => 'Daerah A',
-            'daerah_B', 'daerah_b', 'daerahB', 'DaerahB', => 'Daerah B',
-            'tryout', 'tryout_antar_club'         => '⚡ Tryout Antar Club',
-            default                               => $grade ?: '-'
+            'daerah_a', 'daerahA', 'DaerahA'       => 'Daerah A',
+            'daerah_b', 'daerahB', 'DaerahB'       => 'Daerah B',
+            'tryout', 'tryout_antar_club'          => '⚡ Tryout Antar Club',
+            default                                => $grade ?: '-',
         };
     }
 }

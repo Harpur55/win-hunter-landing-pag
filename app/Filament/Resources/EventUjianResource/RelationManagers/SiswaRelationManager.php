@@ -426,7 +426,7 @@ class SiswaRelationManager extends RelationManager
                 ->send();
         }),
 
-        Action::make('generate_sertifikat')
+     Action::make('generate_sertifikat')
     ->label('Generate Sertifikat')
     ->icon('heroicon-o-document')
     ->color('success')
@@ -437,7 +437,8 @@ class SiswaRelationManager extends RelationManager
 
         $event = $this->getOwnerRecord();
 
-        $ujianSiswa = UjianSiswa::where('event_ujian_id', $event->id)
+        $ujianSiswa = UjianSiswa::with('sertifikat')
+            ->where('event_ujian_id', $event->id)
             ->where('siswa_id', $record->id)
             ->first();
 
@@ -450,6 +451,7 @@ class SiswaRelationManager extends RelationManager
         try {
             $event = $this->getOwnerRecord();
 
+            // 🔥 SATU BARIS SAJA
             $sertifikat = app(SertifikatController::class)
                 ->generate($event->id, $record->id);
 
@@ -462,10 +464,11 @@ class SiswaRelationManager extends RelationManager
         } catch (\Throwable $e) {
 
             Notification::make()
-                ->title('Gagal Generate Sertifikat')
+                ->title('❌ Gagal Generate Sertifikat')
                 ->body($e->getMessage())
                 ->danger()
                 ->send();
+      
         }
     }),
 

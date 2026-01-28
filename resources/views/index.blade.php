@@ -111,10 +111,16 @@
   </section>
 
     <section class="bg-blue-700 py-10 px-6 md:px-20" id="home">
+
+          <canvas
+    id="particleCanvas"
+    class="absolute inset-0 w-full h-full pointer-events-none">
+  </canvas>
+
         <div class="container mx-auto flex flex-col-reverse md:flex-row items-center md:h-screen">
             <!-- TEXT AREA -->
             <div class="w-full md:w-1/2 text-center md:text-left mt-3 pt-3 md:pt-0">
-                <h1 class="text-4xl md:text-6xl font-bold text-white mb-4"> Sacti Club <br> Win-Hunter </h1>
+                <h1 class="text-4xl md:text-6xl font-bold text-white mb-4"> SACTI CLUB<br> WIN-HUNTER </h1>
                 <p class="text-2xl md:text-4xl text-white mb-6"> Mental, Instinct, Technique </p>
                 <a href="https://wa.me/6285890810081?text=Halo%21%20%F0%9F%91%8B%20Saya%20tertarik%20dengan%20Taekwondo%20Win-Hunter%20dan%20ingin%20bertanya%20lebih%20lanjut.%20Boleh%20minta%20informasinya%3F%20%F0%9F%99%8F
 
@@ -132,41 +138,123 @@
         </div>
     </section>
 
-    <section id="unit" class="bg-white py-8 px-2">
-        <h1 class="text-4xl font-bold mb-6 text-center text-black">Unit</h1>
+   <section id="unit" class="bg-white py-8 px-2">
+  <h1 class="text-4xl font-bold mb-6 text-center text-black">Unit</h1>
 
-        <div class="relative overflow-hidden">
-            <div id="unit-slider-wrapper" class="overflow-x-auto whitespace-nowrap scroll-smooth scrollbar-hide">
-                <div id="unit-slider" class="flex gap-4 w-max">
-                    @foreach ($units as $unit)
-                        <div
-                            class="flex flex-col sm:flex-row sm:items-center bg-white border border-blue-800 
-            rounded-lg shadow-lg hover:shadow-2xl 
-            w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px] 
-            min-w-[280px] sm:min-w-[320px] md:min-w-[360px] lg:min-w-[400px] 
-            p-4 items-center text-center sm:text-left snap-start">
+  <div class="relative overflow-hidden">
+    <div
+      id="unit-slider-wrapper"
+      class="overflow-x-auto scroll-smooth scrollbar-hide
+             snap-x snap-mandatory
+             cursor-grab active:cursor-grabbing select-none">
 
-                            <div
-                                class="w-20 h-20 rounded-md border border-gray-300 mb-2 sm:mb-0 sm:ml-4 sm:order-2 overflow-hidden">
-                                <img src="{{ asset($unit->image) }}" alt="{{ $unit->name }}"
-                                    class="w-full h-full object-cover rounded-md">
-                            </div>
+      <div id="unit-slider" class="flex gap-4 w-max px-2">
+        @foreach ($units as $unit)
+          <div
+            class="flex flex-col sm:flex-row sm:items-center
+                   bg-white border border-blue-800 rounded-xl shadow-md
+                   hover:shadow-xl transition
+                   w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px]
+                   min-w-[280px] sm:min-w-[320px] md:min-w-[360px] lg:min-w-[400px]
+                   p-4 items-center text-center sm:text-left
+                   snap-start">
 
-                            <div class="w-full sm:flex-1 sm:order-1">
-                                <h2 class="text-base sm:text-lg font-bold text-gray-800">
-                                    <a href="{{ $unit->link }}" target="_blank"
-                                        class="text-blue-600 hover:underline block w-full text-center sm:text-left">
-                                        {{ $unit->name }}
-                                    </a>
-                                </h2>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
+            <div
+              class="w-20 h-20 rounded-md border mb-3 sm:mb-0 sm:ml-4 sm:order-2 overflow-hidden">
+              <img
+                src="{{ asset($unit->image) }}"
+                alt="{{ $unit->name }}"
+                class="w-full h-full object-cover">
             </div>
-        </div>
-    </section>
+
+            <div class="w-full sm:flex-1 sm:order-1">
+              <h2 class="text-base sm:text-lg font-bold text-gray-800">
+                <a href="{{ $unit->link }}" target="_blank"
+                   class="text-blue-600 hover:underline block">
+                  {{ $unit->name }}
+                </a>
+              </h2>
+            </div>
+          </div>
+        @endforeach
+      </div>
+    </div>
+  </div>
+</section>
+
+
+  <section id="galery" class="bg-white py-10 px-4 sm:px-6 lg:px-20 bg-gradient-to-br from-emerald-50 to-blue-500 ">
+  <div class="container mx-auto">
+    <h2 class="text-3xl text-black text-center font-extrabold sm:text-4xl mb-4">
+      Galeri
+    </h2>
+    <p class="text-md sm:text-xl text-gray-700 text-center mb-10">
+      Beberapa momen berharga dari kegiatan kami.
+    </p>
+
+    <!-- Swiper Container -->
+    <div class="swiper galerySwiper">
+      <div class="swiper-wrapper">
+        @foreach ($galleries as $gallery)
+          <div class="swiper-slide">
+            <div class="bg-gradient-to-br from-amber-50/70 via-white to-slate-50 rounded-3xl border border-amber-100/40 shadow-md p-4 sm:p-6">
+              {{-- Judul galeri --}}
+              <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 text-center">
+                {{ $gallery->title }}
+              </h3>
+
+              {{-- Grid foto dalam 1 slide --}}
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                @foreach ($gallery->images_url as $image)
+                  <button
+                    type="button"
+                    class="relative group"
+                    onclick="openGalleryModal('{{ $image }}', '{{ addslashes($gallery->title) }}')"
+                  >
+                    <img
+                      src="{{ $image }}"
+                      alt="{{ $gallery->title }}"
+                      class="w-full h-40 sm:h-48 object-contain rounded-xl shadow-sm group-hover:opacity-90 group-hover:scale-[1.02] transition-all duration-200"
+                    >
+                    <span
+                      class="absolute inset-0 rounded-xl ring-2 ring-emerald-400/0 group-hover:ring-emerald-400/70 transition-all duration-200">
+                    </span>
+                  </button>
+                @endforeach
+              </div>
+            </div>
+          </div>
+        @endforeach
+      </div>
+
+      <!-- Navigasi -->
+      <div class="swiper-pagination mt-4"></div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+    </div>
+  </div>
+</section>
+<div id="galleryModal"
+     class="fixed inset-0 bg-black/70 z-50 items-center justify-center hidden">
+  <div class="max-w-3xl w-full px-4">
+    <div class="bg-white rounded-2xl overflow-hidden shadow-2xl relative">
+      <button type="button"
+              class="absolute top-3 right-3 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm"
+              onclick="closeGalleryModal()">
+        ✕
+      </button>
+
+      <img id="galleryModalImage"
+           src=""
+           alt="Galeri"
+           class="w-full max-h-[80vh] object-contain bg-black">
+
+      <div class="px-4 py-3 border-t text-center">
+        <h4 id="galleryModalTitle" class="text-sm sm:text-base font-semibold text-gray-800"></h4>
+      </div>
+    </div>
+  </div>
+</div>
 
   <section id="about-us" class="relative bg-gradient-to-b from-blue-50 to-white py-16 sm:py-20">
     <div class="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-blue-600/40 to-transparent pointer-events-none"></div>
@@ -504,6 +592,7 @@
         </div>
     </section>
 
+<<<<<<< HEAD
     <section id="galery" class="bg-white py-10 px-4 sm:px-6 lg:px-20 bg-gradient-to-br from-emerald-50 to-blue-500 ">
   <div class="container mx-auto">
     <h2 class="text-3xl text-black text-center font-extrabold sm:text-4xl mb-4">
@@ -576,6 +665,9 @@
     </div>
   </div>
 </div>
+=======
+   
+>>>>>>> 041e11e (refactor login and update)
 
 
 
@@ -799,8 +891,27 @@
         nextEl: '.swiper-button-next',
         prevEl: '.swiper-button-prev',
       },
-    });
+          on: {
+      init() {
+        getActiveGalleryId(this);
+      },
+      slideChange() {
+        getActiveGalleryId(this);
+      }
+    }
   });
+
+  function getActiveGalleryId(swiper) {
+    const activeSlide = swiper.slides[swiper.activeIndex];
+    const activeGalleryId = activeSlide.dataset.galleryId;
+
+    console.log('Galeri aktif ID:', activeGalleryId);
+
+    // 👉 contoh: simpan ke global
+    window.activeGalleryId = activeGalleryId;
+  }
+    });
+  
 
   // Modal logic
   function openGalleryModal(src, title) {
@@ -893,6 +1004,8 @@ function blockKeys(e) {
   }
 }
 </script>
+
+
 
 
 

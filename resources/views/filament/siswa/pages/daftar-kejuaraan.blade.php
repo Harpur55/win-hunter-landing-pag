@@ -63,7 +63,6 @@
                                         </span>
                                     @endif
                                 </div>
-
                             @elseif ($event->is_registration_closed)
                                 {{-- 🔒 Jika pendaftaran ditutup --}}
                                 <button
@@ -71,7 +70,6 @@
                                            rounded-lg cursor-not-allowed select-none">
                                     ⛔ Pendaftaran Ditutup oleh Admin
                                 </button>
-
                             @else
                                 {{-- ✅ Jika masih terbuka & belum punya medali --}}
                                 <button wire:click="openForm({{ $event->id }})"
@@ -152,12 +150,10 @@
                                     class="w-full rounded-lg border-gray-300 dark:border-gray-700 
                                            bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]">
                                     <option value="">-- Pilih Jenis Kelamin --</option>
-                                    <option value="L"
-                                        @selected(($data['jenis_kelamin'] ?? null) === 'L' || ($data['jenis_kelamin'] ?? null) === 'Laki-laki')>
+                                    <option value="L" @selected(($data['jenis_kelamin'] ?? null) === 'L' || ($data['jenis_kelamin'] ?? null) === 'Laki-laki')>
                                         Laki-laki
                                     </option>
-                                    <option value="P"
-                                        @selected(($data['jenis_kelamin'] ?? null) === 'P' || ($data['jenis_kelamin'] ?? null) === 'Perempuan')>
+                                    <option value="P" @selected(($data['jenis_kelamin'] ?? null) === 'P' || ($data['jenis_kelamin'] ?? null) === 'Perempuan')>
                                         Perempuan
                                     </option>
                                 </select>
@@ -200,6 +196,17 @@
                                     </div>
                                 @endif
                             </div>
+
+                         <input type="hidden" wire:model="data.units_id">
+
+<div class="unit">
+    <label class="block text-sm font-medium mb-1">Nama Unit</label>
+    <input type="text"
+           wire:model="data.unit_name"
+           readonly
+           class="w-full rounded-lg border-gray-300 bg-gray-100 px-4 py-2.5 cursor-not-allowed" />
+</div>
+
 
                             {{-- Kategori Atlit --}}
                             <div>
@@ -246,12 +253,12 @@
 
                             {{-- Jika Poomsae --}}
                             @if (($data['kategori_pertandingan'] ?? null) === 'poomsae')
-                                <div class="transition-all duration-300">
+                                {{-- <div class="transition-all duration-300">
                                     <label class="block text-sm font-medium mb-1">Tageuk (boleh kosong)</label>
                                     <input type="text" wire:model="data.tageuk"
                                         class="w-full rounded-lg border-gray-300 dark:border-gray-700 
                                                bg-gray-50 dark:bg-gray-800 px-4 py-2.5 focus:ring-2 focus:ring-[#22c55e]" />
-                                </div>
+                                </div> --}}
                                 <div class="transition-all duration-300">
                                     <label class="block text-sm font-medium mb-1">Tingkat Kategori</label>
                                     <select wire:model="data.tingkat_kategori"

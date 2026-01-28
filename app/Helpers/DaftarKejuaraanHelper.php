@@ -5,7 +5,7 @@ namespace App\Helpers;
 use App\Models\KejuaraanSiswa;
 use App\Models\Siswa;
 
-class DaftarKejuaraanhelper
+class DaftarKejuaraanHelper
 {
     /**
      * Cek apakah siswa kelas REGULER
@@ -43,17 +43,18 @@ class DaftarKejuaraanhelper
      */
     public static function pakaiKuota(Siswa $siswa, bool $pilihanUser): bool
     {
-        // REGULER TIDAK PERNAH PAKAI KUOTA
+        // REGULER tidak pernah pakai kuota
         if (self::isReguler($siswa)) {
             return false;
         }
 
-        // Prestasi / Khusus ikut pilihan user
+        // Prestasi / khusus → ikut pilihan user
         return $pilihanUser;
     }
 
     /**
-     * Validasi batas REGULER (return message jika gagal)
+     * Validasi batas REGULER
+     * return string jika gagal, null jika lolos
      */
     public static function pesanErrorReguler(Siswa $siswa): ?string
     {
@@ -67,4 +68,11 @@ class DaftarKejuaraanhelper
 
         return null;
     }
+
+    
+   public static function bolehBatal(KejuaraanSiswa $data): bool
+{
+    // ✅ Boleh batal HANYA jika medali masih kosong
+    return is_null($data->medali);
+}
 }

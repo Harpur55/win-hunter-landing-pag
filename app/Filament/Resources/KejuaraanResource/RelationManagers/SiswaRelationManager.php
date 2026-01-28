@@ -25,6 +25,9 @@ use Filament\Forms\Get;  // ✅ IMPORT INI
 use Filament\Tables\Columns\TextColumn;
 use Filament\Support\Enums\FontWeight;
 use App\Helpers\TageukOption;
+use Illuminate\Support\Facades\DB;
+
+
 
 use Filament\Tables\Columns\TextColumn\TextColumnSize;
 
@@ -309,12 +312,7 @@ class SiswaRelationManager extends RelationManager
                             ->disabled(fn(callable $get) => blank($get('kategori_pertandingan')))
                             ->reactive(),
 
-                        // Select::make('tingkat_kategori')
-                        //     ->label('Kategori (Beginer / Advance)')
-                        //     ->options([
-                        //         'Pro' => 'Pro',
-                        //         'Regular' => 'Regular',
-                        //     ]),
+                        
 
                         Grid::make(2)->schema([
                             Select::make('tageuk')
@@ -430,6 +428,14 @@ class SiswaRelationManager extends RelationManager
                 '8' => 'Taegeuk 8',
                 'koryo' => 'Koryo',
                 'keumgang' => 'Keumgang',
+                'Taebaek'   => 'Taebaek',
+                'pyongwon' => 'Pyongwon',
+                'sipjin'   => 'Sipjin',
+                'jitche'   => 'Jitche',
+                'chonkwon' => 'Chonkwon',
+                'hansoo'   => 'Hansoo',
+                'illyeo'   => 'Illyeo',
+
             ])
             ->visible(fn ($record) =>
                 strtolower($record->pivot->kategori_pertandingan) === 'poomsae'
@@ -472,15 +478,102 @@ class SiswaRelationManager extends RelationManager
     }),
 
 
-                Tables\Actions\Action::make('hapus_peserta')
-        ->label('Hapus')
-        ->icon('heroicon-o-trash')
-        ->color('danger')
-        ->requiresConfirmation()
-        ->action(fn ($record) =>
-            $this->getOwnerRecord()->siswa()->detach($record->id)
+    Tables\Actions\Action::make('hapus_peserta')
+    ->label('Hapus')
+    ->icon('heroicon-o-trash')
+    ->color('danger')
+    ->requiresConfirmation()
+    ->visible(fn ($record) =>
+        ($record->pivot->medali ?? 'tidak_ada') === 'tidak_ada'
+    )
+    ->action(fn ($record) =>
+        $this->getOwnerRecord()->siswa()->detach($record->id)
+    
         ),
-              
+
+    Action::make('upload_sertifikat')
+    ->label('Upload Sertifikat')
+    ->icon('heroicon-o-document-arrow-up')
+    ->color('success')
+    ->visible(function ($record) {
+
+        $kejuaraanSiswa = \App\Models\KejuaraanSiswa::with('sertifikat')
+            ->where('kejuaraan_id', $this->getOwnerRecord()->id)
+            ->where('siswa_id', $record->id)
+            ->first();
+
+        return $kejuaraanSiswa
+            && in_array($kejuaraanSiswa->medali, ['emas', 'perak', 'perunggu'])
+            && ! $kejuaraanSiswa->sertifikat;
+    })
+    ->form([
+        FileUpload::make('file')
+            ->label('File Sertifikat (PDF)')
+            ->required()
+            ->disk('public')
+            ->directory('sertifikat/kejuaraan')
+            ->acceptedFileTypes(['application/pdf'])
+            ->maxSize(2048)
+            ->previewable()
+            ->openable()
+            ->downloadable(),
+    ])
+    ->action(function ($record, array $data) {
+
+        DB::transaction(function () use ($record, $data) {
+
+            $kejuaraanSiswa = \App\Models\KejuaraanSiswa::with('sertifikat')
+                ->where('kejuaraan_id', $this->getOwnerRecord()->id)
+                ->where('siswa_id', $record->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($kejuaraanSiswa->sertifikat) {
+                throw new \RuntimeException('Sertifikat sudah diupload.');
+            }
+
+            $kejuaraanSiswa->sertifikat()->create([
+                'kejuaraan_siswa_id' => $kejuaraanSiswa->id,
+                'siswa_id'           => $record->id,
+                'nama_lengkap'       => $kejuaraanSiswa->nama_lengkap,
+                'file_pdf'           => $data['file'], // STRING
+                'medali'             => $kejuaraanSiswa->medali,
+                'generated_at'       => now(),
+                'is_active'          => true,
             ]);
-    }
+        });
+
+        Notification::make()
+            ->title('✅ Sertifikat berhasil diupload')
+            ->success()
+            ->send();
+         }),
+
+    Action::make('lihat_sertifikat')
+    ->label('Lihat Sertifikat')
+    ->icon('heroicon-o-eye')
+    ->color('primary')
+    ->visible(function ($record) {
+
+        $kejuaraanSiswa = \App\Models\KejuaraanSiswa::with('sertifikat')
+            ->where('kejuaraan_id', $this->getOwnerRecord()->id)
+            ->where('siswa_id', $record->id)
+            ->first();
+
+        return $kejuaraanSiswa && $kejuaraanSiswa->sertifikat;
+    })
+    ->url(function ($record) {
+
+        $kejuaraanSiswa = \App\Models\KejuaraanSiswa::with('sertifikat')
+            ->where('kejuaraan_id', $this->getOwnerRecord()->id)
+            ->where('siswa_id', $record->id)
+            ->firstOrFail();
+
+        return asset('storage/' . $kejuaraanSiswa->sertifikat->file_pdf);
+    })
+    ->openUrlInNewTab(),
+
+
+        ]);
+}
 }

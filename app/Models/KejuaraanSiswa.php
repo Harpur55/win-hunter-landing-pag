@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
 use Carbon\Carbon;
 
 class KejuaraanSiswa extends Model
@@ -47,11 +49,7 @@ class KejuaraanSiswa extends Model
         'periode'       => 'integer',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | 🔁 Model Events (AMAN UNTUK FILAMENT)
-    |--------------------------------------------------------------------------
-    */
+  
     protected static function booted()
 {
    
@@ -83,11 +81,7 @@ class KejuaraanSiswa extends Model
 }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | 🔗 Relationships
-    |--------------------------------------------------------------------------
-    */
+   
     public function kejuaraan(): BelongsTo
     {
         return $this->belongsTo(Kejuaraan::class);
@@ -103,11 +97,6 @@ class KejuaraanSiswa extends Model
         return $this->belongsTo(Unit::class, 'units_id');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 🧩 Helper & Accessor (AMAN UNTUK FILAMENT)
-    |--------------------------------------------------------------------------
-    */
     public function isKyorugi(): bool
     {
         return $this->kategori_pertandingan === 'kyorugi';
@@ -142,11 +131,7 @@ class KejuaraanSiswa extends Model
         };
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 🧠 Helper Static
-    |--------------------------------------------------------------------------
-    */
+    
     public static function sudahTerdaftar(
         int $kejuaraanId,
         int $siswaId,
@@ -158,4 +143,10 @@ class KejuaraanSiswa extends Model
             ->where('kategori_pertandingan', $kategori)
             ->exists();
     }
+
+   public function sertifikat()
+{
+    return $this->hasOne(\App\Models\Sertifikat::class);
+}
+
 }

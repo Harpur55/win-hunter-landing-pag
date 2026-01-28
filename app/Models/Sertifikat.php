@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Siswa;
 use App\Models\UjianSiswa;
+use App\Models\KejuaraanSiswa;
 
 
 class Sertifikat extends Model
@@ -14,6 +15,7 @@ class Sertifikat extends Model
 
     protected $fillable = [
         'event_ujian_siswa_id',
+        'kejuaraan_siswa_id',
         'siswa_id',
         'no_sertifikat',
         'no_register',
@@ -33,11 +35,29 @@ class Sertifikat extends Model
         'is_active'     => 'boolean',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | 🔗 Relationships
-    |--------------------------------------------------------------------------
-    */
+   protected static function booted()
+{
+    static::creating(function ($sertifikat) {
+        if (
+            ! $sertifikat->event_ujian_siswa_id &&
+            ! $sertifikat->kejuaraan_siswa_id
+        ) {
+            throw new \Exception(
+                'Sertifikat harus berasal dari ujian atau kejuaraan'
+            );
+        }
+
+        if (
+            $sertifikat->event_ujian_siswa_id &&
+            $sertifikat->kejuaraan_siswa_id
+        ) {
+            throw new \Exception(
+                'Sertifikat tidak boleh punya dua sumber'
+            );
+        }
+    });
+}
+
     public function siswa(): BelongsTo
     {
         return $this->belongsTo(Siswa::class);
@@ -61,6 +81,14 @@ class Sertifikat extends Model
     }
 
     return asset('storage/' . $this->file_pdf);
+}
+
+public function kejuaraanSiswa()
+{
+    return $this->belongsTo(
+        \App\Models\KejuaraanSiswa::class,
+        'kejuaraan_siswa_id'
+    );
 }
 
 }

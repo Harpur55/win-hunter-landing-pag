@@ -78,6 +78,7 @@ class GalleryResource extends Resource
                     ->label('Deskripsi')
                     ->limit(50),
 
+<<<<<<< HEAD
                  Tables\Columns\TextColumn::make('status')
     ->label('Status')
     ->badge()
@@ -87,6 +88,12 @@ class GalleryResource extends Resource
         default => 'gray',
     })
     ->sortable(),
+=======
+              Tables\Columns\TextColumn::make('status')
+    ->label('Status')
+    ->badge()
+    ->color(fn ($state) => $state === 'aktif' ? 'success' : 'danger'),
+>>>>>>> 041e11e (refactor login and update)
 
                 Tables\Columns\ImageColumn::make('images_path')
                     ->label('Foto Utama')

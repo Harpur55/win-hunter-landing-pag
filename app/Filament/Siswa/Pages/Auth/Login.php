@@ -17,17 +17,26 @@ class Login extends BaseLogin
     {
         $user = auth()->user();
 
-        // Jika user baru & belum isi wizard → arahkan ke wizard
         if ($user && $user->needs_wizard) {
             return route('filament.siswa.pages.siswa-wizard');
         }
 
-        // Jika wizard sudah selesai → ke dashboard default Filament
         return parent::getRedirectUrl();
     }
 
     /**
-     * Cloudflare Turnstile Captcha (opsional)
+     * 🔐 INI HOOK YANG BENAR DI FILAMENT
+     * Akan dipanggil otomatis saat login
+     */
+    protected function authenticateUser(): void
+    {
+        $this->validateCaptcha(); // ⬅️ captcha dicek di sini
+
+        parent::authenticateUser(); // lanjutkan login normal
+    }
+
+    /**
+     * Cloudflare Turnstile Captcha
      */
     protected function validateCaptcha(): void
     {
@@ -35,21 +44,24 @@ class Login extends BaseLogin
 
         if (!$token) {
             throw ValidationException::withMessages([
-                'captcha' => 'Silakan centang verifikasi "Saya bukan robot".',
+                'captcha' => 'Silakan verifikasi bahwa Anda bukan robot.',
             ]);
         }
 
-        $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
-            'secret'   => config('services.turnstile.secret'),
-            'response' => $token,
-            'remoteip' => request()->ip(),
-        ]);
+        $response = Http::asForm()->post(
+            'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+            [
+                'secret'   => config('services.turnstile.secret'),
+                'response' => $token,
+                'remoteip' => request()->ip(),
+            ]
+        );
 
         $data = $response->json();
 
-        if (!$response->successful() || empty($data['success'])) {
+        if (!($data['success'] ?? false)) {
             throw ValidationException::withMessages([
-                'captcha' => 'Verifikasi captcha gagal. Coba lagi.',
+                'captcha' => 'Verifikasi captcha gagal. Silakan coba lagi.',
             ]);
         }
     }
