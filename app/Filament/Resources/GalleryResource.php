@@ -26,11 +26,11 @@ class GalleryResource extends Resource
     /**
      * ✅ Filter hanya gallery Aktif (ADMIN FILAMENT)
      */
-   public static function getEloquentQuery(): Builder
-{
-    return parent::getEloquentQuery()
-        ->where('status', 'aktif');
-}
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('status', 'aktif');
+    }
 
     public static function form(Form $form): Form
     {
@@ -44,14 +44,14 @@ class GalleryResource extends Resource
                 ->label('Deskripsi')
                 ->rows(3),
 
-          Forms\Components\Select::make('status')
-    ->label('Status')
-    ->options([
-        'aktif'     => 'Aktif',
-        'non-aktif' => 'Tidak Aktif',
-    ])
-    ->default('aktif')
-    ->required(),
+            Forms\Components\Select::make('status')
+                ->label('Status')
+                ->options([
+                    'aktif'     => 'Aktif',
+                    'non-aktif' => 'Tidak Aktif',
+                ])
+                ->default('aktif')
+                ->required(),
 
             FileUpload::make('images_path')
                 ->label('Foto (maks 6)')
@@ -78,22 +78,12 @@ class GalleryResource extends Resource
                     ->label('Deskripsi')
                     ->limit(50),
 
-<<<<<<< HEAD
-                 Tables\Columns\TextColumn::make('status')
-    ->label('Status')
-    ->badge()
-    ->color(fn (string $state): string => match ($state) {
-        'aktif' => 'success',
-        'non-aktif' => 'danger',
-        default => 'gray',
-    })
-    ->sortable(),
-=======
-              Tables\Columns\TextColumn::make('status')
-    ->label('Status')
-    ->badge()
-    ->color(fn ($state) => $state === 'aktif' ? 'success' : 'danger'),
->>>>>>> 041e11e (refactor login and update)
+
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn($state) => $state === 'aktif' ? 'success' : 'danger'),
+
 
                 Tables\Columns\ImageColumn::make('images_path')
                     ->label('Foto Utama')

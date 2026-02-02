@@ -15,8 +15,24 @@ use Illuminate\Support\Facades\Crypt;
 
 use Carbon\Carbon;
 
+
+
 class Profile extends Page implements Forms\Contracts\HasForms
 {
+
+
+    private function resetKeyFields(callable $set): void
+    {
+        $set('nis', null);
+        $set('nama_lengkap', null);
+        $set('units_id', null);
+
+        $this->lockKeyFields = false;
+        $this->dataSaved     = false;
+        $this->isEditing     = true;
+    }
+
+
     use Forms\Concerns\InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
@@ -92,45 +108,45 @@ class Profile extends Page implements Forms\Contracts\HasForms
                         Forms\Components\TextInput::make('nis')
                             ->label('NIS')
                             ->required()
-                            ->disabled(fn () => !$this->isEditing || $this->lockKeyFields)
+                            ->disabled(fn() => !$this->isEditing || $this->lockKeyFields)
                             ->live(debounce: 500)
                             ->dehydrated()
                             ->afterStateUpdated(
-                                fn ($state, callable $set, $get) => $this->checkAndLoadData($set, $get)
+                                fn($state, callable $set, $get) => $this->checkAndLoadData($set, $get)
                             ),
 
                         Forms\Components\TextInput::make('nama_lengkap')
                             ->required()
-                            ->disabled(fn () => !$this->isEditing || $this->lockKeyFields)
+                            ->disabled(fn() => !$this->isEditing || $this->lockKeyFields)
                             ->dehydrated()
                             ->live(debounce: 500)
                             ->afterStateUpdated(
-                                fn ($state, callable $set, $get) => $this->checkAndLoadData($set, $get)
+                                fn($state, callable $set, $get) => $this->checkAndLoadData($set, $get)
                             ),
 
                         Forms\Components\TextInput::make('no_register')
                             ->label('No Register')
                             ->required()
-                            ->disabled(fn () => !$this->isEditing),
+                            ->disabled(fn() => !$this->isEditing),
 
                         Forms\Components\Select::make('units_id')
                             ->label('Unit')
                             ->options(Unit::pluck('name', 'id'))
                             ->required()
-                            ->disabled(fn () => !$this->isEditing || $this->lockKeyFields)
+                            ->disabled(fn() => !$this->isEditing || $this->lockKeyFields)
                             ->live(debounce: 500)
                             ->dehydrated()
                             ->afterStateUpdated(
-                                fn ($state, callable $set, $get) => $this->checkAndLoadData($set, $get)
+                                fn($state, callable $set, $get) => $this->checkAndLoadData($set, $get)
                             ),
 
                         Forms\Components\TextInput::make('tempat_lahir')
-                            ->disabled(fn () => !$this->isEditing),
+                            ->disabled(fn() => !$this->isEditing),
 
                         Forms\Components\DatePicker::make('tanggal_lahir')
                             ->label('Tanggal Lahir')
                             ->required()
-                            ->disabled(fn () => !$this->isEditing)
+                            ->disabled(fn() => !$this->isEditing)
                             ->format('Y-m-d')
                             ->displayFormat('d/m/Y'),
 
@@ -151,7 +167,7 @@ class Profile extends Page implements Forms\Contracts\HasForms
                                 'Laki-laki' => 'Laki-laki',
                                 'Perempuan' => 'Perempuan',
                             ])
-                            ->disabled(fn () => !$this->isEditing),
+                            ->disabled(fn() => !$this->isEditing),
                         Forms\Components\Select::make('golongan_darah')
                             ->options([
                                 'A'  => 'A',
@@ -159,7 +175,7 @@ class Profile extends Page implements Forms\Contracts\HasForms
                                 'AB' => 'AB',
                                 'O'  => 'O',
                             ])
-                            ->disabled(fn () => !$this->isEditing),
+                            ->disabled(fn() => !$this->isEditing),
                     ]),
 
                 Forms\Components\Section::make('Kontak')
@@ -167,10 +183,10 @@ class Profile extends Page implements Forms\Contracts\HasForms
                     ->schema([
                         Forms\Components\TextInput::make('no_telepon')
                             ->tel()
-                            ->disabled(fn () => !$this->isEditing),
+                            ->disabled(fn() => !$this->isEditing),
                         Forms\Components\Textarea::make('alamat_lengkap')
                             ->rows(3)
-                            ->disabled(fn () => !$this->isEditing)
+                            ->disabled(fn() => !$this->isEditing)
                             ->columnSpanFull(),
                     ]),
 
@@ -178,19 +194,19 @@ class Profile extends Page implements Forms\Contracts\HasForms
                     ->columns(2)
                     ->schema([
                         Forms\Components\TextInput::make('nama_ayah')
-                            ->disabled(fn () => !$this->isEditing),
+                            ->disabled(fn() => !$this->isEditing),
                         Forms\Components\TextInput::make('pekerjaan_ayah')
-                            ->disabled(fn () => !$this->isEditing),
+                            ->disabled(fn() => !$this->isEditing),
                         Forms\Components\TextInput::make('nama_ibu')
-                            ->disabled(fn () => !$this->isEditing),
+                            ->disabled(fn() => !$this->isEditing),
                         Forms\Components\TextInput::make('pekerjaan_ibu')
-                            ->disabled(fn () => !$this->isEditing),
+                            ->disabled(fn() => !$this->isEditing),
                     ]),
 
                 Forms\Components\Section::make('Lain-lain')
                     ->schema([
                         Forms\Components\TextInput::make('beladiri_yang_pernah_diikuti')
-                            ->disabled(fn () => !$this->isEditing),
+                            ->disabled(fn() => !$this->isEditing),
                     ]),
             ])
             ->statePath('data');
@@ -206,31 +222,56 @@ class Profile extends Page implements Forms\Contracts\HasForms
             return;
         }
 
-$compareNama = strtolower(trim(preg_replace('/\s+/', ' ', $namaLengkap)));
+        $compareNama = strtolower(
+            trim(preg_replace('/\s+/', ' ', $namaLengkap))
+        );
 
-       $siswa = Siswa::where('nis', $nis)
-    ->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$compareNama])
-    ->where('units_id', $unitId)
-    ->first();
+        $siswa = Siswa::where('nis', $nis)
+            ->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$compareNama])
+            ->where('units_id', $unitId)
+            ->first();
 
+        // ===============================
+        // JIKA DATA ADA
+        // ===============================
         if ($siswa) {
+
+            // ❌ SUDAH DIPAKAI USER LAIN
+            if ($siswa->user_id && $siswa->user_id !== Auth::id()) {
+
+                $this->resetKeyFields($set);
+
+                Notification::make()
+                    ->title('❌ Data sudah digunakan')
+                    ->body('NIS, Nama, dan Unit sudah dipakai user lain. Silakan isi data yang benar.')
+                    ->danger()
+                    ->send();
+
+                return;
+            }
+
             $this->loadSiswaData($set, $siswa);
+
+            $this->lockKeyFields = true;
 
             Notification::make()
                 ->title('✅ DATA COCOK!')
-                ->body('Semua field berhasil diisi otomatis!')
+                ->body('Data siswa berhasil dimuat otomatis.')
                 ->success()
                 ->send();
 
-            $this->lockKeyFields = true;
-        } else {
-            Notification::make()
-                ->title('❌ DATA TIDAK COCOK')
-                ->body('Kombinasi NIS, nama, dan unit tidak ditemukan!')
-                ->warning()
-                ->send();
+            return;
         }
+
+        $this->lockKeyFields = false;
+
+        Notification::make()
+            ->title('⚠️ Data tidak ditemukan')
+            ->body('Silakan isi manual atau periksa kembali data.')
+            ->warning()
+            ->send();
     }
+
 
     private function loadSiswaData(callable $set, Siswa $siswa): void
     {
@@ -254,108 +295,101 @@ $compareNama = strtolower(trim(preg_replace('/\s+/', ' ', $namaLengkap)));
         $set('beladiri_yang_pernah_diikuti', $siswa->beladiri_yang_pernah_diikuti);
     }
 
-    /**
-     * Simpan dan reload data ke form & header
-     */
-  public function save(): void
-{
-    $user     = Auth::user();
-    $formData = $this->form->getState();
-
-    //\Log::info('SAVE FORM DATA:', $formData);
-
-    // ===============================
-    // 1. Validasi field wajib
-    // ===============================
-    if (
-        empty($formData['nis']) ||
-        empty($formData['nama_lengkap']) ||
-        empty($formData['units_id'])
-    ) {
-        Notification::make()
-            ->title('❌ Data wajib tidak lengkap!')
-            ->danger()
-            ->send();
-
-        return;
-    }
-
-    // ===============================
-    // 2. Nama untuk PENCARIAN DB (jangan pakai normalize)
-    // ===============================
-    $compareNama = strtolower(
-        trim(
-            preg_replace('/\s+/', ' ', $formData['nama_lengkap'])
-        )
-    );
-
     
-    $existing = Siswa::where('nis', $formData['nis'])
-        ->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$compareNama])
-        ->where('units_id', $formData['units_id'])
-        ->first();
+    public function save(): void
+    {
+        $user     = Auth::user();
+        $formData = $this->form->getState();
 
-    
-    $formData['nama_lengkap'] = NameHelper::normalize($formData['nama_lengkap']);
+        //\Log::info('SAVE FORM DATA:', $formData);
 
-    if ($existing) {
-        // Jika sudah dipakai user lain → TOLAK
-        if ($existing->user_id && $existing->user_id !== $user->id) {
+        if (
+            empty($formData['nis']) ||
+            empty($formData['nama_lengkap']) ||
+            empty($formData['units_id'])
+        ) {
             Notification::make()
-                ->title('❌ Data sudah digunakan user lain!')
+                ->title('❌ Data wajib tidak lengkap!')
                 ->danger()
                 ->send();
 
             return;
         }
 
-        // Update field
-        $existing->fill($formData);
 
-        // Jika belum pernah di-link ke user
-        if (!$existing->user_id) {
-            $existing->user_id = $user->id;
+        $compareNama = strtolower(
+            trim(
+                preg_replace('/\s+/', ' ', $formData['nama_lengkap'])
+            )
+        );
+
+
+        $existing = Siswa::where('nis', $formData['nis'])
+            ->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$compareNama])
+            ->where('units_id', $formData['units_id'])
+            ->first();
+
+
+        $formData['nama_lengkap'] = NameHelper::normalize($formData['nama_lengkap']);
+
+        if ($existing) {
+            // Jika sudah dipakai user lain → TOLAK
+            if ($existing->user_id && $existing->user_id !== $user->id) {
+                Notification::make()
+                    ->title('❌ Data sudah digunakan user lain!')
+                    ->danger()
+                    ->send();
+
+                return;
+            }
+
+            // Update field
+            $existing->fill($formData);
+
+            // Jika belum pernah di-link ke user
+            if (!$existing->user_id) {
+                $existing->user_id = $user->id;
+            }
+
+            $existing->save();
+
+            // Sinkron nama user
+            $user->update([
+                'name' => $existing->nama_lengkap,
+            ]);
+
+            Notification::make()
+                ->title('✅ Data berhasil diupdate')
+                ->success()
+                ->send();
+        }
+        // ===============================
+        // 6. Jika data siswa BELUM ada
+        // ===============================
+        else {
+            $new = Siswa::create(array_merge($formData, [
+                'user_id' => $user->id,
+                'status'  => 'Aktif',
+            ]));
+
+            $user->update([
+                'name' => $new->nama_lengkap,
+            ]);
+
+            Notification::make()
+                ->title('✅ Data siswa baru disimpan')
+                ->success()
+                ->send();
         }
 
-        $existing->save();
-
-        // Sinkron nama user
-        $user->update([
-            'name' => $existing->nama_lengkap,
-        ]);
-
-        Notification::make()
-            ->title('✅ Data berhasil diupdate')
-            ->success()
-            ->send();
+        // ===============================
+        // 7. Reload state & lock form
+        // ===============================
+        $this->loadSiswaDataToForm();
+        $this->lockKeyFields = true;
+        $this->dataSaved     = true;
+        $this->isEditing     = false;
     }
-    // ===============================
-    // 6. Jika data siswa BELUM ada
-    // ===============================
-    else {
-        $new = Siswa::create(array_merge($formData, [
-            'user_id' => $user->id,
-            'status'  => 'Aktif',
-        ]));
-
-        $user->update([
-            'name' => $new->nama_lengkap,
-        ]);
-
-        Notification::make()
-            ->title('✅ Data siswa baru disimpan')
-            ->success()
-            ->send();
-    }
-
-    // ===============================
-    // 7. Reload state & lock form
-    // ===============================
-    $this->loadSiswaDataToForm();
-    $this->lockKeyFields = true;
-    $this->dataSaved     = true;
-    $this->isEditing     = false;
-}
 
     public static function beltOptions(): array
     {

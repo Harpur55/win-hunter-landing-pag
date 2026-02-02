@@ -8,10 +8,11 @@ use App\Models\Siswa;
 use App\Services\KejuaraanQuotaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 class KejuaraanController extends Controller
 {
-    
     public function daftar(string $slug)
     {
         $kejuaraan = Kejuaraan::where('slug', $slug)->firstOrFail();
@@ -25,15 +26,15 @@ class KejuaraanController extends Controller
             ->get();
 
         $siswaJson = $siswas->map(fn ($s) => [
-            'id'      => $s->id,
-            'nama'    => $s->nama_lengkap,
-            'tempat'  => $s->tempat_lahir,
-      'tanggal' => optional($s->tanggal_lahir)->format('Y-m-d'),
-            'jk'      => $s->jenis_kelamin,
-            'unit'    => $s->unit?->name ?? '-',
-            'unit_id' => $s->units_id,
-            'sabuk'   => $s->current_belt_level,
-            'kuota'   => $s->sisaKuota(),
+            'id'       => $s->id,
+            'nama'     => $s->nama_lengkap,
+            'tempat'   => $s->tempat_lahir,
+            'tanggal'  => optional($s->tanggal_lahir)?->format('Y-m-d'),
+            'jk'       => $s->jenis_kelamin,
+            'unit'     => $s->unit?->name ?? '-',
+            'unit_id'  => $s->units_id,
+            'sabuk'    => $s->current_belt_level,
+            'kuota'    => $s->sisaKuota(),
         ]);
 
         return view(
@@ -42,7 +43,6 @@ class KejuaraanController extends Controller
         );
     }
 
-   
     public function store(
         Request $request,
         string $slug,
@@ -69,16 +69,16 @@ class KejuaraanController extends Controller
             'use_kuota'             => 'required|boolean',
 
             // KYORUGI
-            'berat_badan'  => 'nullable|numeric',
-            'tinggi_badan' => 'nullable|numeric',
+            'berat_badan'  => 'required_if:kategori_pertandingan,kyorugi|nullable|numeric|min:1',
+            'tinggi_badan' => 'required_if:kategori_pertandingan,kyorugi|nullable|numeric|min:1',
 
             // POOMSAE
-            'tageuk'           => 'nullable|string|max:50',
-            'tingkat_kategori' => 'nullable|string|max:50',
+            'tageuk'           => 'required_if:kategori_pertandingan,poomsae|nullable|string|max:50',
+            'tingkat_kategori' => 'required_if:kategori_pertandingan,poomsae|nullable|string|max:50',
         ]);
 
-        $siswa        = Siswa::findOrFail($validated['siswa_id']);
-        $useKuota     = (bool) $validated['use_kuota'];
+        $siswa         = Siswa::findOrFail($validated['siswa_id']);
+        $useKuota      = (bool) $validated['use_kuota'];
         $kategoriAtlit = $this->hitungKategoriUmur($validated['tanggal_lahir']);
 
         try {
@@ -90,15 +90,18 @@ class KejuaraanController extends Controller
                 $useKuota,
                 $kategoriAtlit
             ) {
+                // validasi kuota
                 $quotaService->validate($siswa, $useKuota);
 
-                $exists = KejuaraanSiswa::where('kejuaraan_id', $kejuaraan->id)
-                    ->where('siswa_id', $siswa->id)
-                    ->where('kategori_pertandingan', $validated['kategori_pertandingan'])
-                    ->exists();
+                // cegah daftar kategori ganda
+                $exists = KejuaraanSiswa::where([
+                    'kejuaraan_id'        => $kejuaraan->id,
+                    'siswa_id'            => $siswa->id,
+                    'kategori_pertandingan' => $validated['kategori_pertandingan'],
+                ])->exists();
 
                 if ($exists) {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
+                    throw ValidationException::withMessages([
                         'kategori_pertandingan' =>
                             'Siswa sudah terdaftar pada kategori ini.',
                     ]);
@@ -119,19 +122,19 @@ class KejuaraanController extends Controller
                     'kategori_atlit'        => $kategoriAtlit,
 
                     'berat_badan' => $validated['kategori_pertandingan'] === 'kyorugi'
-                        ? ($validated['berat_badan'] ?? null)
+                        ? $validated['berat_badan']
                         : null,
 
                     'tinggi_badan' => $validated['kategori_pertandingan'] === 'kyorugi'
-                        ? ($validated['tinggi_badan'] ?? null)
+                        ? $validated['tinggi_badan']
                         : null,
 
                     'tageuk' => $validated['kategori_pertandingan'] === 'poomsae'
-                        ? ($validated['tageuk'] ?? null)
+                        ? $validated['tageuk']
                         : null,
 
                     'tingkat_kategori' => $validated['kategori_pertandingan'] === 'poomsae'
-                        ? ($validated['tingkat_kategori'] ?? null)
+                        ? $validated['tingkat_kategori']
                         : null,
 
                     'use_kuota' => $useKuota,
@@ -156,10 +159,10 @@ class KejuaraanController extends Controller
             return null;
         }
 
-        $umur = \Carbon\Carbon::parse($tanggalLahir)->age;
+        $umur = Carbon::parse($tanggalLahir)->age;
 
         return match (true) {
-            $umur >= 6 && $umur <= 11 => 'pracadet',
+            $umur >= 6  && $umur <= 11 => 'pracadet',
             $umur >= 12 && $umur <= 14 => 'cadet',
             $umur >= 15 && $umur <= 17 => 'junior',
             $umur >= 18                => 'senior',

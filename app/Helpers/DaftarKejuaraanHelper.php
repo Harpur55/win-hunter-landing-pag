@@ -7,72 +7,60 @@ use App\Models\Siswa;
 
 class DaftarKejuaraanHelper
 {
-    /**
-     * Cek apakah siswa kelas REGULER
-     */
-    public static function isReguler(?Siswa $siswa): bool
+    
+    public static function isReguler(Siswa $siswa): bool
     {
-        if (! $siswa || ! $siswa->kelas) {
-            return false;
-        }
-
-        return strtolower((string) $siswa->kelas->nama) === 'reguler';
+        return $siswa->kelas?->tipe === 'reguler';
     }
 
-    /**
-     * Hitung jumlah kejuaraan yang diikuti siswa dalam 1 tahun
-     */
-    public static function jumlahKejuaraanTahunIni(Siswa $siswa): int
+    
+    public static function totalKejuaraanTahunIni(Siswa $siswa): int
     {
         return KejuaraanSiswa::where('siswa_id', $siswa->id)
             ->whereYear('created_at', now()->year)
             ->count();
     }
 
-    /**
-     * Apakah siswa REGULER masih boleh daftar kejuaraan
-     * (maks 2 per tahun)
-     */
-    public static function bolehDaftarReguler(Siswa $siswa): bool
+    
+    public static function pesanErrorReguler(?Siswa $siswa): ?string
     {
-        return self::jumlahKejuaraanTahunIni($siswa) < 2;
-    }
+        if (! $siswa) return null;
 
-    /**
-     * Tentukan apakah pendaftaran menggunakan kuota kelas
-     */
-    public static function pakaiKuota(Siswa $siswa, bool $pilihanUser): bool
-    {
-        // REGULER tidak pernah pakai kuota
         if (self::isReguler($siswa)) {
-            return false;
-        }
+            $total = self::totalKejuaraanTahunIni($siswa);
 
-        // Prestasi / khusus → ikut pilihan user
-        return $pilihanUser;
-    }
-
-    /**
-     * Validasi batas REGULER
-     * return string jika gagal, null jika lolos
-     */
-    public static function pesanErrorReguler(Siswa $siswa): ?string
-    {
-        if (! self::isReguler($siswa)) {
-            return null;
-        }
-
-        if (! self::bolehDaftarReguler($siswa)) {
-            return 'Siswa kelas reguler hanya boleh mengikuti maksimal 2 kejuaraan dalam 1 tahun.';
+            if ($total >= 2) {
+                return 'Siswa reguler hanya boleh mengikuti maksimal 2 kejuaraan dalam 1 tahun.';
+            }
         }
 
         return null;
     }
 
-    
-   public static function bolehBatal(KejuaraanSiswa $data): bool
-{
-    // ✅ Boleh batal HANYA jika medali masih kosong
-    return is_null($data->medali);
-}
+    public static function pakaiKuota(Siswa $siswa, bool $request): bool
+    {
+       
+        if (self::isReguler($siswa)) {
+            return false;
+        }
+
+      
+        return $request === true;
+    }
+
+    /**
+     * VALIDASI KUOTA
+     */
+    public static function validateKuota(Siswa $siswa, bool $pakaiKuota): void
+    {
+        if ($pakaiKuota && $siswa->sisa_kuota <= 0) {
+            throw new \Exception('Kuota kelas sudah habis.');
+        }
+    }
+
+   
+    public static function bolehBatal(KejuaraanSiswa $data): bool
+    {
+        return $data->medali === null;
+    }
 }

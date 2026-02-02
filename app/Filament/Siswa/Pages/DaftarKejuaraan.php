@@ -219,7 +219,43 @@ class DaftarKejuaraan extends Page
             return;
         }
 
+        if ($this->data['kategori_pertandingan'] === 'kyorugi') {
+    if (! $this->data['berat_badan'] || ! $this->data['tinggi_badan']) {
+        Notification::make()
+            ->title('Data belum lengkap')
+            ->body('Berat dan tinggi badan wajib diisi untuk Kyorugi')
+            ->danger()
+            ->send();
+        return;
+    }
+}
+
+if ($this->data['kategori_pertandingan'] === 'poomsae') {
+    if (! $this->data['tageuk'] || ! $this->data['tingkat_kategori']) {
+        Notification::make()
+            ->title('Data belum lengkap')
+            ->body('Tageuk dan tingkat kategori wajib diisi untuk Poomsae')
+            ->danger()
+            ->send();
+        return;
+    }
+}
+
         $useKuota = DaftarKejuaraanHelper::pakaiKuota($siswa, $this->isPakaiKuota());
+
+     $exists = KejuaraanSiswa::where('kejuaraan_id', $this->selectedEventId)
+    ->where('siswa_id', $siswa->id)
+    ->where('kategori_pertandingan', $this->data['kategori_pertandingan'])
+    ->exists();
+
+if ($exists) {
+    Notification::make()
+        ->title('Sudah Terdaftar ⚠️')
+        ->body('Anda sudah terdaftar pada kategori ini.')
+        ->danger()
+        ->send();
+    return;
+}
 
         KejuaraanSiswa::create([
             'kejuaraan_id'          => $this->selectedEventId,

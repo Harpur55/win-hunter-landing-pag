@@ -159,7 +159,7 @@
                                 </select>
                             </div>
 
-                            {{-- Sabuk --}}
+                           
                             <div>
                                 <label class="block text-sm font-medium mb-1">Sabuk Saat Ini</label>
                                 <input type="text" wire:model="data.sabuk" readonly
