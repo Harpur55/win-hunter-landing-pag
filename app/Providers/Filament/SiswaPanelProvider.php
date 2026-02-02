@@ -33,6 +33,8 @@ class SiswaPanelProvider extends PanelProvider
             
 ->path('siswa')   // ← FIX DI SINI
 ->brandName('Sacti Win Hunter')
+ ->brandLogo(asset('assets/images/download.jpg'))
+  ->brandLogoHeight('3rem') 
            
             ->colors([
                 'primary' => Color::Green,
