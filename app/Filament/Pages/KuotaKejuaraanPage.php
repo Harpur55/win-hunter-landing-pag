@@ -67,7 +67,7 @@ class KuotaKejuaraanPage extends Page implements Tables\Contracts\HasTable
     ->directory('kelas')
     ->visibility('public')
     ->imageEditor()
-    ->maxSize(2048)
+    ->maxSize(7168)
     ->nullable()
     ->preserveFilenames(false)
     ->columnSpanFull(),

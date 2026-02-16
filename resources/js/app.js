@@ -1,8 +1,8 @@
 import './bootstrap';
-// import Swiper from 'swiper';
-// import 'swiper/css';
-// import 'swiper/css/navigation';
-// import 'swiper/css/pagination';
+import Swiper from 'swiper';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 
 
@@ -101,3 +101,17 @@ startAutoScroll();
             const desc = document.getElementById(`desc-${index}`);
             desc.classList.toggle('hidden');
         }
+
+
+  function getActiveGalleryId() {
+  const activeSlide = document.querySelector(
+    '.galerySwiper .swiper-slide-active'
+  );
+
+  if (!activeSlide) {
+    console.warn('Tidak ada slide aktif');
+    return null;
+  }
+
+  return activeSlide.dataset?.id ?? null;
+}
