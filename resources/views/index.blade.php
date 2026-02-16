@@ -174,67 +174,62 @@
             </p>
 
 
-            <div class="swiper galerySwiper">
-                <div class="swiper-wrapper">
-                    @foreach ($galleries as $gallery)
-                        <div class="swiper-slide" data-id="{{ $gallery->id }}">
-                            <div
-                                class="bg-gradient-to-br from-amber-50/70 via-white to-slate-50 rounded-3xl border border-amber-100/40 shadow-md p-4 sm:p-6">
-                                {{-- Judul galeri --}}
-                                <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 text-center">
-                                    {{ $gallery->title }}
-                                </h1>
+          <div class="swiper galerySwiper">
+    <div class="swiper-wrapper">
 
+        @foreach ($galleries as $gallery)
+            <div class="swiper-slide" data-id="{{ $gallery->id }}">
+                <div
+                    class="bg-gradient-to-br from-amber-50/70 via-white to-slate-50 rounded-3xl border border-amber-100/40 shadow-md p-4 sm:p-6">
 
-                                <div>
-                                    @if ($gallery->description)
-                                        <h2
-                                            class="text-xl sm:text-2xl text-gray-600 text-center leading-relaxed max-w-2xl mx-auto mb-9">
-                                            {{ $gallery->description }}
-                                        </h2>
-                                    @endif
+                    {{-- Judul galeri --}}
+                    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 text-center">
+                        {{ $gallery->title }}
+                    </h1>
 
+                    {{-- Deskripsi --}}
+                    @if ($gallery->description)
+                        <h2
+                            class="text-xl sm:text-2xl text-gray-600 text-center leading-relaxed max-w-2xl mx-auto mb-9">
+                            {{ $gallery->description }}
+                        </h2>
+                    @endif
+
+                    {{-- Grid foto --}}
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        @foreach ($gallery->images_url as $image)
+                            <button type="button"
+                                class="relative group overflow-hidden rounded-2xl"
+                                onclick="openGalleryModal('{{ $image }}', '{{ addslashes($gallery->title) }}')">
+
+                                <img src="{{ $image }}"
+                                     alt="{{ $gallery->title }}"
+                                     class="w-full aspect-square object-cover transition duration-500 group-hover:scale-110">
+
+                                <!-- Overlay -->
+                                <div
+                                    class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                    <span class="text-white text-sm font-semibold tracking-wide">
+                                        Preview
+                                    </span>
                                 </div>
 
-                                {{-- Grid foto dalam 1 slide --}}
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                    @foreach ($gallery->images_url as $image)
-                                        <button type="button" class="relative group overflow-hidden rounded-2xl"
-                                            onclick="openGalleryModal('{{ $image }}', '{{ addslashes($gallery->title) }}')">
-                                            <img src="{{ $image }}" alt="{{ $gallery->title }}"
-                                                class="w-full aspect-square object-cover transition duration-500 group-hover:scale-110">
+                            </button>
+                        @endforeach
+                    </div>
 
-
-
-
-
-                                            <!-- Overlay Hover -->
-                                            <div
-                                                class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                                <span class="text-white text-sm font-semibold tracking-wide">
-                                                    Preview
-                                                </span>
-                                            </div>
-                                        </button>
-                                    @endforeach
-
-
-
-                                </div>
-
-
-                            </div>
-                        </div>
                 </div>
-                @endforeach
             </div>
+        @endforeach
 
-            <!-- Navigasi -->
-            <div class="swiper-pagination mt-4"></div>
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
-        </div>
-        </div>
+    </div>
+
+    <!-- Navigasi (WAJIB di dalam .swiper) -->
+    <div class="swiper-pagination mt-4"></div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+</div>
+
     </section>
     <div id="galleryModal"
         class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center transition">
@@ -801,37 +796,52 @@
         });
     });
 </script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    /* ===============================
-       SWIPER
-    =============================== */
-    const swiper = new Swiper('.galerySwiper', {
-        slidesPerView: 1,
-        spaceBetween: 8,
-        loop: false,
+    document.querySelectorAll('.swiper').forEach(function (el) {
 
-        pagination: {
-            el: '.swiper-pagination',
-            clickable: true,
-        },
+        new Swiper(el, {
+            slidesPerView: 1,
+            spaceBetween: 12,
+            loop: false,
+            autoHeight: true,
 
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
+           
+            speed: 800,                 // makin besar makin smooth
+            resistanceRatio: 0.85,      // efek tarik lebih natural
+            touchRatio: 1.2,            // responsif saat swipe
+            longSwipesRatio: 0.2,
+            grabCursor: true,
+            watchSlidesProgress: true,
 
-        on: {
-            init: function () {
-                getActiveGalleryId(this);
+            pagination: {
+                el: el.querySelector('.swiper-pagination'),
+                clickable: true,
             },
-            slideChange: function () {
-                getActiveGalleryId(this);
+
+            navigation: {
+                nextEl: el.querySelector('.swiper-button-next'),
+                prevEl: el.querySelector('.swiper-button-prev'),
+            },
+
+            on: {
+                init: function () {
+                    getActiveGalleryId(this);
+                },
+                slideChange: function () {
+                    getActiveGalleryId(this);
+                }
             }
-        }
+        });
+
     });
 
+
+    /* ===============================
+       GET ACTIVE GALLERY ID
+    =============================== */
     function getActiveGalleryId(swiperInstance) {
         if (!swiperInstance?.slides?.length) return null;
 
@@ -879,6 +889,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+});
+</script>
+
+
+
+
+<script>
 
     /* ===============================
        MOBILE MENU
