@@ -5,7 +5,7 @@
         >
             {{-- Logo + Judul --}}
             <div class="text-center mb-6 mt-3">
-                <img src="{{ asset('assets/images/download.JPG') }}" 
+                <img src="{{ asset('assets/images/download.jpg') }}" 
                     alt="Logo"
                     class="mx-auto h-16 w-16 rounded-full shadow-md">
                 <h2 class="mt-6 text-2xl font-bold text-gray-800 dark:text-gray-100">

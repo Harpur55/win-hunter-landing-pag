@@ -39,14 +39,6 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
 
            
-            
-
-           
-
-
-            // Brand
-            // ->brandLogo(asset('assets/images/download.JPG'))
-            // ->brandLogoHeight('60px')
             ->brandName('Win Hunter Dashboard')
 
             // ->login()
