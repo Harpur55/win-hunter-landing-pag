@@ -6,11 +6,11 @@ use Filament\Pages\Page;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-class ForgetPassword extends Page
+class Forget_Password extends Page
 {
     protected static ?string $title = 'Lupa Password';
 
-    // View Blade
+    
     protected static string $view = 'filament.siswa.pages.auth.forget-password';
 
     // Route langsung tanpa web.php
@@ -19,7 +19,7 @@ class ForgetPassword extends Page
         return '/siswa/forget-password';
     }
 
-    // Properties untuk Livewire
+    
     public $email = '';
     public $password = '';
     public $password_confirmation = '';

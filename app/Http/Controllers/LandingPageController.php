@@ -2,30 +2,32 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Gallery;
 use App\Models\Unit;
 use App\Models\Coach;
 use App\Models\Kelas;
 
-
 class LandingPageController extends Controller
 {
-    
-    public function show()
-{
-     $galleries = Gallery::where('status', 'aktif')
-    ->latest()
-    ->get();
-    $units     = Unit::all();
-    $kelas     = Kelas::all();
+    public function index()
+    {
+        // Hanya gallery yang punya status
+        $galleries = Gallery::query()
+            ->where('status', 'aktif')
+            ->latest()
+            ->get();
 
-    // LOAD relasi documents (INI PENTING)
-    $coaches = Coach::with('documents')->get();
+        // Tidak pakai status karena tidak ada kolomnya
+        $units = Unit::all();
+        $kelas = Kelas::all();
 
-    return view('index', compact('galleries', 'units', 'coaches', 'kelas'));
-}
+        $coaches = Coach::with('documents')->get();
 
-
-    
+        return view('pages.home', compact(
+            'galleries',
+            'units',
+            'coaches',
+            'kelas'
+        ));
+    }
 }

@@ -30,7 +30,12 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\CoachExport;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Forms\Components\FileUpload;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+
+
 
 
 use Filament\Forms\Components\Textarea;
@@ -59,26 +64,43 @@ class CoachResource extends Resource
                 ->schema([
                     // Kolom untuk Foto (memakan 1 kolom)
                 
-  FileUpload::make('foto')
+      FileUpload::make('foto')
     ->label('Foto Coach')
     ->image()
-    ->imageCropAspectRatio('1:1')
-    ->imageResizeTargetWidth(400)
-    ->imageResizeTargetHeight(400)
-    ->directory('coaches')
+    ->directory('coaches') // hanya untuk struktur
     ->disk('public')
     ->visibility('public')
-    ->preserveFilenames(false) // nama file unik
+    ->preserveFilenames(false)
     ->maxSize(2048)
     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
 
-    // 🔥 auto delete foto lama (hanya storage, assets aman)
+    // 🔥 CONVERT KE WEBP (Intervention v3)
+    ->saveUploadedFileUsing(function ($file, $record) {
+
+        $manager = new ImageManager(new Driver());
+
+        $image = $manager
+            ->read($file->getRealPath())
+            ->cover(400, 400) // crop square 400x400
+            ->toWebp(85);
+
+        $fileName = 'coaches/' . Str::uuid() . '.webp';
+
+        Storage::disk('public')->put(
+            $fileName,
+            $image->toString()
+        );
+
+        return $fileName; // simpan ke DB
+    })
+
+    // 🔥 AUTO DELETE FOTO LAMA
     ->deleteUploadedFileUsing(function ($record) {
+
         if (! $record || ! $record->foto) {
             return;
         }
 
-        // jangan sentuh file legacy di assets/
         if (str_starts_with($record->foto, 'assets/')) {
             return;
         }
