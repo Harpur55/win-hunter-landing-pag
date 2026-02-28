@@ -52,44 +52,43 @@
                             </div>
 
                             {{-- Grid Foto Responsive --}}
-                            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                           <div class="grid grid-cols-3 gap-4">
 
-                                @foreach ($gallery->images_url as $image)
-                                    <button type="button"
-                                        onclick="openGalleryModal('{{ $image }}', '{{ addslashes($gallery->title) }}')"
-                                        class="relative overflow-hidden rounded-2xl 
-                                               focus:outline-none focus:ring-2 
-                                               focus:ring-emerald-400">
+    @foreach ($gallery->images_url as $image)
+        <button type="button"
+            onclick="openGalleryModal('{{ $image }}', '{{ addslashes($gallery->title) }}')"
+            class="relative group overflow-hidden rounded-2xl 
+                   focus:outline-none focus:ring-2 
+                   focus:ring-emerald-400">
 
-                                        <picture>
-                                            <source srcset="{{ $image }}" type="image/webp">
+            <picture>
+                <source srcset="{{ $image }}" type="image/webp">
 
-                                            <img src="{{ $image }}"
-                                                alt="{{ $gallery->title }}"
-                                                loading="lazy"
-                                                class="w-full aspect-square object-cover
-                                                       transition duration-500 ease-out
-                                                       group-hover:scale-105">
-                                        </picture>
+                <img src="{{ $image }}"
+                    alt="{{ $gallery->title }}"
+                    loading="lazy"
+                    class="w-full aspect-square object-cover
+                           transition duration-500 ease-out
+                           group-hover:scale-105">
+            </picture>
 
-                                        {{-- Overlay --}}
-                                        <div
-                                            class="absolute inset-0 bg-gradient-to-t 
-                                                   from-black/60 via-black/20 to-transparent
-                                                   opacity-0 group-hover:opacity-100
-                                                   transition duration-300 flex 
-                                                   items-end justify-center p-4">
+            {{-- Overlay --}}
+            <div
+                class="absolute inset-0 bg-gradient-to-t 
+                       from-black/60 via-black/20 to-transparent
+                       opacity-0 group-hover:opacity-100
+                       transition duration-300 flex 
+                       items-end justify-center p-4">
 
-                                            <span class="text-white text-sm font-medium">
-                                                Lihat Foto
-                                            </span>
-                                        </div>
+                <span class="text-white text-sm font-medium">
+                    Lihat Foto
+                </span>
+            </div>
 
-                                    </button>
-                                @endforeach
+        </button>
+    @endforeach
 
-                            </div>
-
+</div>
                         </div>
                     </div>
                 @endforeach
