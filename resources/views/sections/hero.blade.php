@@ -18,8 +18,9 @@
             </div>
             <!-- IMAGE AREA -->
             <div class="w-full md:w-1/2 flex justify-center items-center relative mb-4 md:mb-0 h-auto md:h-full mt-3">
-                <img src="{{ asset('assets/images/new-logo-win-hunter.png') }}" alt="logo Win-Hunter"
-                    class="w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] md:w-[430px] md:h-[500px] md:absolute md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 object-cover" />
+              <img src="{{ asset('assets/images/hero_image.png') }}" 
+     alt="logo Win-Hunter"
+     class="w-full max-w-[450px] h-auto object-contain" />  
             </div>
         </div>
     </section>

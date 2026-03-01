@@ -224,3 +224,17 @@
         }
     }
 </script>
+
+{{-- loading screen --}}
+
+<script>
+    window.addEventListener("load", function () {
+        const loader = document.getElementById("loading-screen");
+
+        loader.classList.add("opacity-0", "transition-opacity", "duration-700");
+
+        setTimeout(() => {
+            loader.style.display = "none";
+        }, 700);
+    });
+</script>
