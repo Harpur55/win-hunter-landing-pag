@@ -54,7 +54,7 @@
                             {{-- Grid Foto Responsive --}}
                            <div class="grid grid-cols-3 gap-4">
 
-    @foreach ($gallery->images_url as $image)
+    @foreach ($gallery->images_url as $image)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
         <button type="button"
             onclick="openGalleryModal('{{ $image }}', '{{ addslashes($gallery->title) }}')"
             class="relative group overflow-hidden rounded-2xl 

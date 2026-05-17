@@ -38,12 +38,12 @@ class AdminPanelProvider extends PanelProvider
             ->registration(\Filament\Pages\Auth\Register::class)
             ->sidebarCollapsibleOnDesktop()
 
-           
             ->brandName('Win Hunter Dashboard')
+
 
             // ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
             ])
 
             // Resources, Pages, Widgets

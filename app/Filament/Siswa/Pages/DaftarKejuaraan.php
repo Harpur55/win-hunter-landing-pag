@@ -213,7 +213,7 @@ class DaftarKejuaraan extends Page
         $siswa = $this->siswa();
         if (! $siswa || ! $this->selectedEventId) return;
 
-        // 🔒 FINAL BACKEND GUARD REGULER
+        
         if ($msg = DaftarKejuaraanHelper::pesanErrorReguler($siswa)) {
             Notification::make()->title('Pendaftaran Ditolak')->body($msg)->danger()->send();
             return;

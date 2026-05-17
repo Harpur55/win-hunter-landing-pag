@@ -11,7 +11,7 @@ class LandingPageController extends Controller
 {
     public function index()
     {
-        // Hanya gallery yang punya status
+        
         $galleries = Gallery::query()
             ->where('status', 'aktif')
             ->latest()

@@ -1,33 +1,67 @@
 <x-filament-panels::page.simple>
-    <div class="flex justify-center">
-        <div
-            class="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-colors duration-300"
-        >
-            {{-- Logo + Judul --}}
-            <div class="text-center mb-6 mt-3">
-                <img src="{{ asset('assets/images/download.jpg') }}" 
-                    alt="Logo"
-                    class="mx-auto h-16 w-16 rounded-full shadow-md">
-                <h2 class="mt-6 text-2xl font-bold text-gray-800 dark:text-gray-100">
-                    Login Dashboard
-                </h2>
-            </div>
 
-            {{-- Form Login --}}
-            <x-filament-panels::form wire:submit="authenticate" class="space-y-4 my-4">
-                {{ $this->form }}
+    <div class="min-h-screen flex items-center justify-center px-4">
 
-                {{-- Tombol login custom full width --}}
-                <div class="mt-4">
-                    <button type="submit" 
-                        class="w-full px-4 py-2 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition">
+        <div class="w-full max-w-md bg-green-800/30">
+
+            {{-- Card --}}
+            <div class="bg-green-800/30 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 sm:p-8 transition-all">
+
+                {{-- Logo + Title --}}
+                <div class="text-center mb-6">
+                    <img 
+                        src="{{ asset('assets/images/download.jpg') }}" 
+                        alt="Logo"
+                        class="mx-auto h-16 w-16 rounded-full border-2 border-white/30 shadow-lg object-cover"
+                    >
+
+                    <h2 class="mt-5 text-2xl sm:text-3xl font-bold text-white">
+                        Login Dashboard
+                    </h2>
+
+                    <p class="mt-2 text-sm text-gray-300">
+                        Silakan login untuk melanjutkan
+                    </p>
+                </div>
+
+                {{-- Form --}}
+                <x-filament-panels::form 
+                    wire:submit="authenticate" 
+                    class="space-y-5"
+                >
+                    {{ $this->form }}
+
+                    {{-- Remember + Forgot --}}
+                    <div class="flex items-center justify-between text-sm">
+                        <label class="flex items-center gap-2 text-gray-300">
+                            <input type="checkbox" class="rounded border-gray-500 bg-gray-700">
+                            Remember me
+                        </label>
+
+                        <a href="#" class="text-primary-400 hover:text-primary-300">
+                            Lupa Password?
+                        </a>
+                    </div>
+
+                    {{-- Button --}}
+                    <button 
+                        type="submit" 
+                        class="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold shadow-lg hover:scale-[1.02] hover:shadow-xl transition-all duration-300"
+                    >
                         Login
                     </button>
-                </div>
-            </x-filament-panels::form>
 
-            {{-- Tambahan bagian register --}}
-            
+                </x-filament-panels::form>
+
+            </div>
+
+            {{-- Footer --}}
+            <p class="mt-6 text-center text-xs text-gray-500">
+                © {{ date('Y') }} Win Hunter
+            </p>
+
         </div>
+
     </div>
+
 </x-filament-panels::page.simple>

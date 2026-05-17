@@ -2,40 +2,348 @@
 
 @config 'tailwind.config.js';
 
-/* body {
-    @apply bg-gradient-to-b from-[#cf581c] via-[#f7f4f2] to-[#efe9e8] text-gray-800;
-} */
+/* =========================================================
+   LIGHT MODE
+========================================================= */
 
-@media (prefers-color-scheme: dark) {
-    body {
-        @apply bg-gradient-to-b from-[#121214] via-[#1c1c1e] to-[#261b23] text-gray-200;
-    }
-}
+/* =========================
+   SIDEBAR
+========================= */
+
 .fi-sidebar {
-    @apply bg-gradient-to-b from-[#1b1b1f] via-[#1f1f25] to-[#2a1f28]
-           text-gray-200 border-r border-amber-900/20 shadow-inner;
+    @apply bg-white border-r border-slate-200 shadow-sm;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
-.fi-sidebar .fi-sidebar-item {
-    @apply hover:bg-amber-600/10 hover:text-amber-300 transition-colors duration-300 rounded-lg;
+.fi-sidebar::-webkit-scrollbar {
+    display: none;
 }
 
-.fi-sidebar .fi-sidebar-item-active {
-    @apply bg-amber-500/20 text-amber-300 font-semibold shadow-md;
+/* =========================
+   HEADER / LOGO
+========================= */
+
+.fi-sidebar-header {
+    @apply bg-white border-b border-slate-100 shadow-none;
 }
 
-.fi-sidebar .fi-sidebar-group-label {
-    @apply text-gray-400 uppercase tracking-wide text-xs mt-4 mb-1;
+/* Logo */
+.fi-logo {
+    @apply text-slate-800 text-xl font-bold tracking-tight;
 }
 
-.fi-sidebar .fi-sidebar-item-icon {
-    @apply text-amber-400;
+/* =========================
+   NAVIGATION
+========================= */
+
+.fi-sidebar-nav {
+    @apply px-3 py-4;
 }
 
-.fi-sidebar .fi-sidebar-item:hover .fi-sidebar-item-icon {
-    @apply text-amber-300;
+/* Menu Item */
+.fi-sidebar-item-button {
+    @apply rounded-xl
+           px-3 py-2.5
+           text-slate-600
+           transition-all duration-200;
 }
-.topbar {
-    @apply bg-gradient-to-b from-[#1b1b1f] via-[#1f1f25] to-[#2a1f28]
-           border-b border-amber-900/20 shadow-inner;
+
+/* Label */
+.fi-sidebar-item-label {
+    @apply text-slate-700 font-medium;
+}
+
+/* Hover */
+.fi-sidebar-item-button:hover {
+    @apply bg-slate-100 text-slate-900;
+}
+
+/* Active */
+.fi-sidebar-item-active .fi-sidebar-item-button {
+    @apply bg-gradient-to-r
+           from-blue-500
+           to-indigo-600
+           text-white
+           shadow-md;
+}
+
+/* =========================
+   ICON
+========================= */
+
+.fi-sidebar-item-icon {
+    @apply text-slate-500 transition-colors;
+}
+
+.fi-sidebar-item-button:hover .fi-sidebar-item-icon {
+    @apply text-slate-700;
+}
+
+.fi-sidebar-item-active .fi-sidebar-item-icon {
+    @apply text-white;
+}
+
+/* =========================
+   GROUP LABEL
+========================= */
+
+.fi-sidebar-group-label {
+    @apply inline-flex items-center
+           px-3 py-1.5 mb-3
+           rounded-lg
+           bg-slate-100
+           text-slate-500
+           uppercase
+           tracking-[0.2em]
+           text-[11px]
+           font-bold
+           border border-slate-200;
+}
+
+/* =========================
+   TOPBAR
+========================= */
+
+.fi-topbar,
+.fi-topbar nav {
+    @apply bg-white border-b border-slate-200 shadow-sm;
+}
+
+/* =========================
+   MAIN CONTENT
+========================= */
+
+.fi-main {
+    @apply bg-slate-100 text-slate-800;
+}
+
+/* =========================
+   CARD / WIDGET
+========================= */
+
+.fi-section,
+.fi-card,
+.fi-widget,
+.fi-ta-table {
+    @apply bg-white border border-slate-200 rounded-2xl shadow-sm;
+}
+
+/* =========================
+   INPUT
+========================= */
+
+.fi-input-wrp {
+    @apply bg-white border-slate-300 rounded-xl;
+}
+
+.fi-input {
+    @apply text-slate-800 placeholder:text-slate-400;
+}
+
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+.dark .fi-sidebar {
+    @apply bg-slate-900 border-r border-slate-800 shadow-none;
+}
+
+.dark .fi-sidebar-header {
+    @apply bg-slate-900 border-b border-slate-800;
+}
+
+.dark .fi-logo {
+    @apply text-white;
+}
+
+.dark .fi-sidebar-item-button {
+    @apply text-slate-300;
+}
+
+.dark .fi-sidebar-item-label {
+    @apply text-slate-300;
+}
+
+.dark .fi-sidebar-item-button:hover {
+    @apply bg-slate-800 text-white;
+}
+
+.dark .fi-sidebar-item-active .fi-sidebar-item-button {
+    @apply bg-gradient-to-r
+           from-blue-500
+           to-indigo-600
+           text-white
+           shadow-lg;
+}
+
+.dark .fi-sidebar-item-icon {
+    @apply text-slate-400;
+}
+
+.dark .fi-sidebar-item-button:hover .fi-sidebar-item-icon {
+    @apply text-white;
+}
+
+.dark .fi-sidebar-item-active .fi-sidebar-item-icon {
+    @apply text-white;
+}
+
+.dark .fi-sidebar-group-label {
+    @apply bg-slate-800
+           text-slate-400
+           border border-slate-700;
+}
+
+.dark .fi-topbar,
+.dark .fi-topbar nav {
+    @apply bg-slate-900 border-b border-slate-800;
+}
+
+.dark .fi-main {
+    @apply bg-slate-950 text-white;
+}
+
+.dark .fi-section,
+.dark .fi-card,
+.dark .fi-widget,
+.dark .fi-ta-table {
+    @apply bg-slate-900 border border-slate-800;
+}
+
+/* =========================
+   REMOVE SIDEBAR BORDER
+========================= */
+
+.fi-sidebar,
+.fi-sidebar-header,
+.fi-page-sidebar,
+.fi-page-sub-navigation-sidebar {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.fi-sidebar,
+.fi-sidebar-nav,
+.fi-main-sidebar {
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE & Edge */
+}
+
+.fi-sidebar::-webkit-scrollbar,
+.fi-sidebar-nav::-webkit-scrollbar,
+.fi-main-sidebar::-webkit-scrollbar {
+    display: none !important; /* Chrome/Safari */
+    width: 0;
+    height: 0;
+}
+
+.fi-section-content-ctn{
+    @apply bg-blue-50
+           border border-blue-200
+           rounded-lg
+           shadow-sm
+           text-slate-800
+           dark:bg-slate-900
+           dark:text-slate-100;
+}
+
+.dark .fi-input-wrp {
+    @apply bg-slate-800 border-slate-700;
+}
+
+.dark .fi-input {
+    @apply text-white placeholder:text-slate-400;
+}
+
+
+/* * =========================
+   TABLE
+========================= */ 
+
+.fi-ta-table {
+    @apply w-full
+           table-auto
+           rounded-2xl
+           overflow-hidden
+           border border-slate-200
+           dark:border-slate-800
+           bg-white
+           dark:bg-slate-900
+           text-slate-700
+           dark:text-slate-200
+           divide-y divide-slate-100
+           dark:divide-slate-800
+           shadow-sm;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.fi-ta-header-cell {
+    @apply bg-slate-50
+           dark:bg-slate-800/50
+           text-slate-500
+           dark:text-slate-400
+           uppercase
+           tracking-wide
+           text-[11px]
+           font-semibold
+           px-3 py-3;
+}
+
+/* =========================
+   ROW
+========================= */
+
+.fi-ta-row {
+    @apply transition-colors duration-200;
+}
+
+/* Hover */
+.fi-ta-row:hover {
+    @apply bg-slate-50 dark:bg-slate-800/40;
+}
+
+/* =========================
+   CELL
+========================= */
+
+.fi-ta-cell {
+    @apply px-3 py-3
+           text-[13px]
+           leading-relaxed;
+}
+
+/* STAT CARD */
+.fi-wi-stats-overview-stat {
+    @apply rounded-2xl
+           border border-slate-200
+           dark:border-slate-800
+           shadow-sm
+           hover:shadow-lg
+           transition-all duration-300;
+}
+
+/* VALUE */
+.fi-wi-stats-overview-stat-value {
+    @apply text-3xl font-bold
+           text-slate-800
+           dark:text-white;
+}
+
+/* LABEL */
+.fi-wi-stats-overview-stat-label {
+    @apply text-sm font-medium
+           text-slate-500
+           dark:text-slate-400;
+}
+
+/* DESCRIPTION */
+.fi-wi-stats-overview-stat-description {
+    @apply text-xs
+           text-blue-600
+           dark:text-blue-400;
 }

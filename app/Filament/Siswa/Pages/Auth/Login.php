@@ -24,10 +24,6 @@ class Login extends BaseLogin
         return parent::getRedirectUrl();
     }
 
-    /**
-     * 🔐 INI HOOK YANG BENAR DI FILAMENT
-     * Akan dipanggil otomatis saat login
-     */
     protected function authenticateUser(): void
     {
         $this->validateCaptcha(); // ⬅️ captcha dicek di sini

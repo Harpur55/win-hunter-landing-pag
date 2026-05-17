@@ -110,33 +110,146 @@ class DashboardStats extends BaseWidget
             ");
 
         return [
-            Stat::make('Jumlah Siswa', Siswa::count())
-                ->description('Total siswa terdaftar')
-                ->color('primary'),
 
-            Stat::make('Jumlah Pelatih', Coach::count())
-                ->description('Total pelatih aktif')
-                ->color('success'),
+       Stat::make('Jumlah Siswa', Siswa::count())
+    ->description('Total siswa terdaftar')
+    ->descriptionIcon('heroicon-m-user-group')
+    ->color('primary')
+    ->extraAttributes([
+        'class' => '
+            rounded-2xl
+            border border-blue-200/60 dark:border-slate-800
 
-            Stat::make('Jumlah Unit', Unit::count())
-                ->description('Unit latihan terdaftar')
-                ->color('warning'),
+            bg-gradient-to-br
+            from-blue-50 via-sky-50 to-indigo-100
 
-            Stat::make('Event Ujian Akan Datang', $eventName)
-                ->description("Jumlah Peserta: {$eventParticipants}")
-                ->color('info'),
+            dark:from-slate-900
+            dark:via-slate-900
+            dark:to-slate-800
 
-            Stat::make('Kejuaraan Akan Datang', strtoupper($championshipName))
-                ->description(new HtmlString("
-                    Jumlah Peserta : {$championshipParticipants}<br>
-                    📅 {$championshipDate}<br>
-                    🥇 {$gold} 🥈 {$silver} 🥉 {$bronze}
-                "))
-                ->color('info'),
+            shadow-sm hover:shadow-xl
+            transition-all duration-300
+            hover:-translate-y-1
+        ',
+    ]),
 
-            Stat::make('Best Atlet', strtoupper($this->bestAtletName))
-                ->description($bestAtletDescription)
-                ->color('primary'),
+Stat::make('Jumlah Pelatih', Coach::count())
+    ->description('Total pelatih aktif')
+    ->descriptionIcon('heroicon-m-academic-cap')
+    ->color('success')
+    ->extraAttributes([
+        'class' => '
+            rounded-2xl
+            border border-emerald-200/60 dark:border-slate-800
+
+            bg-gradient-to-br
+            from-emerald-50 via-green-50 to-lime-100
+
+            dark:from-slate-900
+            dark:via-slate-900
+            dark:to-emerald-950/40
+
+            shadow-sm hover:shadow-xl
+            transition-all duration-300
+            hover:-translate-y-1
+        ',
+    ]),
+
+Stat::make('Jumlah Unit', Unit::count())
+    ->description('Unit latihan terdaftar')
+    ->descriptionIcon('heroicon-m-building-office-2')
+    ->color('warning')
+    ->extraAttributes([
+        'class' => '
+            rounded-2xl
+            border border-amber-200/60 dark:border-slate-800
+
+            bg-gradient-to-br
+            from-amber-50 via-yellow-50 to-orange-100
+
+            dark:from-slate-900
+            dark:via-slate-900
+            dark:to-amber-950/30
+
+            shadow-sm hover:shadow-xl
+            transition-all duration-300
+            hover:-translate-y-1
+        ',
+    ]),
+
+Stat::make('Event Ujian Akan Datang', $eventName)
+    ->description("Jumlah Peserta: {$eventParticipants}")
+    ->descriptionIcon('heroicon-m-calendar-days')
+    ->color('info')
+    ->extraAttributes([
+        'class' => '
+            rounded-2xl
+            border border-cyan-200/60 dark:border-slate-800
+
+            bg-gradient-to-br
+            from-cyan-50 via-sky-50 to-blue-100
+
+            dark:from-slate-900
+            dark:via-slate-900
+            dark:to-cyan-950/30
+
+            shadow-sm hover:shadow-xl
+            transition-all duration-300
+            hover:-translate-y-1
+        ',
+    ]),
+
+Stat::make('Kejuaraan Akan Datang', strtoupper($championshipName))
+    ->description(new HtmlString("
+        Jumlah Peserta : {$championshipParticipants}<br>
+        📅 {$championshipDate}<br>
+        🥇 {$gold} 🥈 {$silver} 🥉 {$bronze}
+    "))
+    ->descriptionIcon('heroicon-m-trophy')
+    ->color('info')
+    ->extraAttributes([
+        'class' => '
+            rounded-2xl
+            border border-purple-200/60 dark:border-slate-800
+
+            bg-gradient-to-br
+            from-purple-50 via-fuchsia-50 to-pink-100
+
+            dark:from-slate-900
+            dark:via-slate-900
+            dark:to-purple-950/30
+
+            shadow-sm hover:shadow-xl
+            transition-all duration-300
+            hover:-translate-y-1
+        ',
+    ]),
+
+Stat::make('Best Atlet', strtoupper($this->bestAtletName))
+    ->description($bestAtletDescription)
+    ->descriptionIcon('heroicon-m-star')
+    ->color('primary')
+    ->extraAttributes([
+        'class' => '
+            rounded-2xl
+            border border-rose-200/60 dark:border-slate-800
+
+            bg-gradient-to-br
+            from-rose-50 via-pink-50 to-red-100
+
+            dark:from-slate-900
+            dark:via-slate-900
+            dark:to-rose-950/30
+
+            shadow-sm hover:shadow-xl
+            transition-all duration-300
+            hover:-translate-y-1
+
+            ring-1 ring-rose-100/50
+            dark:ring-rose-900/20
+        ',
+    ]),
+    
         ];
     }
 }
